@@ -1,21 +1,21 @@
-import { Request } from "express";
-import HttpHandler, { HttpVerbs } from "../flit/HttpHandler";
+import { Schemas } from '../../generated/schemas/Schemas';
+import AppContext from "../AppContext";
+import { GetHandlerFn, RouteProps } from "../framework/HttpHandler";
+import GetContainersRes from "../schemas/GetContainersRes";
 
+export const Route: RouteProps<Schemas> = {
+    path: "/container",
+    resSchema: "GetContainersRes"
+};
 
-class GetContainers implements HttpHandler {
-    method = HttpVerbs.get;
-    path = "/";
+const GetContainers: GetHandlerFn<AppContext, GetContainersRes> = async ({ ctx }) => {
+    const { containerRepo } = ctx.repos;
 
-    async handleHttp(_req: Request) {
-        return {
-            reqId: "1",
-            status: 200,
-            data: {
-                msg: "Hello world"
-            }
-        }
-    }
-}
+    const containers = await containerRepo.findAll({});
 
+    return {
+        data: { containers }
+    };
+};
 
 export default GetContainers;

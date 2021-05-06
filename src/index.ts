@@ -1,4 +1,6 @@
-import Flit from "./flit/Flit";
+import AppContext from "./AppContext";
+import Flit from "./framework/Flit";
+import { HttpMethod } from "./framework/HttpHandler";
 
 
 
@@ -9,8 +11,13 @@ import Flit from "./flit/Flit";
  * could not be started.
  */
 (async function () {
-    new Flit({
+    new Flit<AppContext>({
         name: "Test app",
+        db: {
+            uri: "mongodb://localhost:27017/test-db"
+        },
+        debug: false,
+        // mockApi: [{ method: HttpMethod.get, path: "/user/:id" }]
     }).start();
 })();
 

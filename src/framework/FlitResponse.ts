@@ -3,7 +3,7 @@ interface FlitResponse<T = any> {
      * Unique id of request.
      * Used to track request in logs.
      */
-    reqId: string; // TODO: Is this needed
+    reqId?: string;
 
     /**
      * HTTP status code, default to 200.
@@ -29,8 +29,8 @@ interface FlitResponse<T = any> {
      */
     error?: {
         id: string;
-        detail: string;
-        message?: string;
+        title: string;
+        detail?: string;
     }
 }
 
