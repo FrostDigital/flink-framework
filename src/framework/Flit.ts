@@ -25,7 +25,7 @@ interface FlitOptions {
      * If to enable API documentation based on JSON schemas.
      * @default true
      */
-    enableApiDocs?: boolean;
+    enableApiDocs?: boolean; // TODO 
 
     /**
      * HTTP port
@@ -40,11 +40,6 @@ interface FlitOptions {
     db?: {
         uri: string;
     };
-
-    /**
-     * Optional URL to mongo
-     */
-    dbUrl?: string;
 
     /**
      * Optional debug options, used to log and debug Flit internals.
@@ -268,9 +263,9 @@ class Flit<C extends FlitContext> {
             lastHash = await fsPromises.readFile(schemasCacheHashFile, "utf-8");
         } catch (err) { }
 
-        if (lastHash === hash && 1 > 2) {
+        if (lastHash === hash && 1 > 2 /* Remove this later on! */) {
+            // TODO: This is not implemented beyond checking hash 
             log.info("Schema has not changed, using cached schemas");
-            // TODO
             return;
         } else {
             fsPromises.writeFile(schemasCacheHashFile, hash);
