@@ -1,6 +1,11 @@
 import { Request } from "express";
 import FlitResponse from "./FlitResponse";
 import { HttpMethod } from "./HttpHandler";
+import { promises as fsPromises } from "fs";
+import { join } from "path";
+
+export const handlersPath = join("src", "handlers");
+export const schemasPath = join("src", "schemas");
 
 export function isRouteMatch(req: Request, routes: { method: HttpMethod, path: string }[]) {
     const match = routes.find(({ method, path }) => {
@@ -14,4 +19,21 @@ export function isRouteMatch(req: Request, routes: { method: HttpMethod, path: s
 
 export function isError(message: FlitResponse) {
     return message.status && message.status > 399;
+}
+
+export async function getHandlerFiles() {
+    try {
+        return await fsPromises.readdir(handlersPath);
+    } catch (err) {
+        return [];
+    }
+}
+
+export async function getSchemaFiles() {
+    try {
+        return await fsPromises.readdir(schemasPath);
+    } catch (err) {
+        return [];
+    }
+
 }

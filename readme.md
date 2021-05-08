@@ -6,6 +6,8 @@ Convention based - will make assumptions depending on where in folder structure 
 
 Typescript first.
 
+Plugability - build plugins which can be reused and extend functionality of core Flit.
+
 ## Structure
 
 Folder structure of an object is of importance since Flit will scan it an

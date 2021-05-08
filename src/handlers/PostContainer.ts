@@ -1,5 +1,5 @@
 import AppContext from "../AppContext";
-import { HandlerFn, HttpMethod, RouteProps } from "../framework/HttpHandler";
+import { Handler, HttpMethod, RouteProps } from "../framework/HttpHandler";
 import Container from "../schemas/Container";
 import PostContainersReq from "../schemas/PostContainersReq";
 
@@ -8,7 +8,7 @@ export const Route: RouteProps = {
     method: HttpMethod.post,
 }
 
-const PostContainers: HandlerFn<AppContext, PostContainersReq, Container> = async ({ req, ctx }) => {
+const PostContainers: Handler<AppContext, PostContainersReq, Container> = async ({ req, ctx }) => {
     const createdContainer = await ctx.repos.containerRepo.create(req.body);
 
     return {

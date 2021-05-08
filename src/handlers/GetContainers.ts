@@ -1,14 +1,12 @@
-import { Schemas } from '../../generated/schemas/Schemas';
 import AppContext from "../AppContext";
-import { GetHandlerFn, RouteProps } from "../framework/HttpHandler";
+import { GetHandler, RouteProps } from "../framework/HttpHandler";
 import GetContainersRes from "../schemas/GetContainersRes";
 
-export const Route: RouteProps<Schemas> = {
+export const Route: RouteProps = {
     path: "/container",
-    resSchema: "GetContainersRes"
 };
 
-const GetContainers: GetHandlerFn<AppContext, GetContainersRes> = async ({ ctx }) => {
+const GetContainers: GetHandler<AppContext, GetContainersRes> = async ({ ctx }) => {
     const { containerRepo } = ctx.repos;
 
     const containers = await containerRepo.findAll({});
