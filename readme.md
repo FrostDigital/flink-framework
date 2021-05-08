@@ -6,6 +6,8 @@ Convention based - will make assumptions depending on where in folder structure 
 
 Typescript first.
 
+Plugability - build plugins which can be reused and extend functionality of core Flit.
+
 ## Structure
 
 Flink will make assumption on what your modules are and how they should be

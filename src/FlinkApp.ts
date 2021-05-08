@@ -1,21 +1,28 @@
+import Ajv from "ajv";
+import addFormats from "ajv-formats";
 import express, { Express } from "express";
 import { promises as fsPromises } from "fs";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
-import { join, resolve } from "path";
+import { join, resolve, sep } from "path";
+import { SourceFile } from 'typescript';
 import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
 import { FlinkContext } from "./FlinkContext";
+import { Handler, HttpMethod, RouteProps } from "./FlinkHttpHandler";
 import { FlinkRepo } from "./FlinkRepo";
-import { HandlerFn, HttpMethod, RouteProps } from "./FlinkHttpHandler";
-import folderHash from "folder-hash";
-import Ajv from "ajv";
-import { isError, isRouteMatch } from "./utils";
+import { getSchemaFromHandlerSourceFile } from "./FlinkTsUtils";
 import generateMockData from "./mock-data-generator";
+import {
+    getHandlerFiles,
+    getSchemaFiles,
+    handlersPath, isError, isRouteMatch, schemasPath
+} from "./utils";
+
 
 const ajv = new Ajv();
-
-export interface FlinkOptions {
+addFormats(ajv);
+interface FlinkOptions {
     /**
      * Name of application, will only show in logs and in HTTP header.
      */
@@ -25,7 +32,7 @@ export interface FlinkOptions {
      * If to enable API documentation based on JSON schemas.
      * @default true
      */
-    enableApiDocs?: boolean; // TODO 
+    enableApiDocs?: boolean; // TODO
 
     /**
      * HTTP port
@@ -55,7 +62,15 @@ export interface FlinkOptions {
      * Either set `true` to mock all or provide array with routes that
      * should be mocked.
      */
-    mockApi?: true | { method: HttpMethod, path: string }[]
+    mockApi?: true | { method: HttpMethod; path: string }[];
+
+    /**
+     * Callback invoked after database was connected
+     * end before application starts.
+     *
+     * A good place to for example ensure database indexes.
+     */
+    onDbConnection?: (db: Db) => Promise<void>;
 }
 
 export class FlinkApp<C extends FlinkContext> {
@@ -69,6 +84,8 @@ export class FlinkApp<C extends FlinkContext> {
     db?: Db;
     debug = false;
     mockApiOpts: FlinkOptions["mockApi"];
+    onDbConnection?: FlinkOptions["onDbConnection"];
+    private assumedSchemas = new Map<string, { reqSchema?: string, resSchema?: string }>();
 
     constructor(opts: FlinkOptions) {
         this.name = opts.name;
@@ -78,6 +95,7 @@ export class FlinkApp<C extends FlinkContext> {
         this.dbOpts = opts.db;
         this.debug = !!opts.debug;
         this.mockApiOpts = opts.mockApi;
+        this.onDbConnection = opts.onDbConnection;
     }
 
     async start() {
@@ -137,8 +155,7 @@ export class FlinkApp<C extends FlinkContext> {
     }
 
     async registerHandlers() {
-        const handlers = await fsPromises.readdir("src/handlers");
-
+        const handlers = await getHandlerFiles();
         const app = this.app!;
 
         for (const handler of handlers) {
@@ -147,7 +164,7 @@ export class FlinkApp<C extends FlinkContext> {
                     "../handlers/" + handler
                 );
 
-                const handlerFn: HandlerFn<C> = oHandlerFn;
+                const handlerFn: Handler<C> = oHandlerFn;
                 const props: RouteProps = Route;
 
                 if (!props) {
@@ -161,16 +178,23 @@ export class FlinkApp<C extends FlinkContext> {
                     );
                 }
 
+                if (this.assumedSchemas.has(handler)) {
+                    const schemasFromGeneric = this.assumedSchemas.get(handler);
+                    props.reqSchema = props.reqSchema || schemasFromGeneric?.reqSchema;
+                    props.resSchema = props.resSchema || schemasFromGeneric?.resSchema;
+                }
+
                 const method = this.getHttpMethodForHandler(props, handler);
 
                 if (method) {
                     app[method](props.path, async (req, res) => {
-
                         if (props.reqSchema) {
                             const schema = this.schemas[props.reqSchema];
 
                             if (!schema) {
-                                log.error(`Missing request schema ${props.reqSchema} for handler ${handler} - skipping validation`);
+                                log.error(
+                                    `Missing request schema ${props.reqSchema} for handler ${handler} - skipping validation`
+                                );
                             } else {
                                 const validate = ajv.compile(schema);
                                 const valid = validate(req.body);
@@ -182,25 +206,30 @@ export class FlinkApp<C extends FlinkContext> {
                                         error: {
                                             id: v4(),
                                             title: "Bad request",
-                                            detail: `Schema ${props.reqSchema} did not validate ${JSON.stringify(validate.errors)}`
-                                        }
+                                            detail: `Schema ${props.reqSchema
+                                                } did not validate ${JSON.stringify(validate.errors)}`,
+                                        },
                                     });
                                 }
                             }
                         }
 
                         if (this.mockApiOpts && props.resSchema) {
-                            const shouldMock = !Array.isArray(this.mockApiOpts) || isRouteMatch(req, this.mockApiOpts);
+                            const shouldMock =
+                                !Array.isArray(this.mockApiOpts) ||
+                                isRouteMatch(req, this.mockApiOpts);
 
                             if (shouldMock) {
-                                log.warn(`Mock response for ${req.method.toUpperCase()} ${req.path}`);
+                                log.warn(
+                                    `Mock response for ${req.method.toUpperCase()} ${req.path}`
+                                );
                                 const schema = this.getSchema(props.resSchema);
 
                                 if (schema) {
                                     const data = generateMockData(schema);
                                     res.status(200).json({
                                         status: 200,
-                                        data
+                                        data,
                                     });
                                     return;
                                 }
@@ -214,13 +243,17 @@ export class FlinkApp<C extends FlinkContext> {
                             const schema = this.schemas[props.resSchema];
 
                             if (!schema) {
-                                log.error(`Missing response schema ${props.resSchema} for handler ${handler} - skipping validation`);
+                                log.error(
+                                    `Missing response schema ${props.resSchema} for handler ${handler} - skipping validation`
+                                );
                             } else {
                                 const validate = ajv.compile(schema);
                                 const valid = validate(handlerRes.data);
 
                                 if (!valid) {
-                                    log.warn(`Bad response ${JSON.stringify(validate.errors, null, 2)}`);
+                                    log.warn(
+                                        `Bad response ${JSON.stringify(validate.errors, null, 2)}`
+                                    );
                                     log.debug(JSON.stringify(schema, null, 2));
 
                                     return res.status(500).json({
@@ -228,8 +261,9 @@ export class FlinkApp<C extends FlinkContext> {
                                         error: {
                                             id: v4(),
                                             title: "Bad response",
-                                            detail: `Schema ${props.resSchema} did not validate ${JSON.stringify(validate.errors)}`
-                                        }
+                                            detail: `Schema ${props.resSchema
+                                                } did not validate ${JSON.stringify(validate.errors)}`,
+                                        },
                                     });
                                 }
                             }
@@ -238,10 +272,7 @@ export class FlinkApp<C extends FlinkContext> {
                         res.status(handlerRes.status || 200).json(handlerRes);
                     });
 
-                    log.info(
-                        `Registered handler ${handler} - ${method.toUpperCase()} ${props.path
-                        }`
-                    );
+                    log.info(`${handler}: ${method.toUpperCase()} ${props.path}`);
                 }
             }
         }
@@ -256,61 +287,104 @@ export class FlinkApp<C extends FlinkContext> {
      * as long as the schema dir has not altered since last run.
      */
     async registerSchemas() {
-        const schemasPath = join("src", "schemas");
-        const schemasCache = join("generated", "schemas");
-        const schemasCacheHashFile = join(schemasCache, ".hash");
+        // const schemasCache = join("generated", "schemas");
+        // const schemasCacheHashFile = join(schemasCache, ".hash");
 
-        const { hash } = await folderHash.hashElement(schemasPath);
-        let lastHash = "";
+        // const { hash } = await folderHash.hashElement(schemasPath);
+        // let lastHash = "";
 
-        try {
-            lastHash = await fsPromises.readFile(schemasCacheHashFile, "utf-8");
-        } catch (err) { }
+        // try {
+        //     lastHash = await fsPromises.readFile(schemasCacheHashFile, "utf-8");
+        // } catch (err) { }
 
-        if (lastHash === hash && 1 > 2 /* Remove this later on! */) {
-            // TODO: This is not implemented beyond checking hash 
-            log.info("Schema has not changed, using cached schemas");
-            return;
-        } else {
-            fsPromises.writeFile(schemasCacheHashFile, hash);
+        // if (lastHash === hash && 1 > 2 /* Remove this later on! */) {
+        //     // TODO: This is not implemented beyond checking hash
+        //     log.info("Schema has not changed, using cached schemas");
+        //     return;
+        // } else {
+        // fsPromises.writeFile(schemasCacheHashFile, hash);
 
-            const schemas = await fsPromises.readdir(schemasPath);
+        const schemas = await getSchemaFiles();
+        const handlers = await getHandlerFiles();
 
-            const program = TJS.getProgramFromFiles(
-                schemas.map((filename) => resolve(join(schemasPath, filename))),
-                {}
-            );
+        const program = TJS.getProgramFromFiles(
+            [
+                ...schemas.map((filename) => resolve(join(schemasPath, filename))),
+                ...handlers.map((filename) =>
+                    resolve(join(handlersPath, filename))
+                ),
+            ],
+            {}
+        );
 
-            const settings: TJS.PartialArgs = {
-                required: true,
-                ref: false,
-                noExtraProps: true,
-            };
+        const settings: TJS.PartialArgs = {
+            required: true,
+            ref: false,
+            noExtraProps: true,
+        };
 
-            const generatedSchemas = TJS.generateSchema(program, "*", settings);
+        // Group source files
+        const { schemaFiles, handlerFiles } = program
+            .getSourceFiles().reduce<{ schemaFiles: SourceFile[], handlerFiles: SourceFile[] }>((prev, file) => {
 
-            if (generatedSchemas && generatedSchemas.definitions) {
-                await fsPromises.mkdir(join("generated", "schemas"), {
-                    recursive: true,
-                });
+                if (file.fileName.includes(schemasPath)) {
+                    prev.schemaFiles = [...prev.schemaFiles, file];
+                } else if (file.fileName.includes(handlersPath)) {
+                    prev.handlerFiles = [...prev.handlerFiles, file];
+                }
 
-                const schemaNames = Object.keys(generatedSchemas.definitions);
+                return prev;
+            }, {
+                schemaFiles: [], handlerFiles: []
+            });
 
-                await fsPromises.writeFile(
-                    join("generated", "schemas", "Schemas.ts"),
-                    `export type Schemas = ${schemaNames
-                        .map((sn) => `"${sn}"`)
-                        .join(" | ")};`
-                );
 
-                log.info(`Generated ${schemaNames.length} schemas`);
-
-                this.schemas = generatedSchemas.definitions as {
-                    [key: string]: TJS.Definition;
-                };
-            }
+        /**
+         * Iterate thru handler source files and derive schemas that are set as 
+         * typ params, such as `const FooHandler: Handler<AppCtx, ReqSchema, ResSchema> = ...`
+         * 
+         * These schemas will be used (if any) unless a schema is specifically set in handlers
+         * exported Route props.
+         */
+        for (const handlerFile of handlerFiles) {
+            const [, filename] = handlerFile.fileName.split(handlersPath + sep);
+            this.assumedSchemas.set(filename, await getSchemaFromHandlerSourceFile(program, handlerFile));
         }
+
+        const onlySchemaFilenames = schemaFiles.map((sf) => sf.fileName);
+
+        // log.debug("Schema files:\n" + onlySchemaFilenames.join("\n"));
+
+        const generatedSchemas = TJS.generateSchema(
+            program,
+            "*",
+            settings,
+            onlySchemaFilenames
+        );
+
+        if (generatedSchemas && generatedSchemas.definitions) {
+            await fsPromises.mkdir(join("generated", "schemas"), {
+                recursive: true,
+            });
+
+            const schemaNames = Object.keys(generatedSchemas.definitions);
+
+            // await fsPromises.writeFile(
+            //     join("generated", "schemas", "Schemas.ts"),
+            //     `export type Schemas = ${schemaNames
+            //         .map((sn) => `"${sn}"`)
+            //         .join(" | ")};`
+            // );
+
+            log.info(`Generated ${schemaNames.length} schemas`);
+
+            this.schemas = generatedSchemas.definitions as {
+                [key: string]: TJS.Definition;
+            };
+        }
+        // }
     }
+
 
     /**
      * Get http method from props or convention based on file name
@@ -366,9 +440,13 @@ export class FlinkApp<C extends FlinkContext> {
         });
     }
 
+    /**
+     * Connects to database.
+     */
     private async initDb() {
         if (this.dbOpts) {
             try {
+                log.debug("Connecting to db");
                 const client = await mongodb.connect(this.dbOpts.uri, {
                     useUnifiedTopology: true,
                 });
@@ -376,6 +454,10 @@ export class FlinkApp<C extends FlinkContext> {
             } catch (err) {
                 log.error("Failed to connect to db: " + err);
                 process.exit(1);
+            }
+
+            if (this.onDbConnection) {
+                await this.onDbConnection(this.db);
             }
         }
     }
@@ -395,7 +477,7 @@ export class FlinkApp<C extends FlinkContext> {
         const schema = this.schemas[schemaName];
 
         if (!schema) {
-            log.error(`Missing schema '${schemaName}'`)
+            log.error(`Missing schema '${schemaName}'`);
         }
 
         return schema;
