@@ -33,7 +33,7 @@ export type FlitSchema = "none";
  * Http handler function that handlers implements in order to
  * handle HTTP requests and return a JSON response.
  */
-export type HandlerFn<Ctx extends FlitContext, ReqSchema = any, ResSchema = any, P = Params, Q = Query> = (props: { req: FlitRequest<ReqSchema, P, Q>, ctx: Ctx }) => Promise<FlitResponse<ResSchema>>;
+export type Handler<Ctx extends FlitContext, ReqSchema = any, ResSchema = any, P = Params, Q = Query> = (props: { req: FlitRequest<ReqSchema, P, Q>, ctx: Ctx }) => Promise<FlitResponse<ResSchema>>;
 
 
 /**
@@ -42,5 +42,5 @@ export type HandlerFn<Ctx extends FlitContext, ReqSchema = any, ResSchema = any,
  * 
  * Just syntactic sugar on top op `HandlerFn`
  */
-export type GetHandlerFn<Ctx extends FlitContext, ResSchema = any, P = Params, Q = Query> = HandlerFn<Ctx, any, ResSchema, P, Q>;
+export type GetHandler<Ctx extends FlitContext, ResSchema = any, P = Params, Q = Query> = Handler<Ctx, any, ResSchema, P, Q>;
 

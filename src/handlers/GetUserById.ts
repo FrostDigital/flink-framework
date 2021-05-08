@@ -1,10 +1,9 @@
-import { Schemas } from '../../generated/schemas/Schemas';
 import AppContext from "../AppContext";
 import { notFound } from '../framework/FlitErrors';
-import { GetHandlerFn, RouteProps } from "../framework/HttpHandler";
+import { GetHandler, RouteProps } from "../framework/HttpHandler";
 import User from '../schemas/User';
 
-export const Route: RouteProps<Schemas> = {
+export const Route: RouteProps = {
     path: "/user/:id",
     resSchema: "User"
 }
@@ -13,7 +12,7 @@ type Params = {
     id: string;
 }
 
-const GetUser: GetHandlerFn<AppContext, User, Params> = async ({ req, ctx }) => {
+const GetUser: GetHandler<AppContext, User, Params> = async ({ req, ctx }) => {
     const { userRepo } = ctx.repos;
 
     const user = await userRepo.getBydId(req.params.id);

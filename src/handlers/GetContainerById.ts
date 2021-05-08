@@ -1,19 +1,17 @@
-import { Schemas } from "../../generated/schemas/Schemas";
 import AppContext from "../AppContext";
 import { notFound } from "../framework/FlitErrors";
-import { GetHandlerFn, RouteProps } from "../framework/HttpHandler";
+import { GetHandler, RouteProps } from "../framework/HttpHandler";
 import Container from "../schemas/Container";
 
-export const Route: RouteProps<Schemas> = {
+export const Route: RouteProps = {
     path: "/container/:id",
-    resSchema: "Container"
 }
 
 type Params = {
     id: string;
 }
 
-const GetContainersById: GetHandlerFn<AppContext, Container, Params> = async ({ req, ctx }) => {
+const GetContainersById: GetHandler<AppContext, Container, Params> = async ({ req, ctx }) => {
     const container = await ctx.repos.containerRepo.getBydId(req.params.id);
 
     if (!container) {
