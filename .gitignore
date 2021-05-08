@@ -31,3 +31,5 @@ yarn-error.log*
 
 # Generated schemas etc
 generated/
+
+dist/

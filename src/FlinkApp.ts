@@ -5,17 +5,17 @@ import log from "node-color-log";
 import { join, resolve } from "path";
 import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
-import FlitContext from "./FlitContext";
-import FlitRepo from "./FlitRepo";
-import { HandlerFn, HttpMethod, RouteProps } from "./HttpHandler";
+import { FlinkContext } from "./FlinkContext";
+import { FlinkRepo } from "./FlinkRepo";
+import { HandlerFn, HttpMethod, RouteProps } from "./FlinkHttpHandler";
 import folderHash from "folder-hash";
 import Ajv from "ajv";
-import { isError, isRouteMatch } from "./FlitUtils";
-import generateMockData from "./FlitMockDataGenerator";
+import { isError, isRouteMatch } from "./utils";
+import generateMockData from "./mock-data-generator";
 
 const ajv = new Ajv();
 
-interface FlitOptions {
+export interface FlinkOptions {
     /**
      * Name of application, will only show in logs and in HTTP header.
      */
@@ -38,11 +38,15 @@ interface FlitOptions {
      * Leave empty if no
      */
     db?: {
+        /**
+        * Uri to mongodb including any username and password.
+        * @example mongodb://localhost:27017/my-db
+        */
         uri: string;
     };
 
     /**
-     * Optional debug options, used to log and debug Flit internals.
+     * Optional debug options, used to log and debug Flink internals.
      */
     debug?: boolean;
 
@@ -54,19 +58,19 @@ interface FlitOptions {
     mockApi?: true | { method: HttpMethod, path: string }[]
 }
 
-class Flit<C extends FlitContext> {
+export class FlinkApp<C extends FlinkContext> {
     name: string;
     enableApiDocs: boolean;
     port?: number;
     app?: Express;
     schemas: { [x: string]: TJS.Definition } = {};
     ctx?: C;
-    dbOpts?: FlitOptions["db"];
+    dbOpts?: FlinkOptions["db"];
     db?: Db;
     debug = false;
-    mockApiOpts: FlitOptions["mockApi"];
+    mockApiOpts: FlinkOptions["mockApi"];
 
-    constructor(opts: FlitOptions) {
+    constructor(opts: FlinkOptions) {
         this.name = opts.name;
         this.enableApiDocs =
             typeof opts.enableApiDocs === "undefined" ? true : opts.enableApiDocs;
@@ -336,13 +340,13 @@ class Flit<C extends FlitContext> {
     private async buildContext() {
         const repoFns = await fsPromises.readdir("src/repos");
 
-        const repos: { [x: string]: FlitRepo<C> } = {};
+        const repos: { [x: string]: FlinkRepo<C> } = {};
 
         if (this.dbOpts) {
             for (const fn of repoFns) {
                 const repoInstanceName = this.getRepoInstanceName(fn);
                 const { default: Repo } = await import("../repos/" + fn);
-                const repoInstance: FlitRepo<C> = new Repo("foo", this.db);
+                const repoInstance: FlinkRepo<C> = new Repo("foo", this.db);
 
                 repos[repoInstanceName] = repoInstance;
                 log.info(`Registered repo ${repoInstanceName}`);
@@ -398,4 +402,3 @@ class Flit<C extends FlitContext> {
     }
 }
 
-export default Flit;

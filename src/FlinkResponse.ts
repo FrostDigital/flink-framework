@@ -1,4 +1,4 @@
-interface FlitResponse<T = any> {
+export interface FlinkResponse<T = any> {
     /**
      * Unique id of request.
      * Used to track request in logs.
@@ -34,6 +34,4 @@ interface FlitResponse<T = any> {
     }
 }
 
-
-export default FlitResponse;
 

@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
-import FlitResponse from "./FlitResponse";
+import { FlinkResponse } from "./FlinkResponse";
 
-export function notFound(detail?: string): FlitResponse {
+export function notFound(detail?: string): FlinkResponse {
     return {
         status: 404,
         error: {
@@ -12,7 +12,7 @@ export function notFound(detail?: string): FlitResponse {
     }
 }
 
-export function internalServerError(detail?: string): FlitResponse {
+export function internalServerError(detail?: string): FlinkResponse {
     return {
         status: 500,
         error: {

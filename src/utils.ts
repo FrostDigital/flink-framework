@@ -1,6 +1,6 @@
 import { Request } from "express";
-import FlitResponse from "./FlitResponse";
-import { HttpMethod } from "./HttpHandler";
+import { FlinkResponse } from "./FlinkResponse";
+import { HttpMethod } from "./FlinkHttpHandler";
 
 export function isRouteMatch(req: Request, routes: { method: HttpMethod, path: string }[]) {
     const match = routes.find(({ method, path }) => {
@@ -12,6 +12,6 @@ export function isRouteMatch(req: Request, routes: { method: HttpMethod, path: s
     return !!match;
 }
 
-export function isError(message: FlitResponse) {
+export function isError(message: FlinkResponse) {
     return message.status && message.status > 399;
 }

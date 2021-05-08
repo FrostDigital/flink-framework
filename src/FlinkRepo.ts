@@ -1,18 +1,18 @@
 import { Collection, Db } from "mongodb";
-import FlitContext from "./FlitContext";
+import { FlinkContext } from "./FlinkContext";
 
-abstract class FlitRepo<C extends FlitContext, Model = any> {
+export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
     collection: Collection;
 
     private _ctx?: C;
 
-    set ctx(ctx: FlitContext) {
+    set ctx(ctx: FlinkContext) {
         this._ctx = ctx as C;
     }
 
     get ctx() {
         if (!this._ctx)
-            throw new Error("Missing FlitContext");
+            throw new Error("Missing FlinkContext");
         return this._ctx;
     }
 
@@ -37,9 +37,5 @@ abstract class FlitRepo<C extends FlitContext, Model = any> {
         const { deletedCount } = await this.collection.deleteOne({ _id: id });
         return deletedCount || 0;
     }
-
-
 }
-
-export default FlitRepo;
 

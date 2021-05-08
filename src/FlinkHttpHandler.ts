@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import FlitContext from './FlitContext';
-import FlitResponse from './FlitResponse';
+import { FlinkContext } from './FlinkContext';
+import { FlinkResponse } from './FlinkResponse';
 
 export enum HttpMethod {
     get = "get",
@@ -12,7 +12,7 @@ export enum HttpMethod {
 type Params = Request["params"];
 type Query = Request["query"];
 
-export type FlitRequest<T = any, P = Params, Q = Query> = Request<P, any, T, Q>
+export type FlinkRequest<T = any, P = Params, Q = Query> = Request<P, any, T, Q>
 
 /**
  * Route props decides routing.
@@ -27,13 +27,11 @@ export interface RouteProps<S = any> {
     resSchema?: S;
 }
 
-export type FlitSchema = "none";
-
 /**
  * Http handler function that handlers implements in order to
  * handle HTTP requests and return a JSON response.
  */
-export type HandlerFn<Ctx extends FlitContext, ReqSchema = any, ResSchema = any, P = Params, Q = Query> = (props: { req: FlitRequest<ReqSchema, P, Q>, ctx: Ctx }) => Promise<FlitResponse<ResSchema>>;
+export type HandlerFn<Ctx extends FlinkContext, ReqSchema = any, ResSchema = any, P = Params, Q = Query> = (props: { req: FlinkRequest<ReqSchema, P, Q>, ctx: Ctx }) => Promise<FlinkResponse<ResSchema>>;
 
 
 /**
@@ -42,5 +40,5 @@ export type HandlerFn<Ctx extends FlitContext, ReqSchema = any, ResSchema = any,
  * 
  * Just syntactic sugar on top op `HandlerFn`
  */
-export type GetHandlerFn<Ctx extends FlitContext, ResSchema = any, P = Params, Q = Query> = HandlerFn<Ctx, any, ResSchema, P, Q>;
+export type GetHandlerFn<Ctx extends FlinkContext, ResSchema = any, P = Params, Q = Query> = HandlerFn<Ctx, any, ResSchema, P, Q>;
 

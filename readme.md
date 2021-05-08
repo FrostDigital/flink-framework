@@ -8,8 +8,8 @@ Typescript first.
 
 ## Structure
 
-Folder structure of an object is of importance since Flit will scan it an
-make assumption based on where source files are located and naming.
+Flink will make assumption on what your modules are and how they should be
+used based on where in folder structure they are located.
 
 ```
 # All source code goes here, only configuration resides outside
@@ -70,7 +70,7 @@ Create `src/index.ts` where app is configured and started.
  * could not be started.
  */
 (async function () {
-    new Flit<AppContext>({
+    new Flink<AppContext>({
         name: "Test app",
         db: {
             uri: "mongodb://localhost:27017/test-db"

@@ -1,26 +1,23 @@
 {
-	"compilerOptions": {
-		"target": "es5",
-		"lib": [
-			"esnext",
-			"es2016"
-		],
-		"allowJs": true,
-		"skipLibCheck": true,
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
-		"module": "commonjs",
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
-		"isolatedModules": true,
-		"noEmit": true,
-		"experimentalDecorators": true,
-		"checkJs": true,
-		"typeRoots" : ["./typings", "./node_modules/@types"]
-	},
-	"exclude": [
-		"./node_modules/*"
-	]
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["esnext", "es2016"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "checkJs": true,
+    "typeRoots": ["./typings", "./node_modules/@types"],
+    "declaration": true,
+    "outDir": "dist"
+  },
+  "include": ["./src/*"],
+  "exclude": ["./node_modules/*"]
 }
