@@ -1,8 +1,8 @@
 import { Request } from "express";
-import { FlinkResponse } from "./FlinkResponse";
-import { HttpMethod } from "./FlinkHttpHandler";
 import { promises as fsPromises } from "fs";
 import { join } from "path";
+import { HttpMethod } from "./FlinkHttpHandler";
+import { FlinkResponse } from "./FlinkResponse";
 
 export const handlersPath = join("src", "handlers");
 export const schemasPath = join("src", "schemas");
@@ -35,5 +35,9 @@ export async function getSchemaFiles() {
     } catch (err) {
         return [];
     }
+}
 
+
+export function getCollectionNameForRepo(repoFilename: string) {
+    return repoFilename.replace("Repo.ts", "").toLowerCase();
 }

@@ -14,6 +14,7 @@ import { FlinkRepo } from "./FlinkRepo";
 import { getSchemaFromHandlerSourceFile } from "./FlinkTsUtils";
 import generateMockData from "./mock-data-generator";
 import {
+    getCollectionNameForRepo,
     getHandlerFiles,
     getSchemaFiles,
     handlersPath, isError, isRouteMatch, schemasPath
@@ -71,6 +72,8 @@ interface FlinkOptions {
      * A good place to for example ensure database indexes.
      */
     onDbConnection?: (db: Db) => Promise<void>;
+
+    loader: (file: string) => Promise<any>
 }
 
 export class FlinkApp<C extends FlinkContext> {
@@ -86,6 +89,7 @@ export class FlinkApp<C extends FlinkContext> {
     mockApiOpts: FlinkOptions["mockApi"];
     onDbConnection?: FlinkOptions["onDbConnection"];
     private assumedSchemas = new Map<string, { reqSchema?: string, resSchema?: string }>();
+    loader: FlinkOptions["loader"];
 
     constructor(opts: FlinkOptions) {
         this.name = opts.name;
@@ -96,6 +100,7 @@ export class FlinkApp<C extends FlinkContext> {
         this.debug = !!opts.debug;
         this.mockApiOpts = opts.mockApi;
         this.onDbConnection = opts.onDbConnection;
+        this.loader = opts.loader;
     }
 
     async start() {
@@ -160,15 +165,20 @@ export class FlinkApp<C extends FlinkContext> {
 
         for (const handler of handlers) {
             if (handler.endsWith(".ts")) {
-                const { default: oHandlerFn, Route } = await import(
-                    "../handlers/" + handler
-                );
+
+                // TODO: Implement support for handlers in nested folders such as src/handlers/car/GetCar.ts
+                const { default: oHandlerFn, Route } = await this.loader("./handlers/" + handler);
 
                 const handlerFn: Handler<C> = oHandlerFn;
                 const props: RouteProps = Route;
 
                 if (!props) {
                     log.error(`Missing Props in handler ${handler}`);
+                    continue;
+                }
+
+                if (!handlerFn) {
+                    log.error(`Missing exported handler function in handler ${handler}`);
                     continue;
                 }
 
@@ -287,35 +297,28 @@ export class FlinkApp<C extends FlinkContext> {
      * as long as the schema dir has not altered since last run.
      */
     async registerSchemas() {
-        // const schemasCache = join("generated", "schemas");
-        // const schemasCacheHashFile = join(schemasCache, ".hash");
-
-        // const { hash } = await folderHash.hashElement(schemasPath);
-        // let lastHash = "";
-
-        // try {
-        //     lastHash = await fsPromises.readFile(schemasCacheHashFile, "utf-8");
-        // } catch (err) { }
-
-        // if (lastHash === hash && 1 > 2 /* Remove this later on! */) {
-        //     // TODO: This is not implemented beyond checking hash
-        //     log.info("Schema has not changed, using cached schemas");
-        //     return;
-        // } else {
-        // fsPromises.writeFile(schemasCacheHashFile, hash);
-
         const schemas = await getSchemaFiles();
         const handlers = await getHandlerFiles();
 
-        const program = TJS.getProgramFromFiles(
-            [
-                ...schemas.map((filename) => resolve(join(schemasPath, filename))),
-                ...handlers.map((filename) =>
-                    resolve(join(handlersPath, filename))
-                ),
-            ],
-            {}
-        );
+
+        if (!schemas.length && !handlers.length) {
+            log.warn("No schemas nor handlers found");
+            return;
+        }
+
+        const programFiles: string[] = [];
+
+        if (schemas.length) {
+            programFiles.push(...schemas.map((filename) => resolve(join(schemasPath, filename))));
+        }
+
+        if (handlers.length) {
+            programFiles.push(...handlers.map((filename) =>
+                resolve(join(handlersPath, filename))
+            ));
+        }
+
+        const program = TJS.getProgramFromFiles(programFiles, {});
 
         const settings: TJS.PartialArgs = {
             required: true,
@@ -348,7 +351,7 @@ export class FlinkApp<C extends FlinkContext> {
          */
         for (const handlerFile of handlerFiles) {
             const [, filename] = handlerFile.fileName.split(handlersPath + sep);
-            this.assumedSchemas.set(filename, await getSchemaFromHandlerSourceFile(program, handlerFile));
+            this.assumedSchemas.set(filename, getSchemaFromHandlerSourceFile(program, handlerFile));
         }
 
         const onlySchemaFilenames = schemaFiles.map((sf) => sf.fileName);
@@ -368,13 +371,6 @@ export class FlinkApp<C extends FlinkContext> {
             });
 
             const schemaNames = Object.keys(generatedSchemas.definitions);
-
-            // await fsPromises.writeFile(
-            //     join("generated", "schemas", "Schemas.ts"),
-            //     `export type Schemas = ${schemaNames
-            //         .map((sn) => `"${sn}"`)
-            //         .join(" | ")};`
-            // );
 
             log.info(`Generated ${schemaNames.length} schemas`);
 
@@ -419,8 +415,8 @@ export class FlinkApp<C extends FlinkContext> {
         if (this.dbOpts) {
             for (const fn of repoFns) {
                 const repoInstanceName = this.getRepoInstanceName(fn);
-                const { default: Repo } = await import("../repos/" + fn);
-                const repoInstance: FlinkRepo<C> = new Repo("foo", this.db);
+                const { default: Repo } = await this.loader("./repos/" + fn);
+                const repoInstance: FlinkRepo<C> = new Repo(getCollectionNameForRepo(fn), this.db);
 
                 repos[repoInstanceName] = repoInstance;
                 log.info(`Registered repo ${repoInstanceName}`);
