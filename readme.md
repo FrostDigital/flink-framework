@@ -13,6 +13,9 @@ Plugability - build plugins which can be reused and extend functionality of core
 Flink will make assumption on what your modules are and how they should be
 used based on where in folder structure they are located.
 
+By doing so you can let Flink wire up dependence injection (ish), route HTTP
+traffic to handlers etc.
+
 ```
 # All source code goes here, only project configuration resides outside
 src/
