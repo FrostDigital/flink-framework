@@ -1,5 +1,5 @@
 {
-  "name": "@flink/flink-app",
+  "name": "@flink-app/flink",
   "version": "0.0.1",
   "description": "Typescript only framework for creating REST-like APIs on top of Express and mongodb",
   "types": "dist/index.d.ts",
