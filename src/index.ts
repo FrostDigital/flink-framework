@@ -5,3 +5,4 @@ export * from "./FlinkRepo";
 export * from "./FlinkResponse";
 export * from "./FlinkLog";
 export * from "./FlinkErrors";
+export * from "./FlinkPlugin";
