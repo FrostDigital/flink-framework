@@ -1,5 +1,6 @@
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
+import bodyParser from "body-parser";
 import express, { Express } from "express";
 import { promises as fsPromises } from "fs";
 import mongodb, { Db } from "mongodb";
@@ -142,6 +143,8 @@ export class FlinkApp<C extends FlinkContext> {
 
     this.expressApp = express();
 
+    this.expressApp.use(bodyParser.json());
+
     this.expressApp.use((req, res, next) => {
       req.reqId = v4();
       next();
@@ -215,6 +218,8 @@ export class FlinkApp<C extends FlinkContext> {
         const method = this.getHttpMethodForHandler(props, handler);
 
         if (method) {
+          const methodAndRoute = `${method.toUpperCase()} ${props.path}`;
+
           app[method](props.path, async (req, res) => {
             if (props.reqSchema) {
               const schema = this.schemas[props.reqSchema];
@@ -228,7 +233,14 @@ export class FlinkApp<C extends FlinkContext> {
                 const valid = validate(req.body);
 
                 if (!valid) {
-                  log.warn(`Bad request ${validate.errors}`);
+                  log.warn(
+                    `${methodAndRoute}: Bad request (using schema ${
+                      props.reqSchema
+                    }) ${JSON.stringify(validate.errors, null, 2)}`
+                  );
+
+                  log.debug(`Invalid json: ${JSON.stringify(req.body)}`);
+
                   return res.status(400).json({
                     status: 400,
                     error: {
@@ -271,13 +283,18 @@ export class FlinkApp<C extends FlinkContext> {
                 );
               } else {
                 const validate = ajv.compile(schema);
-                const valid = validate(handlerRes.data);
+                const valid = validate(
+                  JSON.parse(JSON.stringify(handlerRes.data))
+                );
 
                 if (!valid) {
                   log.warn(
-                    `Bad response ${JSON.stringify(validate.errors, null, 2)}`
+                    `${methodAndRoute}: Bad response (using schema ${
+                      props.resSchema
+                    }) ${JSON.stringify(validate.errors, null, 2)}`
                   );
-                  log.debug(JSON.stringify(schema, null, 2));
+                  log.debug(`Invalid json: ${JSON.stringify(handlerRes.data)}`);
+                  // log.debug(JSON.stringify(schema, null, 2));
 
                   return res.status(500).json({
                     status: 500,
@@ -295,8 +312,6 @@ export class FlinkApp<C extends FlinkContext> {
 
             res.status(handlerRes.status || 200).json(handlerRes);
           });
-
-          const methodAndRoute = `${method.toUpperCase()} ${props.path}`;
 
           this.handlerMetadata.push({
             method,
