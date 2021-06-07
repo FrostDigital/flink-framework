@@ -4,8 +4,6 @@
   "description": "Flink plugin that generates API documentation based on JSON schemas",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node src/index.ts --project tsconfig.json",
-    "dev": "nodemon",
     "prepublish": "tsc && npm run copy:assets",
     "copy:assets": "mkdir -p dist/views && cp src/views/** dist/views/",
     "watch": "tsc-watch",
