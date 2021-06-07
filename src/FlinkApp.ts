@@ -10,6 +10,7 @@ import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
 import { FlinkContext } from "./FlinkContext";
 import { Handler, HttpMethod, RouteProps } from "./FlinkHttpHandler";
+import { FlinkPluginOptions } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
 import { getSchemaFromHandlerSourceFile } from "./FlinkTsUtils";
 import generateMockData from "./mock-data-generator";
@@ -19,23 +20,16 @@ import {
   getSchemaFiles,
   handlersPath,
   isError,
-  isRouteMatch,
   schemasPath,
 } from "./utils";
 
 const ajv = new Ajv();
 addFormats(ajv);
-interface FlinkOptions {
+interface FlinkOptions<C extends FlinkContext> {
   /**
    * Name of application, will only show in logs and in HTTP header.
    */
   name: string;
-
-  /**
-   * If to enable API documentation based on JSON schemas.
-   * @default true
-   */
-  enableApiDocs?: boolean; // TODO
 
   /**
    * HTTP port
@@ -45,7 +39,7 @@ interface FlinkOptions {
 
   /**
    * Configuration related to database.
-   * Leave empty if no
+   * Leave empty if no database is needed.
    */
   db?: {
     /**
@@ -61,15 +55,6 @@ interface FlinkOptions {
   debug?: boolean;
 
   /**
-   * If API should respond with mock data based on response JSON schemas.
-   * Either set `true` to mock all or provide array with routes that
-   * should be mocked.
-   *
-   * This can also be set from handlers route props.
-   */
-  mockApi?: true | { method: HttpMethod; path: string }[];
-
-  /**
    * Callback invoked after database was connected
    * end before application starts.
    *
@@ -77,37 +62,51 @@ interface FlinkOptions {
    */
   onDbConnection?: (db: Db) => Promise<void>;
 
+  /**
+   * Callback invoked so Flink can load files from host project.
+   */
   loader: (file: string) => Promise<any>;
+
+  /**
+   * Optional list of plugins that should be confiured and used.
+   */
+  plugins?: FlinkPluginOptions[];
 }
 
+type HandlerMetaData = {
+  method: string;
+  routeProps: RouteProps;
+  reqSchema?: TJS.Definition;
+  resSchema?: TJS.Definition;
+};
+
 export class FlinkApp<C extends FlinkContext> {
-  name: string;
-  enableApiDocs: boolean;
-  port?: number;
-  app?: Express;
-  schemas: { [x: string]: TJS.Definition } = {};
-  ctx?: C;
-  dbOpts?: FlinkOptions["db"];
-  db?: Db;
-  debug = false;
-  mockApiOpts: FlinkOptions["mockApi"];
-  onDbConnection?: FlinkOptions["onDbConnection"];
+  public name: string;
+  public expressApp?: Express;
+  public schemas: { [x: string]: TJS.Definition } = {};
+  public db?: Db;
+  public handlerMetadata: HandlerMetaData[] = [];
+
+  private port?: number;
+  private ctx?: C;
+  private dbOpts?: FlinkOptions<C>["db"];
+  private debug = false;
+  private onDbConnection?: FlinkOptions<C>["onDbConnection"];
   private assumedSchemas = new Map<
     string,
     { reqSchema?: string; resSchema?: string }
   >();
-  loader: FlinkOptions["loader"];
+  private loader: FlinkOptions<C>["loader"];
+  private plugins: FlinkPluginOptions[] = [];
 
-  constructor(opts: FlinkOptions) {
+  constructor(opts: FlinkOptions<C>) {
     this.name = opts.name;
-    this.enableApiDocs =
-      typeof opts.enableApiDocs === "undefined" ? true : opts.enableApiDocs;
     this.port = opts.port || 3333;
     this.dbOpts = opts.db;
     this.debug = !!opts.debug;
-    this.mockApiOpts = opts.mockApi;
     this.onDbConnection = opts.onDbConnection;
     this.loader = opts.loader;
+    this.plugins = opts.plugins || [];
   }
 
   async start() {
@@ -141,12 +140,21 @@ export class FlinkApp<C extends FlinkContext> {
       offsetTime = Date.now();
     }
 
-    this.app = express();
+    this.expressApp = express();
 
-    this.app.use((req, res, next) => {
+    this.expressApp.use((req, res, next) => {
       req.reqId = v4();
       next();
     });
+
+    // TODO: Add better more fine grained control when plugins are initialized
+
+    this.plugins.map((plugin) => {
+      plugin.init(this);
+      log.info(`Initialized plugin '${plugin.name}'`);
+    });
+
+    // this.registerPluginsBefore();
 
     await this.registerHandlers();
 
@@ -158,7 +166,9 @@ export class FlinkApp<C extends FlinkContext> {
       offsetTime = Date.now();
     }
 
-    this.app.listen(this.port, () => {
+    // this.registerPluginsAfter();
+
+    this.expressApp.listen(this.port, () => {
       log.fontColorLog(
         "magenta",
         `⚡️ HTTP server '${this.name}' is running and waiting for connections on ${this.port}`
@@ -166,14 +176,13 @@ export class FlinkApp<C extends FlinkContext> {
     });
   }
 
-  async registerHandlers() {
+  private async registerHandlers() {
     const handlers = await getHandlerFiles();
-    const app = this.app!;
+    const app = this.expressApp!;
     const handlerRouteCache = new Map<string, string>();
 
     for (const handler of handlers) {
       if (handler.endsWith(".ts")) {
-        // TODO: Implement support for handlers in nested folders such as src/handlers/car/GetCar.ts
         const { default: oHandlerFn, Route } = await this.loader(
           "./handlers/" + handler
         );
@@ -234,25 +243,19 @@ export class FlinkApp<C extends FlinkContext> {
               }
             }
 
-            if ((this.mockApiOpts || props.mockApi) && props.resSchema) {
-              const shouldMock =
-                !Array.isArray(this.mockApiOpts) ||
-                isRouteMatch(req, this.mockApiOpts);
+            if (props.mockApi && props.resSchema) {
+              log.warn(
+                `Mock response for ${req.method.toUpperCase()} ${req.path}`
+              );
+              const schema = this.getSchema(props.resSchema);
 
-              if (shouldMock) {
-                log.warn(
-                  `Mock response for ${req.method.toUpperCase()} ${req.path}`
-                );
-                const schema = this.getSchema(props.resSchema);
-
-                if (schema) {
-                  const data = generateMockData(schema);
-                  res.status(200).json({
-                    status: 200,
-                    data,
-                  });
-                  return;
-                }
+              if (schema) {
+                const data = generateMockData(schema);
+                res.status(200).json({
+                  status: 200,
+                  data,
+                });
+                return;
               }
             }
 
@@ -295,6 +298,17 @@ export class FlinkApp<C extends FlinkContext> {
 
           const methodAndRoute = `${method.toUpperCase()} ${props.path}`;
 
+          this.handlerMetadata.push({
+            method,
+            routeProps: props,
+            reqSchema: props.reqSchema
+              ? this.schemas[props.reqSchema]
+              : undefined,
+            resSchema: props.resSchema
+              ? this.schemas[props.resSchema]
+              : undefined,
+          });
+
           if (handlerRouteCache.get(methodAndRoute)) {
             log.error(
               `Cannot register handler ${handler} - route ${methodAndRoute} already registered by handler ${handlerRouteCache.get(
@@ -319,7 +333,7 @@ export class FlinkApp<C extends FlinkContext> {
    * implemented so that any previous schemas will be reused
    * as long as the schema dir has not altered since last run.
    */
-  async registerSchemas() {
+  private async registerSchemas() {
     const schemas = await getSchemaFiles();
     const handlers = await getHandlerFiles();
 

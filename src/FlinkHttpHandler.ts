@@ -25,7 +25,7 @@ export type FlinkRequest<T = any, P = Params, Q = Query> = Request<
  * Each handler needs to declare RouteProps which
  * instructs express web server how to route traffic.
  */
-export interface RouteProps<S = any> {
+export interface RouteProps {
   /**
    * HTTP method which this handlers responds to.
    *
@@ -43,13 +43,19 @@ export interface RouteProps<S = any> {
 
   /**
    * The request schema, if any.
+   *
+   * Should ideally be extracted from generics in handler function but can be
+   * set here (schema id) if need to override.
    */
-  reqSchema?: S;
+  reqSchema?: string;
 
   /**
    * The response schema, if any.
+   *
+   * Should ideally be extracted from generics in handler function but can be
+   * set here (schema id) if need to override.
    */
-  resSchema?: S;
+  resSchema?: string;
 
   /**
    * Generates mock response based on handlers response schema.

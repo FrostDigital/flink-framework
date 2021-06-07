@@ -87,7 +87,7 @@ export default AppContext;
 
 ```
 
-### Create startup (`index.ts`)
+### 3. Create startup (`index.ts`)
 
 Create `src/index.ts` where app is configured and started.
 
@@ -135,4 +135,18 @@ Example:
 export const Props: RouteProps {
     method: HttpMethod.get
 }
+```
+
+## Rendering views (if you really need to)
+
+FLINK is made to build slim services that exposes a REST API.
+
+By default FLINK also is configured to render views using the PUG template engine. **It is however not meant to be used to build fully fledged web sites.**
+
+In cases you need a complex web, you would probably be better of to build for example a separate next.js project that instead consumes the API which your FLINK app is exposing.
+
+With that said, this is how you render a view:
+
+```
+TODO
 ```
