@@ -1,53 +1,56 @@
-import ts, { SourceFile } from "typescript";
-
-const genericsRegexp = /.*<(.*?)>/;
+import { SourceFile, ts, Type } from "ts-morph";
 
 type ReqResSchemas = {
-    reqSchema: string | undefined, resSchema: string | undefined
-}
+  reqSchema: string | undefined;
+  resSchema: string | undefined;
+};
 
 /**
  * Derives schema that is part of handlers generic type argument
  * by inspecting nodes in handler source file.
  */
 export function getSchemaFromHandlerSourceFile(
-    program: ts.Program,
-    file: SourceFile
+  file: SourceFile
 ): ReqResSchemas {
-    // TODO: This is a quick and dirty implementation, someone with knowledge in ts compiler should make this better
+  const handlerFnExport = file
+    .getDefaultExportSymbolOrThrow()
+    .getDeclarations()[0];
 
-    // Below crashes if typechecker has not been invoked, dunno why
-    program.getTypeChecker();
+  const handlerFnType = handlerFnExport
+    .getSymbolOrThrow()
+    .getTypeAtLocation(handlerFnExport);
 
-    let result: ReqResSchemas = { reqSchema: undefined, resSchema: undefined };
+  const isHandlerWithoutReqBody = !handlerFnType
+    .getText()
+    .includes(".Handler<");
 
-    function traverse(node: ts.Node) {
-        if (ts.isVariableStatement(node)) {
-            const text = node.getText().replaceAll(" ", "").replace("\t", "");
+  const typeArgs = handlerFnType.getAliasTypeArguments();
 
-            if (text.includes(":GetHandler<")) {
-                const m = text.match(genericsRegexp);
+  const reqSchemaArg = !isHandlerWithoutReqBody ? typeArgs[1] : undefined;
+  const resSchemaArg = typeArgs[isHandlerWithoutReqBody ? 1 : 2];
 
-                if (m && m[1]) {
-                    const typeParams = m[1].split(",");
-                    // 2nd type param is response schema in GetHandler
-                    result.resSchema = typeParams[1];
-                }
-            } else if (text.includes(":Handler<")) {
-                const m = text.match(genericsRegexp);
+  if (reqSchemaArg && !isValidSchemaType(reqSchemaArg)) {
+    throw new Error(
+      `Handler ${
+        file.compilerNode.fileName
+      } contains invalid request schema. Schema must be an interface or type that resides in 'src/schemas/' directory. Instead detected type '${reqSchemaArg.getText()}'`
+    );
+  }
 
-                if (m && m[1]) {
-                    const typeParams = m[1].split(",");
+  if (resSchemaArg && !isValidSchemaType(resSchemaArg)) {
+    throw new Error(
+      `Handler ${
+        file.compilerNode.fileName
+      } contains invalid response schema. Schema must be an interface or type that resides in 'src/schemas/' directory. Instead detected type '${resSchemaArg.getText()}'`
+    );
+  }
 
-                    // 2nd type param is req schema and 3rd is res schema
-                    result.reqSchema = typeParams[1];
-                    result.resSchema = typeParams[2];
-                }
-            }
-        }
-    }
+  return {
+    reqSchema: reqSchemaArg?.getSymbolOrThrow().getName(),
+    resSchema: resSchemaArg?.getSymbolOrThrow().getName(),
+  };
+}
 
-    ts.forEachChild(file, traverse);
-
-    return result;
+function isValidSchemaType(type: Type<ts.Type>) {
+  return type.isAny() || type.isInterface();
 }
