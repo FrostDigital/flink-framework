@@ -6,7 +6,6 @@ import { promises as fsPromises } from "fs";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
 import { join, resolve, sep } from "path";
-import { SourceFile } from "typescript";
 import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
 import { FlinkContext } from "./FlinkContext";
@@ -23,6 +22,7 @@ import {
   isError,
   schemasPath,
 } from "./utils";
+import { Project, SourceFile, ts } from "ts-morph";
 
 const ajv = new Ajv();
 addFormats(ajv);
@@ -371,9 +371,13 @@ export class FlinkApp<C extends FlinkContext> {
       );
     }
 
-    const program = TJS.getProgramFromFiles(programFiles, {
-      esModuleInterop: true,
+    const tsProject = new Project({
+      compilerOptions: {
+        esModuleInterop: true,
+      },
     });
+
+    tsProject.addSourceFilesAtPaths(programFiles);
 
     const settings: TJS.PartialArgs = {
       required: true,
@@ -382,13 +386,14 @@ export class FlinkApp<C extends FlinkContext> {
     };
 
     // Group source files
-    const { schemaFiles, handlerFiles } = program
+    const { schemaFiles, handlerFiles } = tsProject
       .getSourceFiles()
       .reduce<{ schemaFiles: SourceFile[]; handlerFiles: SourceFile[] }>(
         (prev, file) => {
-          if (file.fileName.includes(schemasPath)) {
+          const { fileName } = file.compilerNode;
+          if (fileName.includes(schemasPath)) {
             prev.schemaFiles = [...prev.schemaFiles, file];
-          } else if (file.fileName.includes(handlersPath)) {
+          } else if (fileName.includes(handlersPath)) {
             prev.handlerFiles = [...prev.handlerFiles, file];
           }
 
@@ -408,17 +413,22 @@ export class FlinkApp<C extends FlinkContext> {
      * exported Route props.
      */
     for (const handlerFile of handlerFiles) {
-      const [, filename] = handlerFile.fileName.split(handlersPath + sep);
+      const [, filename] = handlerFile.compilerNode.fileName.split(
+        handlersPath + sep
+      );
       this.assumedSchemas.set(
         filename,
-        getSchemaFromHandlerSourceFile(program, handlerFile)
+        getSchemaFromHandlerSourceFile(handlerFile)
       );
     }
 
-    const onlySchemaFilenames = schemaFiles.map((sf) => sf.fileName);
+    const onlySchemaFilenames = schemaFiles.map(
+      (sf) => sf.compilerNode.fileName
+    );
 
     const generatedSchemas = TJS.generateSchema(
-      program,
+      // @ts-ignore
+      tsProject.getProgram().compilerObject,
       "*",
       settings,
       onlySchemaFilenames
