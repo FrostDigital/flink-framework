@@ -23,9 +23,17 @@ import {
   schemasPath,
 } from "./utils";
 import { Project, SourceFile, ts } from "ts-morph";
+import cors from "cors";
 
 const ajv = new Ajv();
 addFormats(ajv);
+
+const defaultCorsOptions: FlinkOptions<any>["cors"] = {
+  allowedHeaders: "",
+  credentials: true,
+  origin: ["*"],
+};
+
 interface FlinkOptions<C extends FlinkContext> {
   /**
    * Name of application, will only show in logs and in HTTP header.
@@ -69,9 +77,27 @@ interface FlinkOptions<C extends FlinkContext> {
   loader: (file: string) => Promise<any>;
 
   /**
-   * Optional list of plugins that should be confiured and used.
+   * Optional list of plugins that should be configured and used.
    */
   plugins?: FlinkPluginOptions[];
+
+  /**
+   * Optional cors options.
+   */
+  cors?: {
+    /**
+     * Origin(s) to allow, defaults ["*"]
+     */
+    origin?: string[];
+
+    credentials?: boolean;
+
+    /**
+     * Specify allowed headers for CORS, can be a comma separated string if multiple
+     * Defaults to none.
+     */
+    allowedHeaders?: string;
+  };
 }
 
 type HandlerMetaData = {
@@ -99,6 +125,7 @@ export class FlinkApp<C extends FlinkContext> {
   >();
   private loader: FlinkOptions<C>["loader"];
   private plugins: FlinkPluginOptions[] = [];
+  private corsOpts: FlinkOptions<C>["cors"];
 
   constructor(opts: FlinkOptions<C>) {
     this.name = opts.name;
@@ -108,6 +135,7 @@ export class FlinkApp<C extends FlinkContext> {
     this.onDbConnection = opts.onDbConnection;
     this.loader = opts.loader;
     this.plugins = opts.plugins || [];
+    this.corsOpts = { ...defaultCorsOptions, ...opts.cors };
   }
 
   async start() {
@@ -142,6 +170,8 @@ export class FlinkApp<C extends FlinkContext> {
     }
 
     this.expressApp = express();
+
+    this.expressApp.use(cors(this.corsOpts));
 
     this.expressApp.use(bodyParser.json());
 
