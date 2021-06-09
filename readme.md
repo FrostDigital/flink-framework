@@ -39,17 +39,6 @@ generate/
 
 ```
 
-## Building blocks
-
-The following building blocks exists in Flink:
-
-- Handler - a handler is responsible for handling API requests and return a response. Normally a handler has some type of logic and invokes a _repo_ to CRUD data from database.
-- Repo - a repository is used to abstract data access to database. A repo is used to access a mongo db and a repo is used per collection.
-- App Context - the app context is the glue that ties parts of the app together. By defining and creating an app context you make sure that i.e. handlers can get access to repositories.
-- Schemas - models that defines API requests and responses. These are typescript interfaces which will during compile time be converted into JSON schemas used to validate requests and responses and also used to generate API documentation.
-- Flink app - is the entry
-- Plugins - plugability is built into core of Flink. These can be external npm modules, or plugins inside your project. Plugins can for example extend the `request` object and add additional information such as auth user which can be used in handlers. Similar to how middleware works in express although a bit more constrained.
-
 ## Getting started
 
 ### 1. Clone template project
@@ -114,7 +103,99 @@ Create `src/index.ts` where app is configured and started.
 export default () => {};
 ```
 
+## Building blocks
+
+The following building blocks exists in Flink:
+
+- Handler - a handler is responsible for handling API requests and return a response. Normally a handler has some type of logic and invokes a _repo_ to CRUD data from database.
+- Repo - a repository is used to abstract data access to database. A repo is used to access a mongo db and a repo is used per collection.
+- App Context - the app context is the glue that ties parts of the app together. By defining and creating an app context you make sure that i.e. handlers can get access to repositories.
+- Schemas - models that defines API requests and responses. These are typescript interfaces which will during compile time be converted into JSON schemas used to validate requests and responses and also used to generate API documentation.
+- Flink app - is the entry
+- Plugins - plugability is built into core of Flink. These can be external npm modules, or plugins inside your project. Plugins can for example extend the `request` object and add additional information such as auth user which can be used in handlers. Similar to how middleware works in express although a bit more constrained.
+
+### Handlers
+
+Handlers are placed in `src/handlers/` folder. Put them directly in handlers root or group them by topic.
+
+Example:
+
+```
+# In root
+src/handlers/GetCar.ts
+
+# Or group by "topic" - generally a good idea for slightly larger projects
+src/handlers/cars/GetCar.ts
+```
+
+Handlers which are prefixed with a HTTP method will by default use that method for routing. For example a handler named `GetCar.ts` will assume that it will accept `GET` request to the provided route.
+
+This can easily be overridden in the handlers `RouteProps` but might be a good idea to still
+stick with that convention.
+
+Example:
+
+```
+export const Props: RouteProps {
+    method: HttpMethod.get
+}
+```
+
+#### Route props
+
+Every handler needs to export a const named `Props` of type `RouteProps`. Flink will use this to decide how requests will be routed to the handler.
+
+You can set http method and path with path params.
+
+Example:
+
+```
+export const Props: RouteProps {
+    method: HttpMethod.get
+    path: "/car/:id"
+}
+```
+
+#### Handler function
+
+The handler function needs to be default exported and is used to actual handle the request.
+
+Then handler method must be of type `Handler` or `GetHandler`.
+
+The handler function has generic type arguments which defines:
+
+- Application context
+- Request schema (optional)
+- Response schema (optional)
+- Params (optional)
+
+> Note: `GetHandler<Ctx, ResSchema>` is just syntactic sugar since get handlers does not have request schemas so that type argument does not exist. Otherwise it is the same as `Handler<Ctx, ReqSchema, ResSchema>`
+
+Flink will, during app start, analyse the handler function and make sure that schema validation happens based on these type arguments.
+
+Example:
+
+```
+export const Route: RouteProps = {
+  path: "/car",
+};
+
+const PostCar: Handler<any, PostCar, Car> = async ({ ctx, req }) => {
+  return {
+    data: {
+      model: "Volvo",
+    },
+  };
+};
+
+export default GetCar;
+
+```
+
 ## Naming conventions
+
+In Flink naming conventions is not only for a easy-to-navigate and generally consistent codebase. It is also
+used to extract functionality based on conventions.
 
 ### Handlers
 
@@ -126,7 +207,7 @@ Example:
 src/handlers/PostCar.ts
 ```
 
-This can easily be overridden in then handlers `RouteProps` but might be a good idea to still
+This can easily be overridden in the handlers `RouteProps` but might be a good idea to still
 stick with that convention.
 
 Example:
@@ -135,18 +216,4 @@ Example:
 export const Props: RouteProps {
     method: HttpMethod.get
 }
-```
-
-## Rendering views (if you really need to)
-
-FLINK is made to build slim services that exposes a REST API.
-
-By default FLINK also is configured to render views using the PUG template engine. **It is however not meant to be used to build fully fledged web sites.**
-
-In cases you need a complex web, you would probably be better of to build for example a separate next.js project that instead consumes the API which your FLINK app is exposing.
-
-With that said, this is how you render a view:
-
-```
-TODO
 ```
