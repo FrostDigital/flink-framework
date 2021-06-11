@@ -17,7 +17,7 @@ export type FlinkRequest<T = any, P = Params, Q = Query> = Request<
   any,
   T,
   Q
->;
+> & { reqId: string; user?: any };
 
 /**
  * Route props to control routing.
@@ -65,6 +65,18 @@ export interface RouteProps {
    * This should only be used during development 💥
    */
   mockApi?: boolean;
+
+  /**
+   * If route requires authentication. Set to true for any authenticated user, otherwise
+   * provide array of roles and/or permissions.
+   */
+  authenticated?: boolean | string[];
+
+  /**
+   * Optional documentation of endpoint. Can be used for example in API docs.
+   * Supports markdown strings.
+   */
+  docs?: string; // TODO
 }
 
 /**

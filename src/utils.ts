@@ -6,8 +6,13 @@ import { FlinkResponse } from "./FlinkResponse";
 import tinyGlob from "tiny-glob";
 import { log } from "./FlinkLog";
 
-export const handlersPath = join("src", "handlers");
-export const schemasPath = join("src", "schemas");
+export function handlersPath(appRoot: string) {
+  return join(appRoot, "src", "handlers");
+}
+
+export function schemasPath(appRoot: string) {
+  return join(appRoot, "src", "schemas");
+}
 
 export function isRouteMatch(
   req: Request,
@@ -26,18 +31,18 @@ export function isError(message: FlinkResponse) {
   return message.status && message.status > 399;
 }
 
-export async function getHandlerFiles() {
+export async function getHandlerFiles(appRoot: string) {
   try {
-    return tinyGlob(`**/*.ts`, { cwd: handlersPath });
+    return tinyGlob(`**/*.ts`, { cwd: handlersPath(appRoot) });
   } catch (err) {
     log.error(`Failed getting handler files: ${err}`);
     return [];
   }
 }
 
-export async function getSchemaFiles() {
+export async function getSchemaFiles(appRoot: string) {
   try {
-    return await fsPromises.readdir(schemasPath);
+    return await fsPromises.readdir(schemasPath(appRoot));
   } catch (err) {
     return [];
   }

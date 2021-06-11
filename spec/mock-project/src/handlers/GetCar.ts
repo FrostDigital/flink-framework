@@ -1,4 +1,4 @@
-import { GetHandler, RouteProps } from "../../../src/FlinkHttpHandler";
+import { GetHandler, RouteProps } from "@flink-app/flink";
 import Car from "../schemas/Car";
 
 export const Route: RouteProps = {

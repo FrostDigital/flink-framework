@@ -25,6 +25,8 @@
     "mock-json-schema": "^1.0.8",
     "mongodb": "^3.6.6",
     "node-color-log": "^5.2.0",
+    "passport": "^0.4.1",
+    "passport-jwt": "^4.0.0",
     "reflect-metadata": "^0.1.13",
     "tiny-glob": "^0.2.9",
     "ts-morph": "^11.0.0",

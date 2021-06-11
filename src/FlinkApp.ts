@@ -1,14 +1,18 @@
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
 import bodyParser from "body-parser";
-import express, { Express } from "express";
+import cors from "cors";
+import express, { Express, Request } from "express";
 import { promises as fsPromises } from "fs";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
 import { join, resolve, sep } from "path";
+import { Project, SourceFile } from "ts-morph";
 import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
+import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
+import { unauthorized } from "./FlinkErrors";
 import { Handler, HttpMethod, RouteProps } from "./FlinkHttpHandler";
 import { FlinkPluginOptions } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
@@ -22,19 +26,17 @@ import {
   isError,
   schemasPath,
 } from "./utils";
-import { Project, SourceFile, ts } from "ts-morph";
-import cors from "cors";
 
 const ajv = new Ajv();
 addFormats(ajv);
 
-const defaultCorsOptions: FlinkOptions<any>["cors"] = {
+const defaultCorsOptions: FlinkOptions["cors"] = {
   allowedHeaders: "",
   credentials: true,
   origin: ["*"],
 };
 
-interface FlinkOptions<C extends FlinkContext> {
+interface FlinkOptions {
   /**
    * Name of application, will only show in logs and in HTTP header.
    */
@@ -82,6 +84,11 @@ interface FlinkOptions<C extends FlinkContext> {
   plugins?: FlinkPluginOptions[];
 
   /**
+   * Plugin used for authentication.
+   */
+  authPlugin?: FlinkAuthPlugin;
+
+  /**
    * Optional cors options.
    */
   cors?: {
@@ -98,6 +105,11 @@ interface FlinkOptions<C extends FlinkContext> {
      */
     allowedHeaders?: string;
   };
+
+  /**
+   * Optional root folder of app. Defaults to `./`
+   */
+  appRoot?: string;
 }
 
 type HandlerMetaData = {
@@ -116,18 +128,20 @@ export class FlinkApp<C extends FlinkContext> {
 
   private port?: number;
   private ctx?: C;
-  private dbOpts?: FlinkOptions<C>["db"];
+  private dbOpts?: FlinkOptions["db"];
   private debug = false;
-  private onDbConnection?: FlinkOptions<C>["onDbConnection"];
+  private onDbConnection?: FlinkOptions["onDbConnection"];
   private assumedSchemas = new Map<
     string,
     { reqSchema?: string; resSchema?: string }
   >();
-  private loader: FlinkOptions<C>["loader"];
+  private loader: FlinkOptions["loader"];
   private plugins: FlinkPluginOptions[] = [];
-  private corsOpts: FlinkOptions<C>["cors"];
+  private authPlugin?: FlinkAuthPlugin;
+  private corsOpts: FlinkOptions["cors"];
+  private appRoot: string;
 
-  constructor(opts: FlinkOptions<C>) {
+  constructor(opts: FlinkOptions) {
     this.name = opts.name;
     this.port = opts.port || 3333;
     this.dbOpts = opts.db;
@@ -136,6 +150,8 @@ export class FlinkApp<C extends FlinkContext> {
     this.loader = opts.loader;
     this.plugins = opts.plugins || [];
     this.corsOpts = { ...defaultCorsOptions, ...opts.cors };
+    this.authPlugin = opts.authPlugin;
+    this.appRoot = opts.appRoot || "./";
   }
 
   async start() {
@@ -187,8 +203,6 @@ export class FlinkApp<C extends FlinkContext> {
       log.info(`Initialized plugin '${plugin.name}'`);
     });
 
-    // this.registerPluginsBefore();
-
     await this.registerHandlers();
 
     if (this.debug) {
@@ -199,8 +213,6 @@ export class FlinkApp<C extends FlinkContext> {
       offsetTime = Date.now();
     }
 
-    // this.registerPluginsAfter();
-
     this.expressApp.listen(this.port, () => {
       log.fontColorLog(
         "magenta",
@@ -210,7 +222,7 @@ export class FlinkApp<C extends FlinkContext> {
   }
 
   private async registerHandlers() {
-    const handlers = await getHandlerFiles();
+    const handlers = await getHandlerFiles(this.appRoot);
     const app = this.expressApp!;
     const handlerRouteCache = new Map<string, string>();
 
@@ -251,6 +263,12 @@ export class FlinkApp<C extends FlinkContext> {
           const methodAndRoute = `${method.toUpperCase()} ${props.path}`;
 
           app[method](props.path, async (req, res) => {
+            if (props.authenticated) {
+              if (!(await this.authenticate(req))) {
+                return res.status(401).json(unauthorized());
+              }
+            }
+
             if (props.reqSchema) {
               const schema = this.schemas[props.reqSchema];
 
@@ -340,6 +358,8 @@ export class FlinkApp<C extends FlinkContext> {
               }
             }
 
+            res.set(handlerRes.headers);
+
             res.status(handlerRes.status || 200).json(handlerRes);
           });
 
@@ -379,8 +399,8 @@ export class FlinkApp<C extends FlinkContext> {
    * as long as the schema dir has not altered since last run.
    */
   private async registerSchemas() {
-    const schemas = await getSchemaFiles();
-    const handlers = await getHandlerFiles();
+    const schemas = await getSchemaFiles(this.appRoot);
+    const handlers = await getHandlerFiles(this.appRoot);
 
     if (!schemas.length && !handlers.length) {
       log.warn("No schemas nor handlers found");
@@ -391,13 +411,17 @@ export class FlinkApp<C extends FlinkContext> {
 
     if (schemas.length) {
       programFiles.push(
-        ...schemas.map((filename) => resolve(join(schemasPath, filename)))
+        ...schemas.map((filename) =>
+          resolve(join(schemasPath(this.appRoot), filename))
+        )
       );
     }
 
     if (handlers.length) {
       programFiles.push(
-        ...handlers.map((filename) => resolve(join(handlersPath, filename)))
+        ...handlers.map((filename) =>
+          resolve(join(handlersPath(this.appRoot), filename))
+        )
       );
     }
 
@@ -421,9 +445,9 @@ export class FlinkApp<C extends FlinkContext> {
       .reduce<{ schemaFiles: SourceFile[]; handlerFiles: SourceFile[] }>(
         (prev, file) => {
           const { fileName } = file.compilerNode;
-          if (fileName.includes(schemasPath)) {
+          if (fileName.includes(schemasPath(this.appRoot))) {
             prev.schemaFiles = [...prev.schemaFiles, file];
-          } else if (fileName.includes(handlersPath)) {
+          } else if (fileName.includes(handlersPath(this.appRoot))) {
             prev.handlerFiles = [...prev.handlerFiles, file];
           }
 
@@ -506,39 +530,51 @@ export class FlinkApp<C extends FlinkContext> {
   }
 
   /**
-   * Constructs the app context. Will set context on all components
+   * Constructs the app context. Will inject context in all components
    * except for handlers which are handled in later stage.
    */
   private async buildContext() {
-    const repoFns = await fsPromises.readdir("src/repos");
+    const reposRoot = join(this.appRoot, "src", "repos");
+
+    let repoFilenames: string[] = [];
+
+    try {
+      repoFilenames = await fsPromises.readdir(reposRoot);
+    } catch (err) {}
 
     const repos: { [x: string]: FlinkRepo<C> } = {};
 
-    if (this.dbOpts) {
-      for (const fn of repoFns) {
-        const repoInstanceName = this.getRepoInstanceName(fn);
-        const { default: Repo } = await this.loader("./repos/" + fn);
-        const repoInstance: FlinkRepo<C> = new Repo(
-          getCollectionNameForRepo(fn),
-          this.db
-        );
+    if (repoFilenames.length > 0) {
+      const repoFilenames = await fsPromises.readdir(reposRoot);
 
-        repos[repoInstanceName] = repoInstance;
-        log.info(`Registered repo ${repoInstanceName}`);
+      if (this.dbOpts) {
+        for (const fn of repoFilenames) {
+          const repoInstanceName = this.getRepoInstanceName(fn);
+          const { default: Repo } = await this.loader("./repos/" + fn);
+          const repoInstance: FlinkRepo<C> = new Repo(
+            getCollectionNameForRepo(fn),
+            this.db
+          );
+
+          repos[repoInstanceName] = repoInstance;
+          log.info(`Registered repo ${repoInstanceName}`);
+        }
+      } else if (repoFilenames.length > 0) {
+        log.warn(
+          `No db configured but found repo(s) in ${reposRoot}: ${repoFilenames.join(
+            ", "
+          )}`
+        );
       }
-    } else if (repoFns.length > 0) {
-      log.warn(
-        "No db configured but found repo(s) in src/repos: " + repoFns.join(", ")
-      );
+    } else {
+      log.debug(`Skipping repos - no repos in ${reposRoot} found`);
     }
 
     this.ctx = {
       repos,
+      plugins: {}, // TODO: Expose plugin in ctx?
+      authPlugin: this.authPlugin,
     } as C;
-
-    Object.keys(repos).map((repoName) => {
-      repos[repoName].ctx = this.ctx!;
-    });
   }
 
   /**
@@ -583,4 +619,21 @@ export class FlinkApp<C extends FlinkContext> {
 
     return schema;
   }
+
+  /**
+   *
+   */
+  private async authenticate(req: Request) {
+    if (!this.authPlugin) {
+      throw new Error(
+        `Attempting to authenticate request (${req.method} ${req.path}) but no authPlugin is set`
+      );
+    }
+
+    return await this.authPlugin.authenticateRequest(req);
+  }
+
+  // public addHandler(handlerFn: AnyHandler, routeProps: RouteProps) {
+  //   // this.han
+  // }
 }
