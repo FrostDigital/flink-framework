@@ -1,12 +1,12 @@
 {
-  "name": "@flink-app/api-docs-plugin",
+  "name": "@flink-app/jwt-auth-plugin",
   "version": "0.0.1",
   "description": "Flink plugin that generates API documentation based on JSON schemas",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublish": "tsc && npm run copy:assets",
-    "copy:assets": "mkdir -p dist/views && cp src/views/** dist/views/",
-    "watch": "tsc-watch",
+    "test": "jasmine-ts --config=./spec/support/jasmine.json",
+    "test:watch": "nodemon --ext ts --exec 'jasmine-ts  --config=./spec/support/jasmine.json'",
+    "prepublish": "tsc --project tsconfig.dist.json",
+    "watch": "tsc-watch --project tsconfig.dist.json",
     "copy": "echo \"XXX: Fix since npm link and ts-node does not play nice, remove this when done\" && rm -rf node_modules/@flink-app/flink && cp -R ../../flink/flink-framework node_modules/@flink-app/flink"
   },
   "author": "joel@frost.se",
@@ -14,14 +14,15 @@
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "dependencies": {
-    "pug": "^3.0.2"
+    "jwt-simple": "^0.5.6"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.1.0",
-    "@types/express": "^4.17.12",
-    "@types/got": "^9.6.11",
+    "@flink-app/flink": "^0.1.4",
+    "@types/jasmine": "^3.7.1",
     "@types/node": "^15.6.2",
-    "@types/pug": "^2.0.4",
+    "jasmine": "^3.7.0",
+    "jasmine-spec-reporter": "^7.0.0",
+    "jasmine-ts": "^0.3.3",
     "nodemon": "^2.0.7",
     "ts-node": "^9.1.1",
     "tsc-watch": "^4.2.9",
