@@ -1,0 +1,25 @@
+{
+  "name": "@flink/demo-app",
+  "version": "0.1.4",
+  "description": "Demo app used as documentation and to run integration tests",
+  "private": true,
+  "scripts": {
+    "test": "jasmine-ts --config=./spec/support/jasmine.json",
+    "start": "ts-node src/index.ts --project tsconfig.json",
+    "copy": "echo 'Hotfix as symlink breaks ts build on mac for unknown reason' && rm -rf node_modules/@flink-app/flink && cp -R ../packages/flink node_modules/@flink-app/flink"
+  },
+  "dependencies": {
+    "@flink-app/flink": "0.x"
+  },
+  "devDependencies": {
+    "@types/jasmine": "^3.7.1",
+    "@types/node": "^15.0.1",
+    "jasmine": "^3.7.0",
+    "jasmine-spec-reporter": "^7.0.0",
+    "jasmine-ts": "^0.3.3",
+    "nodemon": "^2.0.7",
+    "ts-node": "^9.1.1",
+    "tsc-watch": "^4.2.9",
+    "typescript": "^4.3.2"
+  }
+}

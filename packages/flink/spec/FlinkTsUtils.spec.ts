@@ -30,7 +30,7 @@ describe("FlinkTsUtils", () => {
     expect(resSchema).toBe("Car");
   });
 
-  fit("should get schemas from Handler w/o response schema", () => {
+  it("should get schemas from Handler w/o response schema", () => {
     const { reqSchema, resSchema } = getSchemaFromHandlerSourceFile(
       projectValid.getSourceFileOrThrow("spec/mock-project/handlers/PutCar.ts")
     );

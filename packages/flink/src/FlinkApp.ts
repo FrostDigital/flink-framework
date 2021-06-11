@@ -36,7 +36,7 @@ const defaultCorsOptions: FlinkOptions["cors"] = {
   origin: ["*"],
 };
 
-interface FlinkOptions {
+export interface FlinkOptions {
   /**
    * Name of application, will only show in logs and in HTTP header.
    */
