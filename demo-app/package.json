@@ -8,7 +8,8 @@
     "start": "node --preserve-symlinks -r ts-node/register -- src/index.ts --project tsconfig.json"
   },
   "dependencies": {
-    "@flink-app/flink": "file:../packages/flink"
+    "@flink-app/flink": "file:../packages/flink",
+    "@flink-app/jwt-auth-plugin": "file:../packages/jwt-auth-plugin"
   },
   "devDependencies": {
     "@types/got": "^9.6.11",
