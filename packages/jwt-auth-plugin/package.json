@@ -6,8 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "tsc && npm run copy:assets",
     "copy:assets": "mkdir -p dist/views && cp src/views/** dist/views/",
-    "watch": "tsc-watch",
-    "copy": "echo \"XXX: Fix since npm link and ts-node does not play nice, remove this when done\" && rm -rf node_modules/@flink-app/flink && cp -R ../../flink/flink-framework node_modules/@flink-app/flink"
+    "watch": "tsc-watch"
   },
   "author": "joel@frost.se",
   "license": "MIT",
