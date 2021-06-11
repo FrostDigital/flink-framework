@@ -12,7 +12,7 @@ import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
-import { unauthorized } from "./FlinkErrors";
+import { notFound, unauthorized } from "./FlinkErrors";
 import { Handler, HttpMethod, RouteProps } from "./FlinkHttpHandler";
 import { FlinkPluginOptions } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
@@ -212,6 +212,10 @@ export class FlinkApp<C extends FlinkContext> {
       );
       offsetTime = Date.now();
     }
+
+    this.expressApp.use((req, res, next) => {
+      res.status(404).json(notFound());
+    });
 
     this.expressApp.listen(this.port, () => {
       log.fontColorLog(
@@ -428,6 +432,7 @@ export class FlinkApp<C extends FlinkContext> {
     const tsProject = new Project({
       compilerOptions: {
         esModuleInterop: true,
+        skipLibCheck: true, // Mainly due to https://github.com/DefinitelyTyped/DefinitelyTyped/issues/46639
       },
     });
 
