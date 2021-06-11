@@ -46,8 +46,8 @@ export function getSchemaFromHandlerSourceFile(
   }
 
   return {
-    reqSchema: reqSchemaArg?.getSymbolOrThrow().getName(),
-    resSchema: resSchemaArg?.getSymbolOrThrow().getName(),
+    reqSchema: reqSchemaArg?.getSymbol()?.getName(),
+    resSchema: resSchemaArg?.getSymbol()?.getName(),
   };
 }
 
