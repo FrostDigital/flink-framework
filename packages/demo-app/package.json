@@ -1,6 +1,6 @@
 {
   "name": "@flink/demo-app",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Demo app used as documentation and to run integration tests",
   "private": true,
   "scripts": {
@@ -8,7 +8,7 @@
     "start": "node --preserve-symlinks -r ts-node/register -- src/index.ts --project tsconfig.json"
   },
   "dependencies": {
-    "@flink-app/flink": "^0.1.4",
+    "@flink-app/flink": "^0.1.5",
     "@flink-app/jwt-auth-plugin": "0.0.1",
     "bcrypt": "^5.0.1",
     "uuid": "^8.3.2"
