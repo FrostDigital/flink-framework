@@ -1,6 +1,6 @@
 {
   "name": "@flink/demo-app",
-  "version": "0.0.1",
+  "version": "0.1.4",
   "description": "Demo app used as documentation and to run integration tests",
   "private": true,
   "scripts": {
