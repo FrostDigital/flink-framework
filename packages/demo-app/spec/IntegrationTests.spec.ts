@@ -83,4 +83,17 @@ describe("Integration tests", () => {
 
     expect(secretRes.statusCode).toBe(200);
   });
+
+  it("should fail to login if invalid password", async () => {
+    const res = await got.post(`${baseUrl}/login`, {
+      body: {
+        username: "bob@frost.se",
+        password: "faulty",
+      },
+      json: true,
+      throwHttpErrors: false,
+    });
+
+    expect(res.statusCode).toBe(401);
+  });
 });

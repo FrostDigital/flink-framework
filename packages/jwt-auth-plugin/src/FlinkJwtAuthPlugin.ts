@@ -57,8 +57,8 @@ export interface JwtAuthPlugin extends FlinkAuthPlugin {
    */
   validatePassword: (
     password: string,
-    salt: string,
-    hash: string
+    passwordHash: string,
+    salt: string
   ) => Promise<boolean>;
 }
 
@@ -152,7 +152,11 @@ async function createPasswordHashAndSalt(
   return { salt, hash };
 }
 
-async function validatePassword(password: string, salt: string, hash: string) {
+async function validatePassword(
+  password: string,
+  passwordHash: string,
+  salt: string
+) {
   const hashCandidate = await encrypt(password, salt);
-  return hashCandidate === hash;
+  return hashCandidate === passwordHash;
 }
