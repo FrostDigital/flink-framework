@@ -11,6 +11,9 @@
     "prepublish": "tsc --project tsconfig.dist.json",
     "watch": "tsc-watch --project tsconfig.dist.json"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -46,5 +49,6 @@
     "nodemon": "^2.0.7",
     "ts-node": "^9.1.1",
     "tsc-watch": "^4.2.9"
-  }
+  },
+  "gitHead": "ee98397779b0901bf41ff76a223d876a137ccea2"
 }
