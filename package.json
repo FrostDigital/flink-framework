@@ -1,48 +1,7 @@
 {
-  "name": "@flink-app/flink",
-  "version": "0.1.4",
-  "description": "Typescript only framework for creating REST-like APIs on top of Express and mongodb",
-  "types": "dist/index.d.ts",
-  "main": "dist/index.js",
-  "scripts": {
-    "test": "jasmine-ts --config=./spec/support/jasmine.json",
-    "test:watch": "nodemon --ext ts --exec 'jasmine-ts  --config=./spec/support/jasmine.json'",
-    "start": "ts-node src/index.ts",
-    "prepublish": "tsc --project tsconfig.dist.json",
-    "watch": "tsc-watch --project tsconfig.dist.json"
-  },
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "@types/express": "^4.17.11",
-    "@types/mongodb": "^3.6.12",
-    "ajv": "^8.2.0",
-    "ajv-formats": "^2.1.0",
-    "body-parser": "^1.19.0",
-    "cors": "^2.8.5",
-    "express": "^4.17.1",
-    "folder-hash": "^4.0.1",
-    "mock-json-schema": "^1.0.8",
-    "mongodb": "^3.6.6",
-    "node-color-log": "^5.2.0",
-    "reflect-metadata": "^0.1.13",
-    "tiny-glob": "^0.2.9",
-    "ts-morph": "^11.0.0",
-    "typescript": "^4.2.4",
-    "typescript-json-schema": "^0.50.0",
-    "uuid": "^8.3.2"
-  },
+  "name": "root",
+  "private": true,
   "devDependencies": {
-    "@types/cors": "^2.8.10",
-    "@types/folder-hash": "^4.0.0",
-    "@types/jasmine": "^3.7.1",
-    "@types/node": "^15.0.1",
-    "@types/uuid": "^8.3.0",
-    "jasmine": "^3.7.0",
-    "jasmine-spec-reporter": "^7.0.0",
-    "jasmine-ts": "^0.3.3",
-    "nodemon": "^2.0.7",
-    "ts-node": "^9.1.1",
-    "tsc-watch": "^4.2.9"
+    "lerna": "^4.0.0"
   }
 }
