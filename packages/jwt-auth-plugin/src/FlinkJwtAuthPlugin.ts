@@ -46,11 +46,11 @@ export interface JwtAuthPlugin extends FlinkAuthPlugin {
    * This method should be used when setting a new password. Both hash and salt needs
    * to be saved in database as both are needed to validate the password.
    *
-   * Throws error if password does not match configured `passwordPolicy`.
+   * Returns null if password does not match configured `passwordPolicy`.
    */
   createPasswordHashAndSalt: (
     password: string
-  ) => Promise<{ hash: string; salt: string }>;
+  ) => Promise<{ hash: string; salt: string } | null>;
 
   /**
    * Validates that provided `password` is same as provided `hash`.
@@ -142,9 +142,8 @@ async function createPasswordHashAndSalt(
   passwordPolicy: RegExp
 ) {
   if (!passwordPolicy.test(password)) {
-    throw new Error(
-      `Password does not match password policy '${passwordPolicy}'`
-    );
+    log.debug(`Password does not match password policy '${passwordPolicy}'`);
+    return null;
   }
 
   const salt = await genSalt(10);

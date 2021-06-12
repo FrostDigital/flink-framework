@@ -12,10 +12,11 @@ import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
-import { notFound, unauthorized } from "./FlinkErrors";
+import { internalServerError, notFound, unauthorized } from "./FlinkErrors";
 import { Handler, HttpMethod, RouteProps } from "./FlinkHttpHandler";
 import { FlinkPluginOptions } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
+import { FlinkResponse } from "./FlinkResponse";
 import { getSchemaFromHandlerSourceFile } from "./FlinkTsUtils";
 import generateMockData from "./mock-data-generator";
 import {
@@ -323,8 +324,17 @@ export class FlinkApp<C extends FlinkContext> {
               }
             }
 
-            // 👇 This is where the actual handler gets invoked
-            const handlerRes = await handlerFn({ req, ctx: this.ctx! });
+            let handlerRes: FlinkResponse<any>;
+
+            try {
+              // 👇 This is where the actual handler gets invoked
+              handlerRes = await handlerFn({ req, ctx: this.ctx! });
+            } catch (err) {
+              log.warn(
+                `Handler '${methodAndRoute}' threw unhandled exception ${err}`
+              );
+              return res.status(500).json(internalServerError(err));
+            }
 
             if (props.resSchema && !isError(handlerRes)) {
               const schema = this.schemas[props.resSchema];

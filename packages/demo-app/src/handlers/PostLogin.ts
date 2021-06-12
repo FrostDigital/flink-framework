@@ -11,7 +11,6 @@ const PostLogin: Handler<ApplicationContext, LoginReq> = async ({
   ctx,
   req,
 }) => {
-  //const valid = req.body.username && req.body.password;
   const { createToken, validatePassword } = ctx.auth;
   const user = getUserByUsername(req.body.username);
 

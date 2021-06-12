@@ -96,4 +96,29 @@ describe("Integration tests", () => {
 
     expect(res.statusCode).toBe(401);
   });
+
+  it("should signup", async () => {
+    const res = await got.post(`${baseUrl}/signup`, {
+      body: {
+        username: "barak@obama.com",
+        password: "BruceSpringsteen2021",
+      },
+      json: true,
+    });
+
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("should fail to signup if password is not compliant with password policy", async () => {
+    const res = await got.post(`${baseUrl}/signup`, {
+      body: {
+        username: "barak@obama.com",
+        password: "1234",
+      },
+      json: true,
+      throwHttpErrors: false,
+    });
+
+    expect(res.statusCode).toBe(400);
+  });
 });
