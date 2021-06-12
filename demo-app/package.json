@@ -9,9 +9,11 @@
   },
   "dependencies": {
     "@flink-app/flink": "file:../packages/flink",
-    "@flink-app/jwt-auth-plugin": "file:../packages/jwt-auth-plugin"
+    "@flink-app/jwt-auth-plugin": "file:../packages/jwt-auth-plugin",
+    "bcrypt": "^5.0.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/got": "^9.6.11",
     "@types/jasmine": "^3.7.1",
     "@types/node": "^15.0.1",

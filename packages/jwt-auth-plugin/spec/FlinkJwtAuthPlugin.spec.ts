@@ -69,7 +69,7 @@ describe("FlinkJwtAuthPlugin", () => {
 
     const plugin = jwtAuthPlugin({
       secret,
-      getUser: async (id: string) => {
+      getUser: async ({ id }: { id: string }) => {
         expect(id).toBe(userId);
         return {
           id,

@@ -86,7 +86,7 @@ export interface FlinkOptions {
   /**
    * Plugin used for authentication.
    */
-  authPlugin?: FlinkAuthPlugin;
+  auth?: FlinkAuthPlugin;
 
   /**
    * Optional cors options.
@@ -137,7 +137,7 @@ export class FlinkApp<C extends FlinkContext> {
   >();
   private loader: FlinkOptions["loader"];
   private plugins: FlinkPluginOptions[] = [];
-  private authPlugin?: FlinkAuthPlugin;
+  private auth?: FlinkAuthPlugin;
   private corsOpts: FlinkOptions["cors"];
   private appRoot: string;
 
@@ -150,7 +150,7 @@ export class FlinkApp<C extends FlinkContext> {
     this.loader = opts.loader;
     this.plugins = opts.plugins || [];
     this.corsOpts = { ...defaultCorsOptions, ...opts.cors };
-    this.authPlugin = opts.authPlugin;
+    this.auth = opts.auth;
     this.appRoot = opts.appRoot || "./";
   }
 
@@ -578,7 +578,7 @@ export class FlinkApp<C extends FlinkContext> {
     this.ctx = {
       repos,
       plugins: {}, // TODO: Expose plugin in ctx?
-      authPlugin: this.authPlugin,
+      auth: this.auth,
     } as C;
   }
 
@@ -629,13 +629,13 @@ export class FlinkApp<C extends FlinkContext> {
    *
    */
   private async authenticate(req: Request) {
-    if (!this.authPlugin) {
+    if (!this.auth) {
       throw new Error(
         `Attempting to authenticate request (${req.method} ${req.path}) but no authPlugin is set`
       );
     }
 
-    return await this.authPlugin.authenticateRequest(req);
+    return await this.auth.authenticateRequest(req);
   }
 
   // public addHandler(handlerFn: AnyHandler, routeProps: RouteProps) {

@@ -11,5 +11,8 @@ export interface FlinkContext {
     [x: string]: FlinkPlugin;
   };
 
-  authPlugin?: FlinkAuthPlugin;
+  /**
+   * Type of authentication, if any.
+   */
+  auth?: FlinkAuthPlugin;
 }

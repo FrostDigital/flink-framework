@@ -17,7 +17,7 @@
     "experimentalDecorators": true,
     "checkJs": true,
     "outDir": "dist",
-    "typeRoots": ["./typings", "./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"]
   },
   "include": ["./src/*", "./spec/*"],
   "exclude": ["./node_modules/*"]
