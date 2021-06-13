@@ -6,7 +6,8 @@ import express, { Express, Request } from "express";
 import { promises as fsPromises } from "fs";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
-import { join, resolve, sep } from "path";
+import { join, sep } from "path";
+import tinyGlob from "tiny-glob";
 import { Project, SourceFile } from "ts-morph";
 import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
@@ -132,7 +133,7 @@ export class FlinkApp<C extends FlinkContext> {
   private dbOpts?: FlinkOptions["db"];
   private debug = false;
   private onDbConnection?: FlinkOptions["onDbConnection"];
-  private assumedSchemas = new Map<
+  private handlerSchemas = new Map<
     string,
     { reqSchema?: string; resSchema?: string }
   >();
@@ -227,7 +228,10 @@ export class FlinkApp<C extends FlinkContext> {
   }
 
   private async registerHandlers() {
-    const handlers = await getHandlerFiles(this.appRoot);
+    const handlers = await tinyGlob(`**/*.ts`, {
+      cwd: handlersPath(this.appRoot),
+    });
+
     const app = this.expressApp!;
     const handlerRouteCache = new Map<string, string>();
 
@@ -256,8 +260,8 @@ export class FlinkApp<C extends FlinkContext> {
           );
         }
 
-        if (this.assumedSchemas.has(handler)) {
-          const schemasFromGeneric = this.assumedSchemas.get(handler);
+        if (this.handlerSchemas.has(handler)) {
+          const schemasFromGeneric = this.handlerSchemas.get(handler);
           props.reqSchema = props.reqSchema || schemasFromGeneric?.reqSchema;
           props.resSchema = props.resSchema || schemasFromGeneric?.resSchema;
         }
@@ -424,19 +428,11 @@ export class FlinkApp<C extends FlinkContext> {
     const programFiles: string[] = [];
 
     if (schemas.length) {
-      programFiles.push(
-        ...schemas.map((filename) =>
-          resolve(join(schemasPath(this.appRoot), filename))
-        )
-      );
+      programFiles.push(...schemas);
     }
 
     if (handlers.length) {
-      programFiles.push(
-        ...handlers.map((filename) =>
-          resolve(join(handlersPath(this.appRoot), filename))
-        )
-      );
+      programFiles.push(...handlers);
     }
 
     const tsProject = new Project({
@@ -460,6 +456,7 @@ export class FlinkApp<C extends FlinkContext> {
       .reduce<{ schemaFiles: SourceFile[]; handlerFiles: SourceFile[] }>(
         (prev, file) => {
           const { fileName } = file.compilerNode;
+
           if (fileName.includes(schemasPath(this.appRoot))) {
             prev.schemaFiles = [...prev.schemaFiles, file];
           } else if (fileName.includes(handlersPath(this.appRoot))) {
@@ -482,32 +479,31 @@ export class FlinkApp<C extends FlinkContext> {
      * exported Route props.
      */
     for (const handlerFile of handlerFiles) {
-      const [, filename] = handlerFile.compilerNode.fileName.split(
-        handlersPath + sep
-      );
-      this.assumedSchemas.set(
-        filename,
+      const [, handlerRelativeName] = handlerFile
+        .getFilePath()
+        .split("src/handlers/");
+
+      this.handlerSchemas.set(
+        handlerRelativeName,
         getSchemaFromHandlerSourceFile(handlerFile)
       );
     }
 
-    const onlySchemaFilenames = schemaFiles.map(
-      (sf) => sf.compilerNode.fileName
+    const files = await tinyGlob("src/schemas/**/*.ts", { absolute: true });
+
+    // TODO: Cannot get TJS to work with reusing same TS program (tsProject.getProgram().compilerObject). Creating new program but this should not be used
+    const shemaProgram = TJS.getProgramFromFiles(
+      files,
+      {
+        esModuleInterop: true,
+        skipLibCheck: true, // Mainly due to https://github.com/DefinitelyTyped/DefinitelyTyped/issues/46639
+      },
+      process.cwd()
     );
 
-    const generatedSchemas = TJS.generateSchema(
-      // @ts-ignore
-      tsProject.getProgram().compilerObject,
-      "*",
-      settings,
-      onlySchemaFilenames
-    );
+    const generatedSchemas = TJS.generateSchema(shemaProgram, "*", settings);
 
     if (generatedSchemas && generatedSchemas.definitions) {
-      await fsPromises.mkdir(join("generated", "schemas"), {
-        recursive: true,
-      });
-
       const schemaNames = Object.keys(generatedSchemas.definitions);
 
       log.info(`Generated ${schemaNames.length} schemas`);
@@ -647,8 +643,4 @@ export class FlinkApp<C extends FlinkContext> {
 
     return await this.auth.authenticateRequest(req);
   }
-
-  // public addHandler(handlerFn: AnyHandler, routeProps: RouteProps) {
-  //   // this.han
-  // }
 }

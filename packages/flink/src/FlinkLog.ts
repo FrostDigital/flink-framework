@@ -1,4 +1,4 @@
-import { debug, info, warn, error } from "node-color-log";
+import { debug, info, warn, error, setLevel } from "node-color-log";
 
 export const log = {
   debug: (...args: any[]) => debug(args),
@@ -10,4 +10,5 @@ export const log = {
       console.log(JSON.stringify(o, null, 2));
     }
   },
+  setLevel: (level: "debug" | "info" | "warn" | "error") => setLevel(level),
 };

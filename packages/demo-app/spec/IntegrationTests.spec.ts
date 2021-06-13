@@ -121,4 +121,27 @@ describe("Integration tests", () => {
 
     expect(res.statusCode).toBe(400);
   });
+
+  describe("schema validation", () => {
+    it("should respond with bad request if req body is not compliant with schema", async () => {
+      const res = await got.post(`${baseUrl}/car`, {
+        body: {
+          foo: "bar",
+        },
+        json: true,
+        throwHttpErrors: false,
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it("should respond with internal server error if response body is not compliant with schema", async () => {
+      const res = await got.get(`${baseUrl}/car-invalid`, {
+        json: true,
+        throwHttpErrors: false,
+      });
+
+      expect(res.statusCode).toBe(500);
+    });
+  });
 });

@@ -33,16 +33,22 @@ export function isError(message: FlinkResponse) {
 
 export async function getHandlerFiles(appRoot: string) {
   try {
-    return tinyGlob(`**/*.ts`, { cwd: handlersPath(appRoot) });
+    return await tinyGlob(`**/*.ts`, {
+      cwd: handlersPath(appRoot),
+      absolute: true,
+    });
   } catch (err) {
-    log.error(`Failed getting handler files: ${err}`);
+    log.debug(`Failed getting handler files: ${err}`);
     return [];
   }
 }
 
 export async function getSchemaFiles(appRoot: string) {
   try {
-    return await fsPromises.readdir(schemasPath(appRoot));
+    return await tinyGlob(`**/*.ts`, {
+      cwd: schemasPath(appRoot),
+      absolute: true,
+    });
   } catch (err) {
     return [];
   }
