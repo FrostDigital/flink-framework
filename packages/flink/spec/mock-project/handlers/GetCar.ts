@@ -1,8 +1,14 @@
-import { GetHandler, RouteProps } from "../../../src/FlinkHttpHandler";
+import {
+  GetHandler,
+  HttpMethod,
+  RouteProps,
+} from "../../../src/FlinkHttpHandler";
 import Car from "../schemas/Car";
 
 export const Route: RouteProps = {
   path: "/car",
+  method: HttpMethod.get,
+  authenticated: true,
 };
 
 const GetCar: GetHandler<any, Car> = async ({ ctx, req }) => {
