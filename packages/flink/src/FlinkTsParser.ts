@@ -4,28 +4,25 @@ import { join } from "path";
 import { Project } from "ts-morph";
 import * as TJS from "typescript-json-schema";
 import { log } from "./FlinkLog";
+import {
+  getRoutePropsFromHandlerSourceFile,
+  getSchemaFromHandlerSourceFile,
+} from "./FlinkTsUtils";
 import { getHandlerFiles, getSchemaFiles } from "./utils";
 
 const flinkDir = ".flink";
 
 export async function parseSourceFiles(appRoot = "./") {
-  // List all schema and handler files
+  await parseSchemas(appRoot);
+  await parseHandlers(appRoot);
+}
+
+async function parseHandlers(appRoot: string) {
+  let res: any = {}; // TODO: Type
   const handlers = await getHandlerFiles(appRoot);
-  const schemas = await getSchemaFiles(appRoot);
 
-  if (!schemas.length && !handlers.length) {
-    // log.warn("No schemas nor handlers found");
+  if (!handlers.length) {
     return;
-  }
-
-  const programFiles: string[] = [];
-
-  if (schemas.length) {
-    programFiles.push(...schemas);
-  }
-
-  if (handlers.length) {
-    programFiles.push(...handlers);
   }
 
   const tsProject = new Project({
@@ -35,7 +32,43 @@ export async function parseSourceFiles(appRoot = "./") {
     },
   });
 
-  tsProject.addSourceFilesAtPaths(programFiles);
+  tsProject.addSourceFilesAtPaths(handlers);
+
+  /**
+   * Iterate thru handler source files and derive schemas that are set as
+   * typ params, such as `const FooHandler: Handler<AppCtx, ReqSchema, ResSchema> = ...`
+   *
+   * These schemas will be used (if any) unless a schema is specifically set in handlers
+   * exported Route props.
+   */
+  for (const handlerFile of tsProject.getSourceFiles()) {
+    const [, handlerRelativeName] = handlerFile
+      .getFilePath()
+      .split("src/handlers/");
+
+    res[handlerRelativeName] = {
+      schema: getSchemaFromHandlerSourceFile(handlerFile),
+      routeProps: getRoutePropsFromHandlerSourceFile(handlerFile),
+    };
+  }
+
+  await writeParsedHandlers(res);
+}
+
+async function parseSchemas(appRoot: string) {
+  // List all schema and handler files
+  const schemas = await getSchemaFiles(appRoot);
+
+  if (!schemas.length) {
+    // log.warn("No schemas nor handlers found");
+    return;
+  }
+
+  const programFiles: string[] = [];
+
+  if (schemas.length) {
+    programFiles.push(...schemas);
+  }
 
   const settings: TJS.PartialArgs = {
     required: true,
@@ -53,12 +86,7 @@ export async function parseSourceFiles(appRoot = "./") {
     process.cwd()
   );
 
-  const generatedSchemas = TJS.generateSchema(
-    schemaProgram,
-    "*",
-    settings
-    // onlySchemaFilenames
-  );
+  const generatedSchemas = TJS.generateSchema(schemaProgram, "*", settings);
 
   if (generatedSchemas && generatedSchemas.definitions) {
     await fsPromises.mkdir(join("generated", "schemas"), {
@@ -90,5 +118,3 @@ async function writeParsedHandlers(handlers: any) {
     JSON.stringify(handlers, null, 2)
   );
 }
-
-export async function parseHandlers() {}
