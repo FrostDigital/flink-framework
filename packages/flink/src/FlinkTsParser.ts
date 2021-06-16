@@ -48,7 +48,7 @@ async function parseHandlers(appRoot: string) {
 
     res[handlerRelativeName] = {
       schema: getSchemaFromHandlerSourceFile(handlerFile),
-      routeProps: getRoutePropsFromHandlerSourceFile(handlerFile),
+      routeProps: { ...getRoutePropsFromHandlerSourceFile(handlerFile) },
     };
   }
 

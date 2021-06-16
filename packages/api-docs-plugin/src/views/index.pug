@@ -1,0 +1,16 @@
+html
+  head
+    title= title
+  body
+    h1= "API Documentation"
+
+    ul
+      each route in routes
+        li
+          h2 #{route.routeProps.method.toUpperCase()} #{route.routeProps.path} #{route.routeProps.mockApi ? " (mocked)" : ""}
+          h3 Request schema
+          pre
+            code #{route.schema.reqSchema ? JSON.stringify(schemas[route.schema.reqSchema], null, 2) : "n/a"}
+          h3 Response schema
+          pre
+            code #{route.schema.resSchema ? JSON.stringify(schemas[route.schema.resSchema] || {}, null, 2) : "n/a"}

@@ -1,6 +1,7 @@
 import { Node, PropertyAssignment, SourceFile, ts, Type } from "ts-morph";
-import { RouteProps } from "./FlinkHttpHandler";
+import { HttpMethod, RouteProps } from "./FlinkHttpHandler";
 import { log } from "./FlinkLog";
+import { sep } from "path";
 
 type ReqResSchemas = {
   reqSchema: string | undefined;
@@ -101,5 +102,32 @@ export function getRoutePropsFromHandlerSourceFile(file: SourceFile) {
     throw new Error(`Handler ${file.getBaseName()} Props is missing 'path'`);
   }
 
+  if (!routeProps.method) {
+    routeProps.method = getHttpMethodFromHandlerName(file.getBaseName());
+    if (!routeProps.method) {
+      log.error(
+        `Handler ${file.getBaseName()} should either be prefixed with HTTP method in its filename, such as 'PostFoo', or have 'method' set in RouteProps`
+      );
+    }
+  }
+
   return routeProps;
+}
+
+/**
+ * Get http method from props or convention based on file name
+ * if it starts with i.e "GetFoo"
+ */
+function getHttpMethodFromHandlerName(handlerFilename: string) {
+  if (handlerFilename.includes(sep)) {
+    const split = handlerFilename.split(sep);
+    handlerFilename = split[split.length - 1];
+  }
+
+  handlerFilename = handlerFilename.toLocaleLowerCase();
+
+  if (handlerFilename.startsWith(HttpMethod.get)) return HttpMethod.get;
+  if (handlerFilename.startsWith(HttpMethod.post)) return HttpMethod.post;
+  if (handlerFilename.startsWith(HttpMethod.put)) return HttpMethod.put;
+  if (handlerFilename.startsWith(HttpMethod.delete)) return HttpMethod.delete;
 }

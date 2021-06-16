@@ -6,7 +6,7 @@ import express, { Express, Request } from "express";
 import { promises as fsPromises } from "fs";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
-import { join, sep } from "path";
+import { join } from "path";
 import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
@@ -117,7 +117,7 @@ export class FlinkApp<C extends FlinkContext> {
   public name: string;
   public expressApp?: Express;
   public db?: Db;
-  public parsedHandlerConfig: HandlerConfig = {};
+  public handlerConfig: HandlerConfig = {};
   public schemas: { [x: string]: TJS.Definition } = {};
 
   private port?: number;
@@ -149,7 +149,7 @@ export class FlinkApp<C extends FlinkContext> {
     const startTime = Date.now();
     let offsetTime = 0;
 
-    this.parsedHandlerConfig = await readJsonFile(".flink/handlers.json");
+    this.handlerConfig = await readJsonFile(".flink/handlers.json");
     this.schemas = (await readJsonFile(".flink/schemas.json")) || {};
 
     await this.initDb();
@@ -221,14 +221,14 @@ export class FlinkApp<C extends FlinkContext> {
     const app = this.expressApp!;
     const handlerRouteCache = new Map<string, string>();
 
-    for (const handler of Object.keys(this.parsedHandlerConfig)) {
+    for (const handler of Object.keys(this.handlerConfig)) {
       if (handler.endsWith(".ts")) {
         const { default: oHandlerFn } = await this.loader(
           "./handlers/" + handler
         );
 
         const handlerFn: Handler<C> = oHandlerFn;
-        const { routeProps, schema } = this.parsedHandlerConfig[handler];
+        const { routeProps, schema } = this.handlerConfig[handler];
 
         if (!routeProps) {
           log.error(`Missing Props in handler ${handler}`);
@@ -246,9 +246,7 @@ export class FlinkApp<C extends FlinkContext> {
           );
         }
 
-        const method = routeProps.method
-          ? routeProps.method
-          : this.getHttpMethodFromHandlerName(handler);
+        const { method } = routeProps;
 
         if (method) {
           const methodAndRoute = `${method.toUpperCase()} ${routeProps.path}`;
@@ -379,28 +377,6 @@ export class FlinkApp<C extends FlinkContext> {
         }
       }
     }
-  }
-
-  /**
-   * Get http method from props or convention based on file name
-   * if it starts with i.e "GetFoo"
-   */
-  private getHttpMethodFromHandlerName(handlerFilename: string) {
-    if (handlerFilename.includes(sep)) {
-      const split = handlerFilename.split(sep);
-      handlerFilename = split[split.length - 1];
-    }
-
-    handlerFilename = handlerFilename.toLocaleLowerCase();
-
-    if (handlerFilename.startsWith(HttpMethod.get)) return HttpMethod.get;
-    if (handlerFilename.startsWith(HttpMethod.post)) return HttpMethod.post;
-    if (handlerFilename.startsWith(HttpMethod.put)) return HttpMethod.put;
-    if (handlerFilename.startsWith(HttpMethod.delete)) return HttpMethod.delete;
-
-    log.error(
-      "Handlers should either be prefixed with HTTP method, such as `PostFoo`, or have instance method `method` set."
-    );
   }
 
   /**
