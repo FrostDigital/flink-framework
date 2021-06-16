@@ -41,22 +41,6 @@ export interface RouteProps {
    */
   path: string;
 
-  // /**
-  //  * The request schema, if any.
-  //  *
-  //  * Should ideally be extracted from generics in handler function but can be
-  //  * set here (schema id) if need to override.
-  //  */
-  // reqSchema?: string;
-
-  // /**
-  //  * The response schema, if any.
-  //  *
-  //  * Should ideally be extracted from generics in handler function but can be
-  //  * set here (schema id) if need to override.
-  //  */
-  // resSchema?: string;
-
   /**
    * Generates mock response based on handlers response schema.
    *
