@@ -139,6 +139,7 @@ describe("Integration tests", () => {
       const res = await got.get(`${baseUrl}/car-invalid`, {
         json: true,
         throwHttpErrors: false,
+        retry: 0,
       });
 
       expect(res.statusCode).toBe(500);

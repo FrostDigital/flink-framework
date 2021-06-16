@@ -5,7 +5,11 @@
   "private": true,
   "scripts": {
     "test": "node --preserve-symlinks -r jasmine-ts",
-    "start": "node --preserve-symlinks -r ts-node/register -- src/index.ts --project tsconfig.json"
+    "start": "node --preserve-symlinks -r ts-node/register -- src/index.ts --project tsconfig.json",
+    "dev": "npm run flink:generate && nodemon",
+    "prestart": "npm run flink:generate",
+    "pretest": "npm run flink:generate",
+    "flink:generate": "flink generate"
   },
   "dependencies": {
     "@flink-app/flink": "^0.1.5",

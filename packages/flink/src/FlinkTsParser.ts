@@ -97,7 +97,7 @@ async function parseSchemas(appRoot: string) {
 
     log.info(`Generated ${schemaNames.length} schemas`);
 
-    await writeParsedSchemas(generatedSchemas);
+    await writeParsedSchemas(generatedSchemas.definitions || {});
   }
 }
 

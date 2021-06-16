@@ -7,8 +7,6 @@ import { promises as fsPromises } from "fs";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
 import { join, sep } from "path";
-import tinyGlob from "tiny-glob";
-import { Project, SourceFile } from "ts-morph";
 import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
@@ -18,16 +16,9 @@ import { Handler, HttpMethod, RouteProps } from "./FlinkHttpHandler";
 import { FlinkPluginOptions } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
 import { FlinkResponse } from "./FlinkResponse";
-import { getSchemaFromHandlerSourceFile } from "./FlinkTsUtils";
+import { readJsonFile } from "./FsUtils";
 import generateMockData from "./mock-data-generator";
-import {
-  getCollectionNameForRepo,
-  getHandlerFiles,
-  getSchemaFiles,
-  handlersPath,
-  isError,
-  schemasPath,
-} from "./utils";
+import { getCollectionNameForRepo, isError } from "./utils";
 
 const ajv = new Ajv();
 addFormats(ajv);
@@ -114,29 +105,27 @@ export interface FlinkOptions {
   appRoot?: string;
 }
 
-type HandlerMetaData = {
-  method: string;
-  routeProps: RouteProps;
-  reqSchema?: TJS.Definition;
-  resSchema?: TJS.Definition;
+type HandlerConfig = {
+  [x: string]: {
+    schema: { reqSchema?: string; resSchema?: string };
+    routeProps: RouteProps;
+    method?: HttpMethod;
+  };
 };
 
 export class FlinkApp<C extends FlinkContext> {
   public name: string;
   public expressApp?: Express;
-  public schemas: { [x: string]: TJS.Definition } = {};
   public db?: Db;
-  public handlerMetadata: HandlerMetaData[] = [];
+  public parsedHandlerConfig: HandlerConfig = {};
+  public schemas: { [x: string]: TJS.Definition } = {};
 
   private port?: number;
   private ctx?: C;
   private dbOpts?: FlinkOptions["db"];
   private debug = false;
   private onDbConnection?: FlinkOptions["onDbConnection"];
-  private handlerSchemas = new Map<
-    string,
-    { reqSchema?: string; resSchema?: string }
-  >();
+
   private loader: FlinkOptions["loader"];
   private plugins: FlinkPluginOptions[] = [];
   private auth?: FlinkAuthPlugin;
@@ -160,6 +149,9 @@ export class FlinkApp<C extends FlinkContext> {
     const startTime = Date.now();
     let offsetTime = 0;
 
+    this.parsedHandlerConfig = await readJsonFile(".flink/handlers.json");
+    this.schemas = (await readJsonFile(".flink/schemas.json")) || {};
+
     await this.initDb();
 
     if (this.debug) {
@@ -176,8 +168,6 @@ export class FlinkApp<C extends FlinkContext> {
       );
       offsetTime = Date.now();
     }
-
-    await this.registerSchemas();
 
     if (this.debug) {
       log.bgColorLog(
@@ -228,23 +218,19 @@ export class FlinkApp<C extends FlinkContext> {
   }
 
   private async registerHandlers() {
-    const handlers = await tinyGlob(`**/*.ts`, {
-      cwd: handlersPath(this.appRoot),
-    });
-
     const app = this.expressApp!;
     const handlerRouteCache = new Map<string, string>();
 
-    for (const handler of handlers) {
+    for (const handler of Object.keys(this.parsedHandlerConfig)) {
       if (handler.endsWith(".ts")) {
-        const { default: oHandlerFn, Route } = await this.loader(
+        const { default: oHandlerFn } = await this.loader(
           "./handlers/" + handler
         );
 
         const handlerFn: Handler<C> = oHandlerFn;
-        const props: RouteProps = Route;
+        const { routeProps, schema } = this.parsedHandlerConfig[handler];
 
-        if (!props) {
+        if (!routeProps) {
           log.error(`Missing Props in handler ${handler}`);
           continue;
         }
@@ -260,39 +246,35 @@ export class FlinkApp<C extends FlinkContext> {
           );
         }
 
-        if (this.handlerSchemas.has(handler)) {
-          const schemasFromGeneric = this.handlerSchemas.get(handler);
-          props.reqSchema = props.reqSchema || schemasFromGeneric?.reqSchema;
-          props.resSchema = props.resSchema || schemasFromGeneric?.resSchema;
-        }
-
-        const method = this.getHttpMethodForHandler(props, handler);
+        const method = routeProps.method
+          ? routeProps.method
+          : this.getHttpMethodFromHandlerName(handler);
 
         if (method) {
-          const methodAndRoute = `${method.toUpperCase()} ${props.path}`;
+          const methodAndRoute = `${method.toUpperCase()} ${routeProps.path}`;
 
-          app[method](props.path, async (req, res) => {
-            if (props.authenticated) {
+          app[method](routeProps.path, async (req, res) => {
+            if (routeProps.authenticated) {
               if (!(await this.authenticate(req))) {
                 return res.status(401).json(unauthorized());
               }
             }
 
-            if (props.reqSchema) {
-              const schema = this.schemas[props.reqSchema];
+            if (schema.reqSchema) {
+              const reqSchema = this.schemas[schema.reqSchema];
 
-              if (!schema) {
+              if (!reqSchema) {
                 log.error(
-                  `Missing request schema ${props.reqSchema} for handler ${handler} - skipping validation`
+                  `Missing request schema ${schema.reqSchema} for handler ${handler} - skipping validation`
                 );
               } else {
-                const validate = ajv.compile(schema);
+                const validate = ajv.compile(reqSchema);
                 const valid = validate(req.body);
 
                 if (!valid) {
                   log.warn(
                     `${methodAndRoute}: Bad request (using schema ${
-                      props.reqSchema
+                      schema.reqSchema
                     }) ${JSON.stringify(validate.errors, null, 2)}`
                   );
 
@@ -304,7 +286,7 @@ export class FlinkApp<C extends FlinkContext> {
                       id: v4(),
                       title: "Bad request",
                       detail: `Schema ${
-                        props.reqSchema
+                        schema.reqSchema
                       } did not validate ${JSON.stringify(validate.errors)}`,
                     },
                   });
@@ -312,14 +294,14 @@ export class FlinkApp<C extends FlinkContext> {
               }
             }
 
-            if (props.mockApi && props.resSchema) {
+            if (routeProps.mockApi && schema.resSchema) {
               log.warn(
                 `Mock response for ${req.method.toUpperCase()} ${req.path}`
               );
-              const schema = this.getSchema(props.resSchema);
+              const resSchema = this.getSchema(schema.resSchema);
 
-              if (schema) {
-                const data = generateMockData(schema);
+              if (resSchema) {
+                const data = generateMockData(resSchema);
                 res.status(200).json({
                   status: 200,
                   data,
@@ -340,23 +322,25 @@ export class FlinkApp<C extends FlinkContext> {
               return res.status(500).json(internalServerError(err));
             }
 
-            if (props.resSchema && !isError(handlerRes)) {
-              const schema = this.schemas[props.resSchema];
+            if (schema.resSchema && !isError(handlerRes)) {
+              const resSchema = this.getSchema(schema.resSchema);
 
-              if (!schema) {
+              if (!resSchema) {
                 log.error(
-                  `Missing response schema ${props.resSchema} for handler ${handler} - skipping validation`
+                  `Missing response schema ${schema.resSchema} for handler ${handler} - skipping validation`
                 );
               } else {
-                const validate = ajv.compile(schema);
+                const validate = ajv.compile(resSchema);
                 const valid = validate(
                   JSON.parse(JSON.stringify(handlerRes.data))
                 );
 
                 if (!valid) {
                   log.warn(
-                    `${methodAndRoute}: Bad response (using schema ${
-                      props.resSchema
+                    `[${
+                      req.reqId
+                    }] ${methodAndRoute}: Bad response (using schema ${
+                      schema.resSchema
                     }) ${JSON.stringify(validate.errors, null, 2)}`
                   );
                   log.debug(`Invalid json: ${JSON.stringify(handlerRes.data)}`);
@@ -368,7 +352,7 @@ export class FlinkApp<C extends FlinkContext> {
                       id: v4(),
                       title: "Bad response",
                       detail: `Schema ${
-                        props.resSchema
+                        schema.resSchema
                       } did not validate ${JSON.stringify(validate.errors)}`,
                     },
                   });
@@ -379,17 +363,6 @@ export class FlinkApp<C extends FlinkContext> {
             res.set(handlerRes.headers);
 
             res.status(handlerRes.status || 200).json(handlerRes);
-          });
-
-          this.handlerMetadata.push({
-            method,
-            routeProps: props,
-            reqSchema: props.reqSchema
-              ? this.schemas[props.reqSchema]
-              : undefined,
-            resSchema: props.resSchema
-              ? this.schemas[props.resSchema]
-              : undefined,
           });
 
           if (handlerRouteCache.get(methodAndRoute)) {
@@ -409,120 +382,10 @@ export class FlinkApp<C extends FlinkContext> {
   }
 
   /**
-   * Reads schema dir (src/schemas) and parses JSON schema
-   * from typescript interfaces.
-   *
-   * This is a quite time consuming task so cache logic is
-   * implemented so that any previous schemas will be reused
-   * as long as the schema dir has not altered since last run.
-   */
-  private async registerSchemas() {
-    const schemas = await getSchemaFiles(this.appRoot);
-    const handlers = await getHandlerFiles(this.appRoot);
-
-    if (!schemas.length && !handlers.length) {
-      log.warn("No schemas nor handlers found");
-      return;
-    }
-
-    const programFiles: string[] = [];
-
-    if (schemas.length) {
-      programFiles.push(...schemas);
-    }
-
-    if (handlers.length) {
-      programFiles.push(...handlers);
-    }
-
-    const tsProject = new Project({
-      compilerOptions: {
-        esModuleInterop: true,
-        skipLibCheck: true, // Mainly due to https://github.com/DefinitelyTyped/DefinitelyTyped/issues/46639
-      },
-    });
-
-    tsProject.addSourceFilesAtPaths(programFiles);
-
-    const settings: TJS.PartialArgs = {
-      required: true,
-      ref: false,
-      noExtraProps: true,
-    };
-
-    // Group source files
-    const { schemaFiles, handlerFiles } = tsProject
-      .getSourceFiles()
-      .reduce<{ schemaFiles: SourceFile[]; handlerFiles: SourceFile[] }>(
-        (prev, file) => {
-          const { fileName } = file.compilerNode;
-
-          if (fileName.includes(schemasPath(this.appRoot))) {
-            prev.schemaFiles = [...prev.schemaFiles, file];
-          } else if (fileName.includes(handlersPath(this.appRoot))) {
-            prev.handlerFiles = [...prev.handlerFiles, file];
-          }
-
-          return prev;
-        },
-        {
-          schemaFiles: [],
-          handlerFiles: [],
-        }
-      );
-
-    /**
-     * Iterate thru handler source files and derive schemas that are set as
-     * typ params, such as `const FooHandler: Handler<AppCtx, ReqSchema, ResSchema> = ...`
-     *
-     * These schemas will be used (if any) unless a schema is specifically set in handlers
-     * exported Route props.
-     */
-    for (const handlerFile of handlerFiles) {
-      const [, handlerRelativeName] = handlerFile
-        .getFilePath()
-        .split("src/handlers/");
-
-      this.handlerSchemas.set(
-        handlerRelativeName,
-        getSchemaFromHandlerSourceFile(handlerFile)
-      );
-    }
-
-    const files = await tinyGlob("src/schemas/**/*.ts", { absolute: true });
-
-    // TODO: Cannot get TJS to work with reusing same TS program (tsProject.getProgram().compilerObject). Creating new program but this should not be used
-    const shemaProgram = TJS.getProgramFromFiles(
-      files,
-      {
-        esModuleInterop: true,
-        skipLibCheck: true, // Mainly due to https://github.com/DefinitelyTyped/DefinitelyTyped/issues/46639
-      },
-      process.cwd()
-    );
-
-    const generatedSchemas = TJS.generateSchema(shemaProgram, "*", settings);
-
-    if (generatedSchemas && generatedSchemas.definitions) {
-      const schemaNames = Object.keys(generatedSchemas.definitions);
-
-      log.info(`Generated ${schemaNames.length} schemas`);
-
-      this.schemas = generatedSchemas.definitions as {
-        [key: string]: TJS.Definition;
-      };
-    }
-  }
-
-  /**
    * Get http method from props or convention based on file name
    * if it starts with i.e "GetFoo"
    */
-  private getHttpMethodForHandler(props: RouteProps, handlerFilename: string) {
-    if (props.method) {
-      return props.method;
-    }
-
+  private getHttpMethodFromHandlerName(handlerFilename: string) {
     if (handlerFilename.includes(sep)) {
       const split = handlerFilename.split(sep);
       handlerFilename = split[split.length - 1];
