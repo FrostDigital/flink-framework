@@ -1,5 +1,9 @@
 import { Project } from "ts-morph";
-import { getSchemaFromHandlerSourceFile } from "../src/FlinkTsUtils";
+import { HttpMethod } from "../src";
+import {
+  getRoutePropsFromHandlerSourceFile,
+  getSchemaFromHandlerSourceFile,
+} from "../src/FlinkTsUtils";
 
 describe("FlinkTsUtils", () => {
   let projectValid: Project;
@@ -59,5 +63,20 @@ describe("FlinkTsUtils", () => {
     } catch (err) {
       expect(err + "").toContain("contains invalid request schema");
     }
+  });
+
+  describe("getRoutePropsFromHandlerSourceFile", () => {
+    it("should get route props from handler", () => {
+      const props = getRoutePropsFromHandlerSourceFile(
+        projectValid.getSourceFileOrThrow(
+          "spec/mock-project/handlers/GetCar.ts"
+        )
+      );
+
+      expect(props).toBeDefined();
+      expect(props.path).toBe("/car");
+      expect(props.method).toBe(HttpMethod.get);
+      expect(props.authenticated).toBe(true);
+    });
   });
 });
