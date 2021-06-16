@@ -14,6 +14,7 @@
   "dependencies": {
     "@flink-app/flink": "^0.1.5",
     "@flink-app/jwt-auth-plugin": "^0.1.5",
+    "@flink-app/api-docs-plugin": "^0.1.5",
     "bcrypt": "^5.0.1",
     "uuid": "^8.3.2"
   },
