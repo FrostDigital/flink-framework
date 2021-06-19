@@ -11,6 +11,7 @@ type User = {
   username: string;
   salt: string;
   password: string;
+  roles: string[];
 };
 
 export const users: User[] = [
@@ -19,12 +20,14 @@ export const users: User[] = [
     username: "bob@frost.se",
     salt: "$2b$10$yZCo7iAM6eiB.dXVdWHKZe",
     password: "$2b$10$yZCo7iAM6eiB.dXVdWHKZeHnqgYVUjflfgj4Fl8uYfJRoBdbebt2O", // == password
+    roles: ["user"],
   },
   {
     id: "2",
     username: "alice@frost.se",
     salt: "$2b$10$WDhg0w3KcU0rIsK/xcU9uO",
     password: "",
+    roles: ["user"],
   },
 ];
 

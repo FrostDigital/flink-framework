@@ -1,7 +1,15 @@
-import { Node, PropertyAssignment, SourceFile, ts, Type } from "ts-morph";
+import { sep } from "path";
+import {
+  ArrayLiteralExpression,
+  LiteralExpression,
+  Node,
+  PropertyAssignment,
+  SourceFile,
+  ts,
+  Type,
+} from "ts-morph";
 import { HttpMethod, RouteProps } from "./FlinkHttpHandler";
 import { log } from "./FlinkLog";
-import { sep } from "path";
 
 type ReqResSchemas = {
   reqSchema: string | undefined;
@@ -80,9 +88,16 @@ export function getRoutePropsFromHandlerSourceFile(file: SourceFile) {
     } else if (Node.isPropertyAssignment(ol)) {
       const initializer = ol.getInitializerOrThrow();
 
-      if (initializer.getKind() === ts.SyntaxKind.PropertyAccessExpression) {
+      if (Node.isPropertyAccessExpression(initializer)) {
+        let val: any;
+
+        if (ol.getType().isEnumLiteral()) {
+          val = ol.getType().getLiteralValue();
+        } else {
+          // TODO
+        }
         // @ts-ignore
-        routeProps[ol.getName()] = ol.getType().getLiteralValue();
+        routeProps[ol.getName()] = val;
       } else if (
         [
           ts.SyntaxKind.StringLiteral,
@@ -91,7 +106,12 @@ export function getRoutePropsFromHandlerSourceFile(file: SourceFile) {
         ].includes(initializer.getKind())
       ) {
         // @ts-ignore
-        routeProps[ol.getName()] = (initializer as Literals).getLiteralValue();
+        routeProps[ol.getName()] = initializer.getLiteralValue();
+      } else if (Node.isArrayLiteralExpression(initializer)) {
+        // @ts-ignore
+        routeProps[ol.getName()] = (initializer as ArrayLiteralExpression)
+          .getElements()
+          .map((el) => (el as LiteralExpression).getLiteralText());
       } else {
         log.warn("Unhandled route props property: " + ol.getKindName());
       }
@@ -111,7 +131,7 @@ export function getRoutePropsFromHandlerSourceFile(file: SourceFile) {
     }
   }
 
-  return routeProps;
+  return routeProps as RouteProps;
 }
 
 /**

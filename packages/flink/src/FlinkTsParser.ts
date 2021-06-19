@@ -3,6 +3,7 @@ import mkdirp from "mkdirp";
 import { join } from "path";
 import { Project } from "ts-morph";
 import * as TJS from "typescript-json-schema";
+import { HandlerConfig } from "./FlinkApp";
 import { log } from "./FlinkLog";
 import {
   getRoutePropsFromHandlerSourceFile,
@@ -13,12 +14,20 @@ import { getHandlerFiles, getSchemaFiles } from "./utils";
 const flinkDir = ".flink";
 
 export async function parseSourceFiles(appRoot = "./") {
-  await parseSchemas(appRoot);
-  await parseHandlers(appRoot);
+  const schemas = await parseSchemas(appRoot);
+  const handlers = await parseHandlers(appRoot, schemas || {});
+  await writeParsedHandlers(handlers);
 }
 
-async function parseHandlers(appRoot: string) {
-  let res: any = {}; // TODO: Type
+export async function parseAndWriteSchemas(appRoot = "./") {
+  const schemas = await parseSchemas(appRoot);
+  await writeParsedSchemas(schemas);
+}
+
+async function parseHandlers(
+  appRoot: string,
+  schemas: { [x: string]: TJS.Definition }
+) {
   const handlers = await getHandlerFiles(appRoot);
 
   if (!handlers.length) {
@@ -41,18 +50,26 @@ async function parseHandlers(appRoot: string) {
    * These schemas will be used (if any) unless a schema is specifically set in handlers
    * exported Route props.
    */
-  for (const handlerFile of tsProject.getSourceFiles()) {
-    const [, handlerRelativeName] = handlerFile
-      .getFilePath()
-      .split("src/handlers/");
+  const handlerConfigs: HandlerConfig[] = tsProject
+    .getSourceFiles()
+    .map((handlerFile) => {
+      const [, handlerRelativeName] = handlerFile
+        .getFilePath()
+        .split("src/handlers/");
 
-    res[handlerRelativeName] = {
-      schema: getSchemaFromHandlerSourceFile(handlerFile),
-      routeProps: { ...getRoutePropsFromHandlerSourceFile(handlerFile) },
-    };
-  }
+      const schema = getSchemaFromHandlerSourceFile(handlerFile);
 
-  await writeParsedHandlers(res);
+      return {
+        schema: {
+          reqSchema: schema.reqSchema ? schemas[schema.reqSchema] : undefined,
+          resSchema: schema.resSchema ? schemas[schema.resSchema] : undefined,
+        },
+        routeProps: { ...getRoutePropsFromHandlerSourceFile(handlerFile) },
+        origin: handlerRelativeName,
+      };
+    });
+
+  return handlerConfigs;
 }
 
 async function parseSchemas(appRoot: string) {
@@ -89,25 +106,10 @@ async function parseSchemas(appRoot: string) {
   const generatedSchemas = TJS.generateSchema(schemaProgram, "*", settings);
 
   if (generatedSchemas && generatedSchemas.definitions) {
-    await fsPromises.mkdir(join("generated", "schemas"), {
-      recursive: true,
-    });
-
     const schemaNames = Object.keys(generatedSchemas.definitions);
-
     log.info(`Generated ${schemaNames.length} schemas`);
-
-    await writeParsedSchemas(generatedSchemas.definitions || {});
+    return generatedSchemas.definitions as { [key: string]: TJS.Definition };
   }
-}
-
-async function writeParsedSchemas(schemas: any) {
-  await mkdirp(flinkDir);
-
-  return fsPromises.writeFile(
-    join(flinkDir, "schemas.json"),
-    JSON.stringify(schemas, null, 2)
-  );
 }
 
 async function writeParsedHandlers(handlers: any) {
@@ -116,5 +118,14 @@ async function writeParsedHandlers(handlers: any) {
   return fsPromises.writeFile(
     join(flinkDir, "handlers.json"),
     JSON.stringify(handlers, null, 2)
+  );
+}
+
+async function writeParsedSchemas(schemas: any) {
+  await mkdirp(flinkDir);
+
+  return fsPromises.writeFile(
+    join(flinkDir, "schemas.json"),
+    JSON.stringify(schemas, null, 2)
   );
 }

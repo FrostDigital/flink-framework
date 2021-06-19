@@ -1,12 +1,19 @@
-import mongodb, { Db } from "mongodb";
+import { Db } from "mongodb";
 import { FlinkApp } from "./FlinkApp";
-import { log } from "./FlinkLog";
 
-export interface FlinkPluginOptions {
+export interface FlinkPlugin {
   /**
-   * Name of plugin
+   * Unique key/id which is used when accessing plugin in application context.
+   *
+   * Should ideally be camelCase as this is used to access plugin from context like so `ctx.myPlugin`.
    */
-  name: string;
+  id: string;
+
+  /**
+   * If plugin should expose *anything* on application context.
+   * The `key` is used as property to access plugins context.
+   */
+  ctx?: any;
 
   /**
    * Configuration related to database.
@@ -32,66 +39,7 @@ export interface FlinkPluginOptions {
   /**
    * Initializes the plugin. Is invoked when host app is initialized.
    */
-  init: (app: FlinkApp<any>) => void | Promise<void>;
+  init?: (app: FlinkApp<any>, db?: Db) => void | Promise<void>;
+
+  handlers?: any[];
 }
-
-export class FlinkPlugin {
-  /**
-   * Name of plugin
-   */
-  name: string;
-
-  /**
-   * The host flink app, from which the plugin is invoked
-   */
-  private app: FlinkApp<any>;
-
-  private db?: Db;
-
-  private dbOpts: FlinkPluginOptions["db"];
-
-  constructor(app: FlinkApp<any>, options: FlinkPluginOptions) {
-    this.name = options.name;
-    this.app = app;
-    this.dbOpts = options.db;
-  }
-
-  async init() {
-    await this.initDb();
-    return this;
-  }
-
-  /**
-   * Connects to database.
-   */
-  private async initDb() {
-    if (this.dbOpts) {
-      if (this.dbOpts.useHostDb) {
-        if (!this.app.db) {
-          log.error(
-            `Plugin '${this.name} configured to use host app db, but no db exists'`
-          );
-        } else {
-          this.db = this.app.db;
-        }
-      } else if (this.dbOpts.uri) {
-        try {
-          log.debug(`Connecting to '${this.name}' db`);
-          const client = await mongodb.connect(this.dbOpts.uri, {
-            useUnifiedTopology: true,
-          });
-          this.db = client.db();
-        } catch (err) {
-          log.error(`Failed to connect to plugin '${this.name}' db: ` + err);
-        }
-      }
-    }
-  }
-}
-
-/**
- * Returns function which creates the plugin.
- */
-export type FlinkPluginFactory = (
-  pluginOptions: any
-) => (app: FlinkApp<any>) => FlinkPlugin;

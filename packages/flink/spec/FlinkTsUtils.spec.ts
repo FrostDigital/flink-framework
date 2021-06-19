@@ -76,7 +76,7 @@ describe("FlinkTsUtils", () => {
       expect(props).toBeDefined();
       expect(props.path).toBe("/car");
       expect(props.method).toBe(HttpMethod.get);
-      expect(props.authenticated).toBe(true);
+      expect(props.permissions).toEqual("*");
     });
   });
 });

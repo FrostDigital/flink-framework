@@ -12,8 +12,8 @@ import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
 import { internalServerError, notFound, unauthorized } from "./FlinkErrors";
-import { Handler, HttpMethod, RouteProps } from "./FlinkHttpHandler";
-import { FlinkPluginOptions } from "./FlinkPlugin";
+import { Handler, RouteProps } from "./FlinkHttpHandler";
+import { FlinkPlugin } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
 import { FlinkResponse } from "./FlinkResponse";
 import { readJsonFile } from "./FsUtils";
@@ -74,7 +74,7 @@ export interface FlinkOptions {
   /**
    * Optional list of plugins that should be configured and used.
    */
-  plugins?: FlinkPluginOptions[];
+  plugins?: FlinkPlugin[];
 
   /**
    * Plugin used for authentication.
@@ -105,20 +105,28 @@ export interface FlinkOptions {
   appRoot?: string;
 }
 
-type HandlerConfig = {
-  [x: string]: {
-    schema: { reqSchema?: string; resSchema?: string };
-    routeProps: RouteProps;
-    method?: HttpMethod;
+export interface HandlerConfig {
+  schema?: { reqSchema?: TJS.Definition; resSchema?: TJS.Definition };
+  routeProps: RouteProps;
+  /**
+   * I.e. filename or plugin name that describes where handler origins from
+   */
+  origin?: string;
+}
+export interface HandlerConfigWithSchemaRefs
+  extends Omit<HandlerConfig, "schema" | "origin"> {
+  schema?: {
+    reqSchema?: string;
+    resSchema?: string;
   };
-};
+}
 
 export class FlinkApp<C extends FlinkContext> {
   public name: string;
   public expressApp?: Express;
   public db?: Db;
-  public handlerConfig: HandlerConfig = {};
-  public schemas: { [x: string]: TJS.Definition } = {};
+  public handlers: HandlerConfig[] = [];
+  // public schemas: { [x: string]: TJS.Definition } = {};
 
   private port?: number;
   private ctx?: C;
@@ -127,10 +135,15 @@ export class FlinkApp<C extends FlinkContext> {
   private onDbConnection?: FlinkOptions["onDbConnection"];
 
   private loader: FlinkOptions["loader"];
-  private plugins: FlinkPluginOptions[] = [];
+  private plugins: FlinkPlugin[] = [];
   private auth?: FlinkAuthPlugin;
   private corsOpts: FlinkOptions["cors"];
   private appRoot: string;
+
+  /**
+   * Internal cache used to track registered handlers and potentially any overlapping routes
+   */
+  private handlerRouteCache = new Map<string, string>();
 
   constructor(opts: FlinkOptions) {
     this.name = opts.name;
@@ -149,8 +162,7 @@ export class FlinkApp<C extends FlinkContext> {
     const startTime = Date.now();
     let offsetTime = 0;
 
-    this.handlerConfig = await readJsonFile(".flink/handlers.json");
-    this.schemas = (await readJsonFile(".flink/schemas.json")) || {};
+    await this.readSchemasAndHandlerMetadata();
 
     await this.initDb();
 
@@ -188,14 +200,23 @@ export class FlinkApp<C extends FlinkContext> {
       next();
     });
 
-    // TODO: Add better more fine grained control when plugins are initialized
+    // TODO: Add better more fine grained control when plugins are initialized, i.e. in what order
 
-    this.plugins.map((plugin) => {
-      plugin.init(this);
-      log.info(`Initialized plugin '${plugin.name}'`);
-    });
+    for (const plugin of this.plugins) {
+      let db;
 
-    await this.registerHandlers();
+      if (plugin.db) {
+        db = await this.initPluginDb(plugin);
+      }
+
+      if (plugin.init) {
+        await plugin.init(this, db);
+      }
+
+      log.info(`Initialized plugin '${plugin.id}'`);
+    }
+
+    await this.registerAppHandlers();
 
     if (this.debug) {
       log.bgColorLog(
@@ -217,18 +238,163 @@ export class FlinkApp<C extends FlinkContext> {
     });
   }
 
-  private async registerHandlers() {
-    const app = this.expressApp!;
-    const handlerRouteCache = new Map<string, string>();
+  public addHandler(config: HandlerConfig, handlerFn: Handler<any>) {
+    const dup = this.handlers.find(
+      (h) =>
+        h.routeProps.path === config.routeProps.path &&
+        h.routeProps.method === config.routeProps.method
+    );
 
-    for (const handler of Object.keys(this.handlerConfig)) {
-      if (handler.endsWith(".ts")) {
+    if (dup) {
+      // TODO: Not sure if there is a case where you'd want to overwrite a route?
+      log.warn(
+        `${config.routeProps.method} ${config.routeProps.path} overlaps existing route`
+      );
+    }
+
+    this.handlers.push(config);
+
+    this.registerHandler(config, handlerFn);
+  }
+
+  private registerHandler(handlerConfig: HandlerConfig, handler: Handler<any>) {
+    if (!this.ctx) {
+      throw new Error(
+        "Context does not exist (yet), make sure to build context prior to registering handlers"
+      );
+    }
+
+    const { routeProps, schema = {} } = handlerConfig;
+    const { method } = routeProps;
+    const app = this.expressApp!;
+
+    if (method) {
+      const methodAndRoute = `${method.toUpperCase()} ${routeProps.path}`;
+
+      app[method](routeProps.path, async (req, res) => {
+        if (routeProps.permissions) {
+          if (!(await this.authenticate(req, routeProps.permissions))) {
+            return res.status(401).json(unauthorized());
+          }
+        }
+
+        if (schema.reqSchema) {
+          const validate = ajv.compile(schema.reqSchema);
+          const valid = validate(req.body);
+
+          if (!valid) {
+            log.warn(
+              `${methodAndRoute}: Bad request ${JSON.stringify(
+                validate.errors,
+                null,
+                2
+              )}`
+            );
+
+            log.debug(`Invalid json: ${JSON.stringify(req.body)}`);
+
+            return res.status(400).json({
+              status: 400,
+              error: {
+                id: v4(),
+                title: "Bad request",
+                detail: `Schema did not validate ${JSON.stringify(
+                  validate.errors
+                )}`,
+              },
+            });
+          }
+        }
+
+        if (routeProps.mockApi && schema.resSchema) {
+          log.warn(`Mock response for ${req.method.toUpperCase()} ${req.path}`);
+
+          const data = generateMockData(schema.resSchema);
+
+          res.status(200).json({
+            status: 200,
+            data,
+          });
+          return;
+        }
+
+        let handlerRes: FlinkResponse<any>;
+
+        try {
+          // 👇 This is where the actual handler gets invoked
+          handlerRes = await handler({ req, ctx: this.ctx! });
+        } catch (err) {
+          log.warn(
+            `Handler '${methodAndRoute}' threw unhandled exception ${err}`
+          );
+          return res.status(500).json(internalServerError(err));
+        }
+
+        if (schema.resSchema && !isError(handlerRes)) {
+          const validate = ajv.compile(schema.resSchema);
+          const valid = validate(JSON.parse(JSON.stringify(handlerRes.data)));
+
+          if (!valid) {
+            log.warn(
+              `[${req.reqId}] ${methodAndRoute}: Bad response ${JSON.stringify(
+                validate.errors,
+                null,
+                2
+              )}`
+            );
+            log.debug(`Invalid json: ${JSON.stringify(handlerRes.data)}`);
+            // log.debug(JSON.stringify(schema, null, 2));
+
+            return res.status(500).json({
+              status: 500,
+              error: {
+                id: v4(),
+                title: "Bad response",
+                detail: `Schema did not validate ${JSON.stringify(
+                  validate.errors
+                )}`,
+              },
+            });
+          }
+        }
+
+        res.set(handlerRes.headers);
+
+        res.status(handlerRes.status || 200).json(handlerRes);
+      });
+
+      if (this.handlerRouteCache.has(methodAndRoute)) {
+        log.error(
+          `Cannot register handler ${methodAndRoute} - route already registered`
+        );
+        return process.exit(1); // TODO: Do we need to exit?
+      } else {
+        this.handlerRouteCache.set(
+          methodAndRoute,
+          JSON.stringify(routeProps) // TODO
+        );
+        log.info(`Registered route ${methodAndRoute}`);
+      }
+    }
+  }
+
+  /**
+   * Register handlers found within the `/src/handlers`
+   * directory in Flink App.
+   *
+   * Will not register any handlers added programmatically.
+   */
+  private async registerAppHandlers() {
+    for (const handler of this.handlers) {
+      const { origin = "" } = handler;
+
+      if (origin.endsWith(".ts")) {
         const { default: oHandlerFn } = await this.loader(
-          "./handlers/" + handler
+          "./handlers/" + origin
         );
 
         const handlerFn: Handler<C> = oHandlerFn;
-        const { routeProps, schema } = this.handlerConfig[handler];
+        const { routeProps } = handler;
 
         if (!routeProps) {
           log.error(`Missing Props in handler ${handler}`);
@@ -240,141 +406,7 @@ export class FlinkApp<C extends FlinkContext> {
           continue;
         }
 
-        if (!this.ctx) {
-          throw new Error(
-            "Context does not exist (yet), make sure to build context prior to registering handlers"
-          );
-        }
-
-        const { method } = routeProps;
-
-        if (method) {
-          const methodAndRoute = `${method.toUpperCase()} ${routeProps.path}`;
-
-          app[method](routeProps.path, async (req, res) => {
-            if (routeProps.authenticated) {
-              if (!(await this.authenticate(req))) {
-                return res.status(401).json(unauthorized());
-              }
-            }
-
-            if (schema.reqSchema) {
-              const reqSchema = this.schemas[schema.reqSchema];
-
-              if (!reqSchema) {
-                log.error(
-                  `Missing request schema ${schema.reqSchema} for handler ${handler} - skipping validation`
-                );
-              } else {
-                const validate = ajv.compile(reqSchema);
-                const valid = validate(req.body);
-
-                if (!valid) {
-                  log.warn(
-                    `${methodAndRoute}: Bad request (using schema ${
-                      schema.reqSchema
-                    }) ${JSON.stringify(validate.errors, null, 2)}`
-                  );
-
-                  log.debug(`Invalid json: ${JSON.stringify(req.body)}`);
-
-                  return res.status(400).json({
-                    status: 400,
-                    error: {
-                      id: v4(),
-                      title: "Bad request",
-                      detail: `Schema ${
-                        schema.reqSchema
-                      } did not validate ${JSON.stringify(validate.errors)}`,
-                    },
-                  });
-                }
-              }
-            }
-
-            if (routeProps.mockApi && schema.resSchema) {
-              log.warn(
-                `Mock response for ${req.method.toUpperCase()} ${req.path}`
-              );
-              const resSchema = this.getSchema(schema.resSchema);
-
-              if (resSchema) {
-                const data = generateMockData(resSchema);
-                res.status(200).json({
-                  status: 200,
-                  data,
-                });
-                return;
-              }
-            }
-
-            let handlerRes: FlinkResponse<any>;
-
-            try {
-              // 👇 This is where the actual handler gets invoked
-              handlerRes = await handlerFn({ req, ctx: this.ctx! });
-            } catch (err) {
-              log.warn(
-                `Handler '${methodAndRoute}' threw unhandled exception ${err}`
-              );
-              return res.status(500).json(internalServerError(err));
-            }
-
-            if (schema.resSchema && !isError(handlerRes)) {
-              const resSchema = this.getSchema(schema.resSchema);
-
-              if (!resSchema) {
-                log.error(
-                  `Missing response schema ${schema.resSchema} for handler ${handler} - skipping validation`
-                );
-              } else {
-                const validate = ajv.compile(resSchema);
-                const valid = validate(
-                  JSON.parse(JSON.stringify(handlerRes.data))
-                );
-
-                if (!valid) {
-                  log.warn(
-                    `[${
-                      req.reqId
-                    }] ${methodAndRoute}: Bad response (using schema ${
-                      schema.resSchema
-                    }) ${JSON.stringify(validate.errors, null, 2)}`
-                  );
-                  log.debug(`Invalid json: ${JSON.stringify(handlerRes.data)}`);
-                  // log.debug(JSON.stringify(schema, null, 2));
-
-                  return res.status(500).json({
-                    status: 500,
-                    error: {
-                      id: v4(),
-                      title: "Bad response",
-                      detail: `Schema ${
-                        schema.resSchema
-                      } did not validate ${JSON.stringify(validate.errors)}`,
-                    },
-                  });
-                }
-              }
-            }
-
-            res.set(handlerRes.headers);
-
-            res.status(handlerRes.status || 200).json(handlerRes);
-          });
-
-          if (handlerRouteCache.get(methodAndRoute)) {
-            log.error(
-              `Cannot register handler ${handler} - route ${methodAndRoute} already registered by handler ${handlerRouteCache.get(
-                methodAndRoute
-              )}`
-            );
-            return process.exit(1); // TODO: Do we need to exit?
-          } else {
-            handlerRouteCache.set(methodAndRoute, handler);
-            log.info(`${handler}: ${methodAndRoute}`);
-          }
-        }
+        this.registerHandler(handler, handlerFn);
       }
     }
   }
@@ -420,9 +452,20 @@ export class FlinkApp<C extends FlinkContext> {
       log.debug(`Skipping repos - no repos in ${reposRoot} found`);
     }
 
+    const pluginCtx = this.plugins.reduce<{ [x: string]: any }>(
+      (out, plugin) => {
+        if (out[plugin.id]) {
+          throw new Error(`Plugin ${plugin.id} is already registered`);
+        }
+        out[plugin.id] = plugin.ctx;
+        return out;
+      },
+      {}
+    );
+
     this.ctx = {
       repos,
-      plugins: {}, // TODO: Expose plugin in ctx?
+      plugins: pluginCtx,
       auth: this.auth,
     } as C;
   }
@@ -450,6 +493,39 @@ export class FlinkApp<C extends FlinkContext> {
   }
 
   /**
+   * Connects plugin to database.
+   */
+  private async initPluginDb(plugin: FlinkPlugin) {
+    if (!plugin.db) {
+      return;
+    }
+
+    if (plugin.db) {
+      if (plugin.db.useHostDb) {
+        if (!this.db) {
+          log.error(
+            `Plugin '${this.name} configured to use host app db, but no db exists in FlinkApp'`
+          );
+        } else {
+          return this.db;
+        }
+      } else if (plugin.db.uri) {
+        try {
+          log.debug(`Connecting to '${plugin.id}' db`);
+          const client = await mongodb.connect(plugin.db.uri, {
+            useUnifiedTopology: true,
+          });
+          return client.db();
+        } catch (err) {
+          log.error(
+            `Failed to connect to db defined in plugin '${plugin.id}': ` + err
+          );
+        }
+      }
+    }
+  }
+
+  /**
    * Constructs repo instance name based on
    * filename.
    *
@@ -460,26 +536,16 @@ export class FlinkApp<C extends FlinkContext> {
     return name.charAt(0).toLowerCase() + name.substr(1);
   }
 
-  private getSchema(schemaName: string) {
-    const schema = this.schemas[schemaName];
-
-    if (!schema) {
-      log.error(`Missing schema '${schemaName}'`);
-    }
-
-    return schema;
-  }
-
-  /**
-   *
-   */
-  private async authenticate(req: Request) {
+  private async authenticate(req: Request, permissions: string | string[]) {
     if (!this.auth) {
       throw new Error(
         `Attempting to authenticate request (${req.method} ${req.path}) but no authPlugin is set`
       );
     }
+    return await this.auth.authenticateRequest(req, permissions);
+  }
 
-    return await this.auth.authenticateRequest(req);
+  private async readSchemasAndHandlerMetadata() {
+    this.handlers = await readJsonFile(".flink/handlers.json");
   }
 }
