@@ -1,6 +1,6 @@
 {
   "name": "create-flink-app",
-  "version": "0.2.0-alpha.1",
+  "version": "0.2.0-alpha.2",
   "keywords": [
     "flinkapp",
     "flink"
@@ -24,7 +24,7 @@
     "release": "ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register"
   },
   "devDependencies": {
-    "@flink-app/flink": "0.2.0-alpha.1",
+    "@flink-app/flink": "^0.2.0-alpha.2",
     "@types/async-retry": "1.4.2",
     "@types/cross-spawn": "^6.0.2",
     "@types/node": "^12.6.8",

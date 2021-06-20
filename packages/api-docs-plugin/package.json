@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/api-docs-plugin",
-  "version": "0.2.0-alpha.1",
+  "version": "0.2.0-alpha.2",
   "description": "Flink plugin that generates API documentation based on JSON schemas",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
@@ -16,7 +16,7 @@
     "pug": "^3.0.2"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.2.0-alpha.1",
+    "@flink-app/flink": "^0.2.0-alpha.2",
     "@types/express": "^4.17.12",
     "@types/got": "^9.6.11",
     "@types/node": "^15.6.2",
