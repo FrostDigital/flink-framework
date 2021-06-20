@@ -22,15 +22,7 @@ export type FirebaseMessagingPluginOptions = {
    */
   exposeEndpoints?: boolean;
 
-  // /**
-  //  * If endpoints should be accessible without need to be
-  //  * authenticated.
-  //  *
-  //  * Only applicable if `exposeEndpoints` is true.
-  //  */
-  // allowPublicAccess?: boolean;
-
-  scopes?: {
+  permissions?: {
     send: string;
   };
 };
@@ -53,7 +45,9 @@ export const firebaseMessagingPlugin = (
             method: HttpMethod.post,
             path: "/send-message",
             docs: "Publishes push notification to one or multiple devices",
-            permissions: [options.scopes?.send || "firebase-messaging:send"],
+            permissions: [
+              options.permissions?.send || "firebase-messaging:send",
+            ],
           },
           schema: {
             reqSchema: schemas.Message,
