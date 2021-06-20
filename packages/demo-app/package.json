@@ -1,6 +1,6 @@
 {
   "name": "@flink/demo-app",
-  "version": "0.2.0-alpha.0",
+  "version": "0.2.0-alpha.1",
   "description": "Demo app used as documentation and to run integration tests",
   "private": true,
   "scripts": {
@@ -12,10 +12,10 @@
     "flink:generate": "flink generate"
   },
   "dependencies": {
-    "@flink-app/api-docs-plugin": "^0.2.0-alpha.0",
-    "@flink-app/firebase-messaging-plugin": "^0.2.0-alpha.0",
-    "@flink-app/flink": "^0.2.0-alpha.0",
-    "@flink-app/jwt-auth-plugin": "^0.2.0-alpha.0",
+    "@flink-app/api-docs-plugin": "^0.2.0-alpha.1",
+    "@flink-app/firebase-messaging-plugin": "^0.2.0-alpha.1",
+    "@flink-app/flink": "^0.2.0-alpha.1",
+    "@flink-app/jwt-auth-plugin": "^0.2.0-alpha.1",
     "bcrypt": "^5.0.1",
     "uuid": "^8.3.2"
   },
