@@ -3,8 +3,9 @@ FROM node:12.6.0
 WORKDIR /app
 COPY . ./
 
+WORKDIR /app/website
+
 RUN \
-    cd website \
     npm install \    
     npm run build;
 
