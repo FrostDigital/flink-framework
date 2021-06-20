@@ -4,7 +4,8 @@ WORKDIR /app
 COPY . ./
 
 RUN \
-    npm install; \    
+    cd website \
+    npm install \    
     npm run build;
 
 CMD npm run serve
