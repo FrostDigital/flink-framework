@@ -9,6 +9,11 @@ interface Model {
 class Repo extends FlinkRepo<any, Model> {}
 
 describe("FlinkRepo", () => {
+  if (!process.env.CI) {
+    console.warn("Skipping repo test which requires db if CI flag is not set");
+    return;
+  }
+
   let db: Db;
   let collection: Collection;
   let repo: Repo;
