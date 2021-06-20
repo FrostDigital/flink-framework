@@ -9,4 +9,4 @@ RUN \
     npm install \    
     npm run build;
 
-CMD npm run serve
+CMD npm run serve -- --build
