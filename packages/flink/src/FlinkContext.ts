@@ -1,15 +1,12 @@
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
-import { FlinkPlugin } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
 
-export interface FlinkContext {
+export interface FlinkContext<P = any> {
   repos: {
     [x: string]: FlinkRepo<any>;
   };
 
-  plugins: {
-    [x: string]: FlinkPlugin;
-  };
+  plugins: P;
 
   /**
    * Type of authentication, if any.

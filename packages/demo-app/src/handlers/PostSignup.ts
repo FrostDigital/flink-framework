@@ -23,6 +23,7 @@ const PostSignup: Handler<ApplicationContext, SignupReq> = async ({
     ...req.body,
     password: hashRes.hash,
     salt: hashRes.salt,
+    roles: ["user"],
   });
 
   return {

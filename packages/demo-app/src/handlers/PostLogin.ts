@@ -22,7 +22,7 @@ const PostLogin: Handler<ApplicationContext, LoginReq> = async ({
     return unauthorized("Invalid username or password");
   }
 
-  const token = await createToken(req.body);
+  const token = await createToken(req.body, user.roles);
 
   return {
     data: {

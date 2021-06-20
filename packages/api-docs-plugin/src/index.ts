@@ -1,4 +1,4 @@
-import { FlinkApp, FlinkPluginOptions } from "@flink-app/flink";
+import { FlinkApp, FlinkPlugin } from "@flink-app/flink";
 import { join } from "path";
 
 export type ApiDocOptions = {
@@ -18,18 +18,16 @@ export type ApiDocOptions = {
   title?: string;
 };
 
-export const apiDocPlugin = (
-  options: ApiDocOptions = {}
-): FlinkPluginOptions => {
+export const apiDocPlugin = (options: ApiDocOptions = {}): FlinkPlugin => {
   return {
-    name: options.name || "API docs",
+    id: "apiDocs",
     init: (app) => init(app, options),
   };
 };
 
 function init(app: FlinkApp<any>, options: ApiDocOptions) {
   // TODO: Use parsedHandlerConfig
-  const { expressApp, handlerConfig, schemas } = app;
+  const { expressApp, handlers } = app;
 
   if (!expressApp) {
     // should not happen
@@ -42,20 +40,13 @@ function init(app: FlinkApp<any>, options: ApiDocOptions) {
   expressApp.set("view engine", "pug");
 
   expressApp?.get(options.path || "/docs", (req, res) => {
-    let routes = [];
-
-    for (const k in handlerConfig) {
-      routes.push(handlerConfig[k]);
-    }
-
-    routes = routes.sort((routeA, routeB) =>
+    const sortedHandlers = handlers.sort((routeA, routeB) =>
       routeA.routeProps.path.localeCompare(routeB.routeProps.path)
     );
 
     res.render("index", {
       title: options.title || "API Docs",
-      routes,
-      schemas,
+      handlers: sortedHandlers,
     });
   });
 }

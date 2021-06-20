@@ -2,11 +2,14 @@ import { GetHandler, RouteProps } from "@flink-app/flink";
 import Car from "../../schemas/Car";
 
 export const Route: RouteProps = {
-  path: "/car-secret",
-  permissions: "car:get",
+  path: "/car-secret-permissions",
+  permissions: ["secret"],
 };
 
-const GetSecretCar: GetHandler<any, Car> = async ({ ctx, req }) => {
+const GetSecretCarWithPermissions: GetHandler<any, Car> = async ({
+  ctx,
+  req,
+}) => {
   return {
     data: {
       model: "Volvo",
@@ -14,4 +17,4 @@ const GetSecretCar: GetHandler<any, Car> = async ({ ctx, req }) => {
   };
 };
 
-export default GetSecretCar;
+export default GetSecretCarWithPermissions;

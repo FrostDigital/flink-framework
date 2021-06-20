@@ -12,6 +12,7 @@ describe("FlinkJwtAuthPlugin", () => {
           username: "username",
         };
       },
+      rolePermissions: {},
     });
 
     expect(plugin).toBeDefined();
@@ -26,6 +27,9 @@ describe("FlinkJwtAuthPlugin", () => {
           username: "username",
         };
       },
+      rolePermissions: {
+        user: ["*"],
+      },
     });
 
     const mockRequest = {
@@ -34,7 +38,7 @@ describe("FlinkJwtAuthPlugin", () => {
       },
     } as FlinkRequest;
 
-    const authenticated = await plugin.authenticateRequest(mockRequest);
+    const authenticated = await plugin.authenticateRequest(mockRequest, "foo");
 
     expect(authenticated).toBeFalse();
   });
@@ -49,6 +53,9 @@ describe("FlinkJwtAuthPlugin", () => {
           username: "username",
         };
       },
+      rolePermissions: {
+        user: ["*"],
+      },
     });
 
     const mockRequest = {
@@ -57,7 +64,7 @@ describe("FlinkJwtAuthPlugin", () => {
       },
     } as FlinkRequest;
 
-    const authenticated = await plugin.authenticateRequest(mockRequest);
+    const authenticated = await plugin.authenticateRequest(mockRequest, "foo");
 
     expect(authenticated).toBeFalse();
   });
@@ -65,7 +72,10 @@ describe("FlinkJwtAuthPlugin", () => {
   it("should decode token and authenticate", async () => {
     const secret = "secret";
     const userId = "123";
-    const encodedToken = jwtSimple.encode({ id: userId }, secret);
+    const encodedToken = jwtSimple.encode(
+      { id: userId, roles: ["user"] },
+      secret
+    );
 
     const plugin = jwtAuthPlugin({
       secret,
@@ -76,6 +86,9 @@ describe("FlinkJwtAuthPlugin", () => {
           username: "username",
         };
       },
+      rolePermissions: {
+        user: ["*"],
+      },
     });
 
     const mockRequest = {
@@ -84,7 +97,7 @@ describe("FlinkJwtAuthPlugin", () => {
       },
     } as FlinkRequest;
 
-    const authenticated = await plugin.authenticateRequest(mockRequest);
+    const authenticated = await plugin.authenticateRequest(mockRequest, "foo");
 
     expect(authenticated).toBeTruthy();
   });
@@ -100,9 +113,12 @@ describe("FlinkJwtAuthPlugin", () => {
           username: "username",
         };
       },
+      rolePermissions: {
+        user: ["*"],
+      },
     });
 
-    const token = await plugin.createToken({ id: "123" });
+    const token = await plugin.createToken({ id: "123" }, ["user"]);
 
     expect(token).toBeDefined();
 
