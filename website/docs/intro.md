@@ -24,7 +24,7 @@ Get started by **creating a new flink app**.
 
 ## Generate a new app
 
-Generate a new Docusaurus site using the **classic template**:
+Generate a new Flink app using **create-flink-app**:
 
 ```shell
 npx create-flink-app my-app
@@ -40,7 +40,7 @@ cd my-app
 npm run dev
 ```
 
-Your site starts at `http://localhost:3333`.
+Your service starts at `http://localhost:3333`.
 
 ## When is Flink a good fit?
 
