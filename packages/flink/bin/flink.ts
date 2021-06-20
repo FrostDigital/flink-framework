@@ -2,7 +2,7 @@
 
 import { log } from "../src";
 
-const commands = ["generate"];
+const commands = ["generate", "generate-schema"];
 log.setLevel("debug");
 
 const argv = process.argv.slice(2);
@@ -19,7 +19,7 @@ if (!commands.includes(argv[0])) {
 }
 
 import("../cli/" + argCommand)
-  .then((i) => i.generate())
+  .then((i) => i.run())
   .catch((err) => {
     console.log(err);
   });

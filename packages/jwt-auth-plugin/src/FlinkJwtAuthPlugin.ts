@@ -6,6 +6,7 @@ import {
 } from "@flink-app/flink";
 import jwtSimple from "jwt-simple";
 import { encrypt, genSalt } from "./BcryptUtils";
+import { hasValidPermissions } from "./PermissionValidator";
 
 /**
  * Minimum eight characters, at least one letter and one number
@@ -13,21 +14,13 @@ import { encrypt, genSalt } from "./BcryptUtils";
  */
 const defaultPasswordPolicy = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
-const defaultPaths = {
-  login: "/login",
-  logout: "/logout",
-  me: "/me",
-};
-
 export interface JwtAuthPluginOptions {
   secret: string;
   algo?: jwtSimple.TAlgorithm;
   getUser: (tokenData: any) => Promise<FlinkAuthUser>;
   passwordPolicy?: RegExp;
-  paths?: {
-    login: string;
-    logout: string;
-    me: string;
+  rolePermissions: {
+    [role: string]: string[];
   };
 }
 
@@ -38,7 +31,7 @@ export interface JwtAuthPlugin extends FlinkAuthPlugin {
    * The payload can by anything but should in most cases be and object that
    * holds user information including an identifier such as the username or id.
    */
-  createToken: (payload: any) => Promise<string>;
+  createToken: (payload: any, roles: string[]) => Promise<string>;
 
   /**
    * Generates new password hash and salt for provided password.
@@ -68,16 +61,19 @@ export interface JwtAuthPlugin extends FlinkAuthPlugin {
 export function jwtAuthPlugin({
   secret,
   getUser,
+  rolePermissions,
   algo = "HS256",
   passwordPolicy = defaultPasswordPolicy,
-  paths,
 }: JwtAuthPluginOptions): JwtAuthPlugin {
-  paths = { ...defaultPaths, ...paths };
-
   return {
-    authenticateRequest: async (req) =>
-      authenticateRequest(req, { algo, secret, getUser }),
-    createToken: (payload) => createToken(payload, { algo, secret }),
+    authenticateRequest: async (req, permissions) =>
+      authenticateRequest(req, permissions, rolePermissions, {
+        algo,
+        secret,
+        getUser,
+      }),
+    createToken: (payload, roles) =>
+      createToken({ ...payload, roles }, { algo, secret }),
     createPasswordHashAndSalt: (password: string) =>
       createPasswordHashAndSalt(password, passwordPolicy),
     validatePassword,
@@ -86,6 +82,8 @@ export function jwtAuthPlugin({
 
 async function authenticateRequest(
   req: FlinkRequest,
+  routePermissions: string | string[],
+  rolePermissions: { [x: string]: string[] },
   {
     secret,
     algo,
@@ -105,7 +103,24 @@ async function authenticateRequest(
     }
 
     if (decodedToken) {
+      const permissionsArr = Array.isArray(routePermissions)
+        ? routePermissions
+        : [routePermissions];
+
+      if (permissionsArr && permissionsArr.length > 0) {
+        const validPerms = hasValidPermissions(
+          decodedToken.roles || [],
+          rolePermissions,
+          permissionsArr
+        );
+
+        if (!validPerms) {
+          return false;
+        }
+      }
+
       const user = await getUser(decodedToken);
+
       log.debug(
         `Failed to authenticate request - user ${decodedToken.id} not found`
       );

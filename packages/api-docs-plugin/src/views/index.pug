@@ -5,12 +5,12 @@ html
     h1= "API Documentation"
 
     ul
-      each route in routes
+      each handler in handlers
         li
-          h2 #{route.routeProps.method.toUpperCase()} #{route.routeProps.path} #{route.routeProps.mockApi ? " (mocked)" : ""}
+          h2 #{handler.routeProps.method.toUpperCase()} #{handler.routeProps.path} #{handler.routeProps.mockApi ? " (mocked)" : ""}
           h3 Request schema
           pre
-            code #{route.schema.reqSchema ? JSON.stringify(schemas[route.schema.reqSchema], null, 2) : "n/a"}
+            code #{handler.schema.reqSchema ? JSON.stringify(handler.schema.reqSchema, null, 2) : "n/a"}
           h3 Response schema
           pre
-            code #{route.schema.resSchema ? JSON.stringify(schemas[route.schema.resSchema] || {}, null, 2) : "n/a"}
+            code #{handler.schema.resSchema ? JSON.stringify(handler.schema.resSchema || {}, null, 2) : "n/a"}

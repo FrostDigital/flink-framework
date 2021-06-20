@@ -51,10 +51,9 @@ export interface RouteProps {
   mockApi?: boolean;
 
   /**
-   * If route requires authentication. Set to true for any authenticated user, otherwise
-   * provide array of roles and/or permissions.
+   * Set permissions needed to access route if route requires authentication.
    */
-  authenticated?: boolean | string[];
+  permissions?: string | string[];
 
   /**
    * Optional documentation of endpoint. Can be used for example in API docs.

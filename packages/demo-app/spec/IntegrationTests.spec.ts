@@ -24,6 +24,11 @@ describe("Integration tests", () => {
         getUser: async (id) => {
           return { id: id, username: "foo@foo.com" };
         },
+        rolePermissions: {
+          user: ["car:get"],
+          manager: ["foo:get"],
+          admin: ["*"],
+        },
       }),
     });
 
@@ -144,5 +149,35 @@ describe("Integration tests", () => {
 
       expect(res.statusCode).toBe(500);
     });
+  });
+
+  describe("permissions", () => {
+    let token = "";
+
+    beforeAll(async () => {
+      const res = await got.post(`${baseUrl}/login`, {
+        body: {
+          username: "bob@frost.se",
+          password: "password",
+        },
+        json: true,
+      });
+      token = res.body.data.token;
+    });
+
+    it("should not allow access if user is missing permissions", async () => {
+      const res = await got.get(`${baseUrl}/car-secret-permissions`, {
+        json: true,
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+        throwHttpErrors: false,
+        retry: 0,
+      });
+
+      expect(res.statusCode).toBe(401);
+    });
+
+    it("should allow access when user has correct permissions", () => {});
   });
 });
