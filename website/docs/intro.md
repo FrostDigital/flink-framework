@@ -44,11 +44,11 @@ Your service starts at `http://localhost:3333`.
 
 ## When is Flink a good fit?
 
-- If you want to develop a headless service that talks HTTP
-- You enjoy TypeScript and type safety that comes with it
-- You understand importance of self documenting API's
+- If you want to develop a headless service that talks HTTP.
+- You enjoy TypeScript and type safety that comes with it.
+- You understand importance of self documenting API's.
 
 ## When is Flink _not_ a good fit?
 
-- If your project is not huge in terms of line of code, team size.
-- If you want to use vanilla javascript
+- If your project is large in terms of line of code, team size.
+- If you want to use vanilla javascript.
