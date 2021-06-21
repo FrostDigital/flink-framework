@@ -1,4 +1,8 @@
-# Schemas
+---
+sidebar_position: 1
+---
+
+# API schemas
 
 Schemas are TypeScript interfaces that declare the shape of requests and responses.
 
