@@ -6,7 +6,7 @@ slug: /plugin-intro
 
 # Plugin intro
 
-Plugins are extensions of Flin. Plugins can add functionality in the following ways:
+Plugins are extensions of Flink. Plugins can add functionality in the following ways:
 
 - Extending application context. Adds a programmatic plugin API on context.
 - Registering handlers/routes. Extends exposed HTTP API that your flink app exposes
