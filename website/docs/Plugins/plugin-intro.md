@@ -4,53 +4,22 @@ title: Introduction to plugins
 slug: /plugin-intro
 ---
 
-Plugins are modules specific for adding functionality in a Flink app.
+# Plugin intro
 
-A few official plugins exists which is ready to be used.
+Plugins are extensions of Flin. Plugins can add functionality in the following ways:
 
-## Using a plugin
+- Extending application context. Adds a programmatic plugin API on context.
+- Registering handlers/routes. Extends exposed HTTP API that your flink app exposes
+- Modifying the express app, for example adding a middleware.
 
-Install and add a plugin with:
+## Official plugins
 
-```
-npm install @flink-app/firebase-messaging-plugin
-```
+See **Offical plugins** for list of existing Flink plugins that is available to use in your Flink app.
 
-## Plugin development
+## Install a plugin
 
-Plugins makes sense when you want to reuse functionality in multiple apps or just
-contain functionality in its own module (plugin) to make it more maintainable.
+Refer to plugin docs, but in general:
 
-Create empty project:
-
-> TODO
-
-This will create an empty plugin project in folder `my-plugin`.
-
-Now define your plugin in `src/MyPlugin.ts`. Often plugins needs options that is configured when adding
-the plugin is a Flink app.
-
-```
-export type MyPluginOptions = {
-  hello: string;
-};
-
-export const myPlugin = (options: MyPluginOptions): FlinkPlugin => {
-  return {
-    // Name of plugin
-    name: "My plugin",
-    // Plugin key, this is used as identifier/property to access plugin context from host app
-    key: "myPlugin",
-    // Optionally set plugin context which will be merged into host Flink apps context
-    ctx: {
-      sayHello: () => console.log(options.hello)
-    }
-  };
-};
-```
-
-### Adding handlers
-
-### Working with the Express app
-
-### Publishing
+1. Install npm module
+2. Add plugin and its configuration to your `FlinkApp`
+3. Add plugin context type to you context (only needed if plugin exposes its API on context)
