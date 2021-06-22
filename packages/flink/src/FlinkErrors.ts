@@ -1,7 +1,10 @@
 import { v4 } from "uuid";
 import { FlinkResponse } from "./FlinkResponse";
 
-export function notFound(detail?: string): FlinkResponse {
+// A marker for FlinkError, but all it means is that data is undefined
+export type FlinkError = undefined;
+
+export function notFound(detail?: string): FlinkResponse<FlinkError> {
   return {
     status: 404,
     error: {
@@ -12,7 +15,7 @@ export function notFound(detail?: string): FlinkResponse {
   };
 }
 
-export function badRequest(detail?: string): FlinkResponse {
+export function badRequest(detail?: string): FlinkResponse<FlinkError> {
   return {
     status: 400,
     error: {
@@ -23,7 +26,7 @@ export function badRequest(detail?: string): FlinkResponse {
   };
 }
 
-export function unauthorized(detail?: string): FlinkResponse {
+export function unauthorized(detail?: string): FlinkResponse<FlinkError> {
   return {
     status: 401,
     error: {
@@ -35,7 +38,9 @@ export function unauthorized(detail?: string): FlinkResponse {
   };
 }
 
-export function internalServerError(detail?: string): FlinkResponse {
+export function internalServerError(
+  detail?: string
+): FlinkResponse<FlinkError> {
   return {
     status: 500,
     error: {

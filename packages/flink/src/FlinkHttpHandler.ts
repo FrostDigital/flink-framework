@@ -1,5 +1,6 @@
 import { Request } from "express";
 import { FlinkContext } from "./FlinkContext";
+import { FlinkError } from "./FlinkErrors";
 import { FlinkResponse } from "./FlinkResponse";
 
 export enum HttpMethod {
@@ -75,7 +76,7 @@ export type Handler<
 > = (props: {
   req: FlinkRequest<ReqSchema, P, Q>;
   ctx: Ctx;
-}) => Promise<FlinkResponse<ResSchema>>;
+}) => Promise<FlinkResponse<ResSchema | FlinkError>>;
 
 /**
  * Http handler function specifically for GET requests as those does
