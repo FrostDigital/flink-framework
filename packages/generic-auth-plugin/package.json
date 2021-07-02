@@ -1,0 +1,33 @@
+{
+  "name": "@flink-app/generic-auth-plugin",
+  "version": "0.2.0-alpha.11",
+  "description": "Flink plugin that provides a generic user authentification solution.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\"",
+    "prepublish": "npm run flink:generate && tsc",
+    "watch": "npm run flink:generate && tsc-watch",
+    "prestart": "npm run flink:generate",
+    "pretest": "npm run flink:generate",
+    "flink:generate": "flink generate-schema"
+  },
+  "author": "johan@frost.se",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "types": "dist/src/index.d.ts",
+  "main": "dist/src/index.js",
+  "dependencies": {
+    "@flink-app/email-plugin": "^0.2.0-alpha.11",
+    "@flink-app/jwt-auth-plugin": "^0.2.0-alpha.10",
+    "handlebars": "^4.7.7",
+    "jsonwebtoken": "^8.5.1"
+  },
+  "devDependencies": {
+    "@flink-app/flink": "^0.2.0-alpha.10",
+    "@types/jsonwebtoken": "^8.5.2",
+    "@types/node": "^15.6.2",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.4"
+  }
+}
