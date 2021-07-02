@@ -16,8 +16,9 @@
     "declaration": true,
     "experimentalDecorators": true,
     "checkJs": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "rootDir": "./"
   },
-  "include": ["./src/*", "./.flink/*"],
+  "include": ["src", ".flink"],
   "exclude": ["./node_modules/*"]
 }
