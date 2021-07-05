@@ -4,7 +4,7 @@ export interface genericAuthPluginOptions{
     repoName : string,  
     enableRoutes? : boolean,
     enablePasswordReset? : boolean,
-    enablePushNotificationTokens : boolean,
+    enablePushNotificationTokens? : boolean,
     passwordResetSettings? : UserPasswordResetSettings,
 
     createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  },
