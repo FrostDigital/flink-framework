@@ -8,7 +8,7 @@ import { JwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 export const userLoginHandler: Handler<  FlinkContext<genericAuthContext>, UserLoginReq, UserLoginRes  > = async ({ ctx, req }) => {
 
     let repo = ctx.repos[ctx.plugins.genericAuthPlugin.repoName];
-    const loginRespons = await ctx.plugins.genericAuthPlugin.loginUser(repo, <JwtAuthPlugin>ctx.auth, req.body.username, req.body.password);
+    const loginRespons = await ctx.plugins.genericAuthPlugin.loginUser(repo, <JwtAuthPlugin>ctx.auth, req.body.username, req.body.password, ctx.plugins.genericAuthPlugin.validatePasswordMethod);
 
     return {
         data: loginRespons

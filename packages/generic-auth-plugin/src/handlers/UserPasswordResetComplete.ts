@@ -23,7 +23,7 @@ export const postPasswordResetCompleteHandler: Handler<  FlinkContext<genericAut
 
     const {jwtSecret, numberOfDigits, lifeTime} = ctx.plugins.genericAuthPlugin.passwordResetSettings.code
 
-    const resp =  await ctx.plugins.genericAuthPlugin.passwordResetComplete(repo, <JwtAuthPlugin>ctx.auth, jwtSecret, req.body.passwordResetToken, req.body.code, req.body.password);
+    const resp =  await ctx.plugins.genericAuthPlugin.passwordResetComplete(repo, <JwtAuthPlugin>ctx.auth, jwtSecret, req.body.passwordResetToken, req.body.code, req.body.password, ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod);
 
     return { data : resp };
 

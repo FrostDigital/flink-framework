@@ -454,3 +454,53 @@ You can always interact directly with the userRepo to modify you users.
 
 Please remember to refresh the users token after changing vital parts of a user. 
 
+
+
+## Using alternativ password and hash functions
+You can specify your own methods to generate hash and salt or to verify a password.
+
+To do this, simply specify the `createPasswordHashAndSaltMethod` and/or `validatePasswordMethod` options on plugin initilizing. Like this:
+
+````
+//This is just a dummy on storing password in plain text. STRONGLY NOT RECOMMENDED.
+
+genericAuthPlugin({
+  createPasswordHashAndSaltMethod : (password) => {
+      return new Promise((resolve) => {
+        resolve({ hash : password, salt : "" });
+      })
+  },
+  validatePasswordMethod : (password, hash, salt) => {
+      return new Promise((resolve) => {
+        resolve(password == hash);
+      })
+  }    
+})
+````
+
+When `validatePasswordMethod` is specified, that method will be used to validate the password. If that method returns false, the default validation will try as well. This will make it possible to use both default password hashes and alternative ones.
+
+
+### How to validate old Aquro / Aplexa passwords?
+If you are using this plugin to verify old Aquro / Aplexa passwords, you can simply do this by specifying `validatePasswordMethod` and use the same hash-function as Aquro Platform.
+
+#### Install required plugin
+````
+npm install --save password-hash
+npm install --save-dev @types/password-hash
+````
+
+#### Update plugin initialization
+````
+import passwordHash from "password-hash";
+
+genericAuthPlugin({
+  validatePasswordMethod : (password, hash, salt) => {
+      return new Promise((resolve) => {
+        resolve(passwordHash.verify(password, hash));
+      })
+    }    
+})
+````
+
+

@@ -13,13 +13,15 @@ export interface genericAuthContext{
     genericAuthPlugin : {
 
     
-        loginUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password? : string) : Promise<UserLoginRes>,
-        createUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password : string, authentificationMethod : "password" | "sms",  roles : string[], profile : UserProfile ) : Promise<UserCreateRes>,
-        changePassword( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, userId : string, newPassword : string) : Promise<UserPasswordChangeRes>,
+        loginUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password? : string, validatePasswordMethod? : { (password : string, hash : string, salt : string) : Promise<boolean>  } ) : Promise<UserLoginRes>,
+        createUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password : string, authentificationMethod : "password" | "sms",  roles : string[], profile : UserProfile, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  }  ) : Promise<UserCreateRes>,
+        changePassword( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, userId : string, newPassword : string, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  } ) : Promise<UserPasswordChangeRes>,
         passwordResetStart( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, jwtSecret : string, username : string, numberOfDigits? : number, lifeTime? : string) : Promise<UserPasswordResetStartRes>,
-        passwordResetComplete( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, jwtSecret : string, passwordResetToken : string, code : string, newPassword : string) : Promise<UserPasswordResetCompleteRes>         
+        passwordResetComplete( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, jwtSecret : string, passwordResetToken : string, code : string, newPassword : string, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  } ) : Promise<UserPasswordResetCompleteRes>         
         repoName : string,
-        passwordResetSettings? : UserPasswordResetSettings
+        passwordResetSettings? : UserPasswordResetSettings,
+        createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  },
+        validatePasswordMethod? : { (password : string, hash : string, salt : string) : Promise<boolean>  }         
     }
 
 }

@@ -19,11 +19,10 @@ export * from "./genericAuthPluginOptions"
          passwordResetStart,
          passwordResetComplete,
          repoName : options.repoName,
-         passwordResetSettings : options.passwordResetSettings
+         passwordResetSettings : options.passwordResetSettings,
+         createPasswordHashAndSaltMethod : options.createPasswordHashAndSaltMethod,
+         validatePasswordMethod : options.validatePasswordMethod
        }
      };
  };
   
-
- 
-

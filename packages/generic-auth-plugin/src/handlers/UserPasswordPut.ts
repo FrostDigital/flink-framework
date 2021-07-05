@@ -9,7 +9,7 @@ import { UserPasswordChangeReq} from "../schemas/UserPasswordChangeReq";
 export const putUserPasswordHandler: Handler<  FlinkContext<genericAuthContext>, UserPasswordChangeReq, UserPasswordChangeRes  > = async ({ ctx, req }) => {
 
     let repo = ctx.repos[ctx.plugins.genericAuthPlugin.repoName];
-    const resp =  await ctx.plugins.genericAuthPlugin.changePassword(repo, <JwtAuthPlugin>ctx.auth, req.user._id, req.body.password );
+    const resp =  await ctx.plugins.genericAuthPlugin.changePassword(repo, <JwtAuthPlugin>ctx.auth, req.user._id, req.body.password, ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod );
     return { data : resp };
 
 };

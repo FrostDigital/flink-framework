@@ -41,7 +41,7 @@ export function getJtwTokenPlugin(secret : string, rolePermissions? : { [role: s
     }) 
 }
 
-export async function createUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password : string, authentificationMethod : "password" | "sms",  roles : string[], profile : UserProfile ) : Promise<UserCreateRes> {
+export async function createUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password : string, authentificationMethod : "password" | "sms",  roles : string[], profile : UserProfile, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  }   ) : Promise<UserCreateRes> {
     
     if(!roles.includes("user")) roles.push("user");
 
@@ -60,7 +60,13 @@ export async function createUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlu
     } 
 
     if(authentificationMethod == "password"){
-        const passwordAndSalt = await auth.createPasswordHashAndSalt(password);
+        let passwordAndSalt = null;
+        if(createPasswordHashAndSaltMethod != null){
+            passwordAndSalt = await createPasswordHashAndSaltMethod(password);
+        }else{
+            passwordAndSalt = await auth.createPasswordHashAndSalt(password);
+        }
+            
         if(passwordAndSalt == null){
             return {
                 status : "passwordError"
@@ -85,7 +91,7 @@ export async function createUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlu
    
 }  
 
-export async function loginUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password : string|undefined) : Promise<UserLoginRes> {
+export async function loginUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password : string|undefined, validatePasswordMethod? : { (password : string, hash : string, salt : string) : Promise<boolean>  } ) : Promise<UserLoginRes> {
     const user = await repo.getOne({ username : username.toLowerCase() } )
     if(user == null){
         return { status : "failed" };
@@ -95,7 +101,21 @@ export async function loginUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlug
 
     if(user.authentificationMethod == "password"){
         if(password == null) password = "";
-        valid = await auth.validatePassword(password, <string>user.password, <string>user.salt);
+        
+        if(validatePasswordMethod!=null){
+            valid = await validatePasswordMethod(password, <string>user.password, <string>user.salt);
+
+            //If not valid, try to use default auth
+            if(!valid){
+                try{
+                    valid = await auth.validatePassword(password, <string>user.password, <string>user.salt);        
+                }catch(ex){}
+            }
+        }else{
+            valid = await auth.validatePassword(password, <string>user.password, <string>user.salt);
+
+        }
+
     }
     if(user.authentificationMethod == "sms"){
         log.error("SMS login is not yet impleted.")
@@ -124,7 +144,7 @@ export async function loginUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlug
 
 
 
-export async function changePassword( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, userId : string, newPassword : string) : Promise<UserPasswordChangeRes> {
+export async function changePassword( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, userId : string, newPassword : string, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  } ) : Promise<UserPasswordChangeRes> {
     const user = await repo.getBydId(userId);
     if(user == null){
         return { status : "failed" };
@@ -134,7 +154,14 @@ export async function changePassword( repo : FlinkRepo<any, User>, auth : JwtAut
         return { status : "failed"};
     }
 
-    const passwordAndSalt = await auth.createPasswordHashAndSalt(newPassword);
+    let passwordAndSalt = null;
+    
+    if(createPasswordHashAndSaltMethod == null){
+        passwordAndSalt = await auth.createPasswordHashAndSalt(newPassword);
+    }else{
+        passwordAndSalt = await createPasswordHashAndSaltMethod(newPassword)
+    }
+    
     if(passwordAndSalt == null){
         return {
             status : "passwordError"
@@ -193,7 +220,7 @@ export async function passwordResetStart( repo : FlinkRepo<any, User>, auth : Jw
 
 
 
-export async function passwordResetComplete( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, jwtSecret : string, passwordResetToken : string, code : string, newPassword : string) : Promise<UserPasswordResetCompleteRes> {
+export async function passwordResetComplete( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, jwtSecret : string, passwordResetToken : string, code : string, newPassword : string, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  }) : Promise<UserPasswordResetCompleteRes> {
 
     let payload : { type : string, username : string} = { type : "", username : ""} ;
     try{
@@ -214,7 +241,15 @@ export async function passwordResetComplete( repo : FlinkRepo<any, User>, auth :
 
 
 
-    const passwordAndSalt = await auth.createPasswordHashAndSalt(newPassword);
+    let passwordAndSalt = null;
+    
+    if(createPasswordHashAndSaltMethod == null){
+        passwordAndSalt = await auth.createPasswordHashAndSalt(newPassword);
+    }else{
+        passwordAndSalt = await createPasswordHashAndSaltMethod(newPassword);
+    }
+    
+
     if(passwordAndSalt == null){
         return {
             status : "passwordError"

@@ -5,6 +5,7 @@ import { JwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 import { UserCreateReq } from "../schemas/UserCreateReq";
 import { UserCreateRes } from "../schemas/UserCreateRes";
 import { internalServerError } from "@flink-app/flink";
+import { formatWithOptions } from "util";
 
 export const userCreateHandler: Handler<  FlinkContext<genericAuthContext>, UserCreateReq, UserCreateRes  > = async ({ ctx, req }) => {
 
@@ -22,7 +23,7 @@ export const userCreateHandler: Handler<  FlinkContext<genericAuthContext>, User
     if(profile == null) profile = {}
 
     let repo = ctx.repos[ctx.plugins.genericAuthPlugin.repoName];
-    const createUserResponse = await ctx.plugins.genericAuthPlugin.createUser(repo,<JwtAuthPlugin>ctx.auth, username, password, authentificationMethod, roles, profile  );
+    const createUserResponse = await ctx.plugins.genericAuthPlugin.createUser(repo,<JwtAuthPlugin>ctx.auth, username, password, authentificationMethod, roles, profile, ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod   );
 
     return {
         data: createUserResponse
