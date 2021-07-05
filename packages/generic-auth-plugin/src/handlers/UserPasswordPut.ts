@@ -10,6 +10,10 @@ export const putUserPasswordHandler: Handler<  FlinkContext<genericAuthContext>,
 
     let repo = ctx.repos[ctx.plugins.genericAuthPlugin.repoName];
     const resp =  await ctx.plugins.genericAuthPlugin.changePassword(repo, <JwtAuthPlugin>ctx.auth, req.user._id, req.body.password, ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod );
-    return { data : resp };
+
+
+    
+    const statusCode = resp.status == "success" ? 200 : 422;
+    return { data : resp, status : statusCode};
 
 };

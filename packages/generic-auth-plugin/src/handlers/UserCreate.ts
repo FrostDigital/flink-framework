@@ -25,7 +25,9 @@ export const userCreateHandler: Handler<  FlinkContext<genericAuthContext>, User
     let repo = ctx.repos[ctx.plugins.genericAuthPlugin.repoName];
     const createUserResponse = await ctx.plugins.genericAuthPlugin.createUser(repo,<JwtAuthPlugin>ctx.auth, username, password, authentificationMethod, roles, profile, ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod   );
 
+    const statusCode = createUserResponse.status == "success" ? 200 : 422;
     return {
-        data: createUserResponse
+        data: createUserResponse,
+        status : statusCode
     };
 };

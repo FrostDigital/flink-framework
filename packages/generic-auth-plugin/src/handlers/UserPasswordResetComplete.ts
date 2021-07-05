@@ -25,6 +25,8 @@ export const postPasswordResetCompleteHandler: Handler<  FlinkContext<genericAut
 
     const resp =  await ctx.plugins.genericAuthPlugin.passwordResetComplete(repo, <JwtAuthPlugin>ctx.auth, jwtSecret, req.body.passwordResetToken, req.body.code, req.body.password, ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod);
 
-    return { data : resp };
+    const statusCode = resp.status == "success" ? 200 : 422;
+
+    return { data : resp, status : statusCode };
 
 };

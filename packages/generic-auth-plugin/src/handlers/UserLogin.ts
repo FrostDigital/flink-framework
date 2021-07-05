@@ -9,8 +9,9 @@ export const userLoginHandler: Handler<  FlinkContext<genericAuthContext>, UserL
 
     let repo = ctx.repos[ctx.plugins.genericAuthPlugin.repoName];
     const loginRespons = await ctx.plugins.genericAuthPlugin.loginUser(repo, <JwtAuthPlugin>ctx.auth, req.body.username, req.body.password, ctx.plugins.genericAuthPlugin.validatePasswordMethod);
-
+    const statusCode = loginRespons.status == "success" ? 200 : 401;
     return {
-        data: loginRespons
+        data: loginRespons,
+        status : statusCode
     };
 };
