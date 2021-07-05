@@ -113,7 +113,7 @@ function start() {
         repoName : "userRepo", 
         enableRoutes : true, //Set true to enable API-endpoints
         enablePasswordReset : true, 
-        enablePushnotificationTokens : true,
+        enablePushNotificationTokens : true,
         passwordResetSettings : {
           email : {
               from_address : "from@host.xxx",

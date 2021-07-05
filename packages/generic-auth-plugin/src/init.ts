@@ -143,7 +143,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
         }
 
 
-        if(options.enablePushnotificationTokens){
+        if(options.enablePushNotificationTokens){
 
             app.addHandler({
                     routeProps: {
