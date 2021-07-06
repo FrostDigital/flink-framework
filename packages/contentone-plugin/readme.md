@@ -168,10 +168,10 @@ Make the size of the resized image exacly the specified size, and crop image if 
 #### image_thumb
 Set to yes to also generate a thumbnail
 
-### image_thumb_width
+#### image_thumb_width
 Specify width of thumbnail
 
-### image_thumb_height
+#### image_thumb_height
 Specify height of thumbnail
 
 
