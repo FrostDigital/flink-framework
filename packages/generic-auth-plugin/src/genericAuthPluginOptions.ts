@@ -6,6 +6,9 @@ export interface genericAuthPluginOptions{
     enablePasswordReset? : boolean,
     enablePushNotificationTokens? : boolean,
     passwordResetSettings? : UserPasswordResetSettings,
+    enableUserCreation? : boolean,
+    enableProfileUpdate? : boolean,
+    enablePasswordUpdate? : boolean,
 
     createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  },
     validatePasswordMethod? : { (password : string, hash : string, salt : string) : Promise<boolean>  } 

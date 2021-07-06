@@ -14,6 +14,12 @@ import { getUserTokenHandler } from "./handlers/UserToken"
 
 export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
 
+
+    if(options.enableUserCreation == null) options.enableUserCreation = true; 
+    if(options.enableProfileUpdate == null) options.enableProfileUpdate = true;
+    if(options.enablePasswordUpdate == null) options.enablePasswordUpdate = true;
+
+
     if(options.enableRoutes){
 
         app.addHandler({
@@ -29,20 +35,21 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
             },
             userLoginHandler
         );
-
-        app.addHandler({
-                routeProps: {
-                method: HttpMethod.post,
-                path: "/user/create",
-                docs: "Creates a new user",
+        if(options.enableUserCreation){
+            app.addHandler({
+                    routeProps: {
+                    method: HttpMethod.post,
+                    path: "/user/create",
+                    docs: "Creates a new user",
+                    },
+                    schema: {
+                    reqSchema: schemas.UserCreateReq,
+                    resSchema: schemas.UserCreateRes,
+                    },
                 },
-                schema: {
-                reqSchema: schemas.UserCreateReq,
-                resSchema: schemas.UserCreateRes,
-                },
-            },
-            userCreateHandler
-        );
+                userCreateHandler
+            );
+        }
 
         app.addHandler({
                 routeProps: {
@@ -75,38 +82,41 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
 
     );        
 
-        app.addHandler({
-                routeProps: {
-                    method: HttpMethod.put,
-                    path: "/user/profile",
-                    docs: "Updates the user profile",
-                    permissions : "authenticated"
+        if(options.enableProfileUpdate){
+            app.addHandler({
+                    routeProps: {
+                        method: HttpMethod.put,
+                        path: "/user/profile",
+                        docs: "Updates the user profile",
+                        permissions : "authenticated"
+                    },
+                    schema: {
+                        reqSchema: schemas.UserProfile,
+                        resSchema: schemas.UserProfile,
+                    },
                 },
-                schema: {
-                    reqSchema: schemas.UserProfile,
-                    resSchema: schemas.UserProfile,
-                },
-            },
-            putUserProfileHandler
-        );   
+                putUserProfileHandler
+            ); 
+        }  
 
 
         
-
-        app.addHandler({
-                routeProps: {
-                    method: HttpMethod.put,
-                    path: "/user/password",
-                    docs: "Updates the user password",
-                    permissions : "authenticated"
+        if(options.enablePasswordUpdate){
+            app.addHandler({
+                    routeProps: {
+                        method: HttpMethod.put,
+                        path: "/user/password",
+                        docs: "Updates the user password",
+                        permissions : "authenticated"
+                    },
+                    schema: {
+                        reqSchema: schemas.UserPasswordChangeReq,
+                        resSchema: schemas.UserPasswordChangeRes,
+                    },
                 },
-                schema: {
-                    reqSchema: schemas.UserPasswordChangeReq,
-                    resSchema: schemas.UserPasswordChangeRes,
-                },
-            },
-            putUserPasswordHandler
-        );   
+                putUserPasswordHandler
+            );   
+        }
 
 
         if(options.enablePasswordReset){
