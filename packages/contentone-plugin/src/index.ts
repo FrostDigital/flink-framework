@@ -1,6 +1,7 @@
 import { FlinkApp, FlinkPlugin, log } from "@flink-app/flink";
 import got, { Response } from "got";
-
+import FormData from 'form-data';
+import fs from 'fs';
 
 let baseUrl = "https://cdb.aquro.com";
 let managementBaseUrl = "https://api.contentone.io";
@@ -22,7 +23,7 @@ export type ContentOneOptions = {
 
   collections? : {[key:string] : ContentOneClient} 
   actions? : {[key:string] : ContentOneManagementAction} 
-
+  cdns? : { [key:string] : ContentOneCDN}
   
 
 };
@@ -154,8 +155,10 @@ export const contentOnePlugin = (options: ContentOneOptions): FlinkPlugin => {
     ctx : {
         collections : options.collections || {},
         actions : options.actions || {},
+        cdns : options.cdns || {},
         getClient : getClient,
-        management : new ContentOneManagementClient()
+        management : new ContentOneManagementClient(),
+        cdnClient : new ContentOneCDNClient(),
         
     },
     init: (app) => init(app, options),
@@ -220,6 +223,93 @@ class ContentOneManagementClient {
     }
 }
 
+interface ContentOneCDNOptions{
+  token : string
+}
+export class ContentOneCDN{
+  private token : string;
+  private client : ContentOneCDNClient;
+  constructor(options : ContentOneCDNOptions){
+    this.token = options.token;
+    this.client = new ContentOneCDNClient();
+
+  }
+
+  async upload(path : string, options? : ContentOneUploadOptions ) : Promise<ContentOneUploadFileResponse>{
+    return await this.client.upload(path, this.token, options);
+  }
+  
+}
+interface ContentOneUploadOptions{
+  folderId? : string;
+  image_rotate? : "90" | "180" | "270"  | "auto";
+  image_resize_width? : number;
+  image_resize_height? : number;
+  image_resize_max? : "yes" | "no";
+  image_resize_crop? : "center" | "attention";
+  image_thumb? : "yes" | "no";
+  image_thumb_width? : number,
+  image_thumb_height? : number,
+
+}
+
+interface ContentOneUploadedFile{
+  _id:string;
+  ProjectID:string;
+  Local_FileName:string;
+  CDN_FileName:string;
+  Url:string;
+  Type:string;
+  Size:number;
+  CreatedDate:string;
+  FolderID:string;
+  Thumbnail? : string;
+  ThumbnailCDN_Filename? : string;
+}
+interface ContentOneUploadFileResponse{
+  status : "success" | "fail",
+  file : ContentOneUploadedFile
+}
+export class ContentOneCDNClient{
+  async upload(path : string, token : string,  options? : ContentOneUploadOptions ) : Promise<ContentOneUploadFileResponse>{
+
+    if(options == null) options = {};
+    
+    
+
+    const form = new FormData();
+
+    form.append('File', fs.createReadStream(path));
+    form.append('token', token);
+
+    if(options.folderId != null) form.append('FolderID', options.folderId );
+    if(options.image_rotate != null) form.append('image_rotate', options.image_rotate );
+    if(options.image_resize_width != null) form.append('image_resize_width', options.image_resize_width );
+    if(options.image_resize_height != null) form.append('image_resize_height', options.image_resize_height );
+    if(options.image_resize_max != null) form.append('image_resize_max', options.image_resize_max );
+    if(options.image_resize_crop != null) form.append('image_resize_crop', options.image_resize_crop );
+    if(options.image_thumb != null) form.append('image_thumb', options.image_thumb );
+    if(options.image_thumb_width != null) form.append('image_thumb_width', options.image_thumb_width );
+    if(options.image_thumb_height != null) form.append('image_thumb_height', options.image_thumb_height );
+    
+    const response = <Response<any>> await got.post(managementBaseUrl + "/content/file/upload", {
+      body: form
+    });
+    
+
+    const body = JSON.parse(response.body)
+    
+    return({
+      status : body.status,
+      file : body.data?.File
+    })
+
+
+
+
+  }
+}
+
 export interface contentOnePluginContext{
   contentOne : {
         collections : {
@@ -227,8 +317,13 @@ export interface contentOnePluginContext{
         },
         actions : {
           [key : string] : ContentOneManagementAction
-        },        
+        },
+        cdns : {
+          [key : string] : ContentOneCDN
+        },     
+
         getClient<T = any>(options : ContentOneClientOptions) : ContentOneClient
-        management : ContentOneManagementClient
+        management : ContentOneManagementClient,
+        cdnClient : ContentOneCDNClient
     }
 }
