@@ -218,7 +218,7 @@ const scaffoldHandler = async () => {
         { type : "text", name : "parameter", message : "Url Parameter (eg. userid)"},
         { type : "list", name : "reqParameters", message : "Enter request body parameters (comma separated)", separator : ",", hint : "Comma separated"},    
         { type : "list", name : "resValues", message : "Enter response values (comma separated)", separator : ","},    
-        { type : "select", name : "method", message : "HTTP VERB / Method",  choices : [ { value : "get", title : "get" }, { value : "post", title : "post"} , { value : "put", title : "post"} , { value : "delete", title : "delete"}]},
+        { type : "select", name : "method", message : "HTTP VERB / Method",  choices : [ { value : "get", title : "get" }, { value : "post", title : "post"} , { value : "put", title : "put"} , { value : "delete", title : "delete"}]},
         { type : "select", name : "permission", message : "Require permission?", choices : [ { value : "no", title : "no"}, { value : "authenticated", "title" : "authenticated" } , { value : "custom", "title" : "custom" } ]},        
     ])
 
