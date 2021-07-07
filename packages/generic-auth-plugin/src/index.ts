@@ -9,8 +9,9 @@ export * from "./schemas/User";
 export * from "./genericAuthPluginOptions"
 
  export const genericAuthPlugin = (options: genericAuthPluginOptions): FlinkPlugin => {
+    if(options.pluginId == null) options.pluginId = "genericAuthPlugin";
      return {
-       id: "genericAuthPlugin",
+       id: options.pluginId,
        init: (app) => init(app, options),
        ctx : {
          loginUser,

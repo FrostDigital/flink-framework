@@ -18,14 +18,14 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
     if(options.enableUserCreation == null) options.enableUserCreation = true; 
     if(options.enableProfileUpdate == null) options.enableProfileUpdate = true;
     if(options.enablePasswordUpdate == null) options.enablePasswordUpdate = true;
-
+    if(options.baseUrl == null) options.baseUrl = "/user"
 
     if(options.enableRoutes){
 
         app.addHandler({
                 routeProps: {
                 method: HttpMethod.post,
-                path: "/user/login",
+                path: options.baseUrl  + "/login",
                 docs: "Authenticates a user",
                 },
                 schema: {
@@ -39,7 +39,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
             app.addHandler({
                     routeProps: {
                     method: HttpMethod.post,
-                    path: "/user/create",
+                    path: options.baseUrl  + "/create",
                     docs: "Creates a new user",
                     },
                     schema: {
@@ -54,7 +54,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
         app.addHandler({
                 routeProps: {
                     method: HttpMethod.get,
-                    path: "/user/profile",
+                    path: options.baseUrl  + "/profile",
                     docs: "Gets the user profile",
                     permissions : "authenticated"
                 },
@@ -70,7 +70,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
         app.addHandler({
             routeProps: {
                 method: HttpMethod.get,
-                path: "/user/token",
+                path: options.baseUrl  + "/token",
                 docs: "Gets a refreshed token for the user",
                 permissions : "authenticated"
             },
@@ -86,7 +86,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
             app.addHandler({
                     routeProps: {
                         method: HttpMethod.put,
-                        path: "/user/profile",
+                        path: options.baseUrl  + "/profile",
                         docs: "Updates the user profile",
                         permissions : "authenticated"
                     },
@@ -105,7 +105,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
             app.addHandler({
                     routeProps: {
                         method: HttpMethod.put,
-                        path: "/user/password",
+                        path: options.baseUrl  + "/password",
                         docs: "Updates the user password",
                         permissions : "authenticated"
                     },
@@ -124,7 +124,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
             app.addHandler({
                     routeProps: {
                     method: HttpMethod.post,
-                    path: "/user/password/reset",
+                    path: options.baseUrl  + "/password/reset",
                     docs: "Start the password reset process for a user",
                     },
                     schema: {
@@ -139,7 +139,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
             app.addHandler({
                     routeProps: {
                     method: HttpMethod.post,
-                    path: "/user/password/reset/complete",
+                    path: options.baseUrl  + "/password/reset/complete",
                     docs: "Completes a password reset for a user",
                     },
                     schema: {
@@ -158,7 +158,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
             app.addHandler({
                     routeProps: {
                         method: HttpMethod.post,
-                        path: "/user/push",
+                        path: options.baseUrl  + "/push",
                         docs: "Register a push notification on current user",
                         permissions : "authenticated"
                     },
@@ -174,7 +174,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
             app.addHandler({
                 routeProps: {
                     method: HttpMethod.delete,
-                    path: "/user/push",
+                    path: options.baseUrl  + "/push",
                     docs: "Removes a push notification token from current user",
                     permissions : "authenticated"
                 },

@@ -9,7 +9,8 @@ export interface genericAuthPluginOptions{
     enableUserCreation? : boolean,
     enableProfileUpdate? : boolean,
     enablePasswordUpdate? : boolean,
-
+    baseUrl? : string,
+    pluginId? : string,
     createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  },
     validatePasswordMethod? : { (password : string, hash : string, salt : string) : Promise<boolean>  } 
 
