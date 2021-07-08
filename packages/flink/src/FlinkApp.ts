@@ -264,7 +264,7 @@ export class FlinkApp<C extends FlinkContext> {
       );
     }
 
-    const { routeProps, schema = {} } = handlerConfig;
+    const { routeProps, schema = {}, origin } = handlerConfig;
     const { method } = routeProps;
     const app = this.expressApp!;
 
@@ -322,7 +322,7 @@ export class FlinkApp<C extends FlinkContext> {
 
         try {
           // 👇 This is where the actual handler gets invoked
-          handlerRes = await handler({ req, ctx: this.ctx! });
+          handlerRes = await handler({ req, ctx: this.ctx!, origin });
         } catch (err) {
           log.warn(
             `Handler '${methodAndRoute}' threw unhandled exception ${err}`
