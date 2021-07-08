@@ -4,9 +4,12 @@ import { genericAuthContext } from "../genericAuthContext";
 import { UserTokenRes } from "../schemas/UserTokenRes";
 
 
-export const getUserTokenHandler: Handler<  FlinkContext<genericAuthContext>, UserTokenRes  > = async ({ ctx, req }) => {
+export const getUserTokenHandler: Handler<  FlinkContext<genericAuthContext>, UserTokenRes  > = async ({ ctx, req, origin }) => {
 
-    let repo = ctx.repos[ctx.plugins.genericAuthPlugin.repoName];
+    let pluginName = origin || "genericAuthPlugin";
+    let repo = ctx.repos[ (<any>ctx.plugins)[pluginName].repoName ];
+
+
     const user =  await repo.getBydId(req.user._id);
     if(user == null){
         return notFound("User not found");

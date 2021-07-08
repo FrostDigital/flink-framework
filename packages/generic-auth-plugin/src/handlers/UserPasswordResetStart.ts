@@ -8,9 +8,11 @@ import { emailPlugin, emailPluginContext} from "@flink-app/email-plugin";
 import { UserPasswordResetStartReq } from "../schemas/UserPasswordResetStartReq";
 import { UserPasswordResetStartResPublic } from "../schemas/UserPasswordResetStartResPublic";
 import Handlebars from "handlebars";
-export const postPasswordResetStartHandler: Handler<  FlinkContext<genericAuthContext&emailPluginContext>, UserPasswordResetStartReq, UserPasswordResetStartResPublic  > = async ({ ctx, req }) => {
+export const postPasswordResetStartHandler: Handler<  FlinkContext<genericAuthContext&emailPluginContext>, UserPasswordResetStartReq, UserPasswordResetStartResPublic  > = async ({ ctx, req, origin }) => {
 
-    const repo = ctx.repos[ctx.plugins.genericAuthPlugin.repoName];
+
+    let pluginName = origin || "genericAuthPlugin";
+    let repo = ctx.repos[ (<any>ctx.plugins)[pluginName].repoName ];    
     
     if(ctx.plugins.emailPlugin?.client == null){
         return internalServerError("Email plugin have to be initialized to use /password/reset");

@@ -19,7 +19,6 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
     if(options.enableProfileUpdate == null) options.enableProfileUpdate = true;
     if(options.enablePasswordUpdate == null) options.enablePasswordUpdate = true;
     if(options.baseUrl == null) options.baseUrl = "/user"
-
     if(options.enableRoutes){
 
         app.addHandler({
@@ -32,6 +31,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
                 reqSchema: schemas.UserLoginReq,
                 resSchema: schemas.UserLoginRes,
                 },
+                origin : options.pluginId,
             },
             userLoginHandler
         );
@@ -46,6 +46,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
                     reqSchema: schemas.UserCreateReq,
                     resSchema: schemas.UserCreateRes,
                     },
+                    origin : options.pluginId,
                 },
                 userCreateHandler
             );
@@ -61,6 +62,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
                 schema: {
                     resSchema: schemas.UserProfile,
                 },
+                origin : options.pluginId
             },
             getProfileHandler
 
@@ -77,6 +79,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
             schema: {
                 resSchema: schemas.UserTokenRes
             },
+            origin : options.pluginId
         },
         getUserTokenHandler
 
@@ -94,6 +97,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
                         reqSchema: schemas.UserProfile,
                         resSchema: schemas.UserProfile,
                     },
+                    origin : options.pluginId
                 },
                 putUserProfileHandler
             ); 
@@ -113,6 +117,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
                         reqSchema: schemas.UserPasswordChangeReq,
                         resSchema: schemas.UserPasswordChangeRes,
                     },
+                    origin : options.pluginId
                 },
                 putUserPasswordHandler
             );   
@@ -131,6 +136,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
                     reqSchema: schemas.UserPasswordResetStartReq,
                     resSchema: schemas.UserPasswordResetStartRes,
                     },
+                    origin : options.pluginId
                 },
                 postPasswordResetStartHandler
             );
@@ -146,6 +152,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
                     reqSchema: schemas.UserPasswordResetCompleteReq,
                     resSchema: schemas.UserPasswordResetCompleteRes,
                     },
+                    origin : options.pluginId
                 },
                 postPasswordResetCompleteHandler
             );
@@ -166,6 +173,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
                         reqSchema: schemas.PushNotificationToken,
                         resSchema: schemas.PushNotificatioNTokenRes,
                     },
+                    origin : options.pluginId
                 },
                 postUserPushRegisterTokenHandler
             );   
@@ -182,6 +190,7 @@ export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
                     reqSchema: schemas.PushNotificationToken,
                     resSchema: schemas.PushNotificatioNTokenRes,
                 },
+                origin : options.pluginId
             },
             postUserRemoveTokenHandler
         );  

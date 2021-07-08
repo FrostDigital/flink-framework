@@ -1,14 +1,15 @@
 
-import { FlinkContext, Handler } from "@flink-app/flink";
+import { badRequest, conflict, FlinkContext, Handler, unauthorized } from "@flink-app/flink";
 import { genericAuthContext } from "../genericAuthContext";
 import { JwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 import { UserCreateReq } from "../schemas/UserCreateReq";
 import { UserCreateRes } from "../schemas/UserCreateRes";
 import { internalServerError } from "@flink-app/flink";
 import { formatWithOptions } from "util";
+import { create } from "domain";
 
-export const userCreateHandler: Handler<  FlinkContext<genericAuthContext>, UserCreateReq, UserCreateRes  > = async ({ ctx, req }) => {
-
+export const userCreateHandler: Handler<  FlinkContext<genericAuthContext>, UserCreateReq, UserCreateRes  > = async ({ ctx, req, origin }) => {
+    
     let { password, username, authentificationMethod, profile } = req.body;
     if(authentificationMethod == null){
         authentificationMethod = "password";
@@ -21,13 +22,22 @@ export const userCreateHandler: Handler<  FlinkContext<genericAuthContext>, User
     }
     let roles : string[] = [];
     if(profile == null) profile = {}
-
-    let repo = ctx.repos[ctx.plugins.genericAuthPlugin.repoName];
+    
+    let pluginName = origin || "genericAuthPlugin";
+    let repo = ctx.repos[ (<any>ctx.plugins)[pluginName].repoName ];
     const createUserResponse = await ctx.plugins.genericAuthPlugin.createUser(repo,<JwtAuthPlugin>ctx.auth, username, password, authentificationMethod, roles, profile, ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod   );
-
-    const statusCode = createUserResponse.status == "success" ? 200 : 422;
+    if(createUserResponse.status != "success"){
+        switch(createUserResponse.status){
+            case "error":
+                return internalServerError("Unknown error", createUserResponse.status);
+            case "passwordError":
+                return badRequest("Invalid password", createUserResponse.status);
+            case "userExists":
+                return conflict("User already exists", createUserResponse.status);
+        }   
+    }
     return {
         data: createUserResponse,
-        status : statusCode
+        status : 200
     };
 };

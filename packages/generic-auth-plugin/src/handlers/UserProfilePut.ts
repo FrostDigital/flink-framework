@@ -3,12 +3,13 @@ import { FlinkContext, Handler, notFound } from "@flink-app/flink";
 import { genericAuthContext } from "../genericAuthContext";
 import { UserProfile } from "../schemas/UserProfile";
 
-export const putUserProfileHandler: Handler<  FlinkContext<genericAuthContext>, UserProfile, UserProfile  > = async ({ ctx, req }) => {
+export const putUserProfileHandler: Handler<  FlinkContext<genericAuthContext>, UserProfile, UserProfile  > = async ({ ctx, req, origin }) => {
 
     
 
-    let repo = ctx.repos[ctx.plugins.genericAuthPlugin.repoName];
-
+    let pluginName = origin || "genericAuthPlugin";
+    let repo = ctx.repos[ (<any>ctx.plugins)[pluginName].repoName ];
+    
     let userId = req.user._id;
     let user = await repo.getBydId(userId);
     if(user == null){

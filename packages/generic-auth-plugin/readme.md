@@ -224,7 +224,7 @@ Creates a new user.
 ````
 {
   "data": {
-    "status": "success", //"error"|"passwordError"|"success"|"userExists"
+    "status": "success"
     "user": {
       "_id": "id...",
       "token": "token...",
@@ -233,6 +233,15 @@ Creates a new user.
   }
 }
 ````
+
+#### Errors 
+| Code            | Description                                                               | 
+| ----------------|-------------------------------------------------------------------------- | 
+| error           | Internal unknown error                                                    | 
+| userExists      | User already exists                                                       |  
+| passwordError   | Password not accepted / not meeting requirements                          | 
+
+
 
 ### POST /user/login
 Logs a user in.
@@ -249,7 +258,7 @@ Logs a user in.
 ````
 {
   "data": {
-    "status": "success", //"success"|"failed"
+    "status": "success"
     "user": {
       "_id": "id...",
       "username": "demo@test.com",
@@ -261,6 +270,11 @@ Logs a user in.
   }
 }
 ````
+
+#### Errors 
+| Code            | Description                                                               | 
+| ----------------|-------------------------------------------------------------------------- | 
+| failed           | Invalid username or password                                             | 
 
 
 
@@ -279,11 +293,18 @@ Initiates a password reset. Username must be in form of an e-mail for the passwo
 ````
 {
   "data": {
-    "status": "success", //"success"|"userNotFound"
+    "status": "success"
     "passwordResetToken": "token to use later"
   }
 }
 ````
+
+
+#### Errors 
+| Code            | Description                                                               | 
+| ----------------|-------------------------------------------------------------------------- | 
+| userNotFound    | User not found                                                            | 
+
 
 ### POST /user/password/reset/complete
 Completes a password reset by suppling the passwordRestToken recived from step 1, the code from the email sent to the user and the new password.
@@ -301,10 +322,18 @@ Completes a password reset by suppling the passwordRestToken recived from step 1
 ````
 {
   "data": {
-    "status": "success" //"invalidCode"|"passwordError"|"success"|"userNotFound"
+    "status": "success"
   }
 }
 ````
+
+#### Errors 
+| Code            | Description                                                               | 
+| ----------------|-------------------------------------------------------------------------- | 
+| invalidCode     | Invalid validation code                                                   | 
+| passwordError   | Password not accepted / does not meet requirements                        | 
+| userNotFound    | User not found                                                            | 
+
 
 
 
@@ -322,10 +351,17 @@ Updates password of the current user. Request needs authentication.
 ````
 {
   "data": {
-    "status": "success" //failed"|"passwordError"|"success"
+    "status": "success"
   }
 }
 ````
+
+#### Errors 
+| Code            | Description                                                               | 
+| ----------------|-------------------------------------------------------------------------- | 
+| failed          | Internal unknown error                                                    | 
+| passwordError   | Password not accepted / does not meet requirements                        | 
+
 
 
 

@@ -5,10 +5,11 @@ import { PushNotificationToken } from "../schemas/PushNotificationToken";
 import { PushNotificatioNTokenRes } from "../schemas/PushNotificationTokenRes";
 import { User } from "../schemas/User";
 
-export const postUserRemoveTokenHandler : Handler<  FlinkContext<genericAuthContext>, PushNotificationToken,  PushNotificatioNTokenRes > = async ({ ctx, req }) => {
+export const postUserRemoveTokenHandler : Handler<  FlinkContext<genericAuthContext>, PushNotificationToken,  PushNotificatioNTokenRes > = async ({ ctx, req, origin }) => {
 
-    const repo = ctx.repos[ctx.plugins.genericAuthPlugin.repoName];
-    
+    let pluginName = origin || "genericAuthPlugin";
+    let repo = ctx.repos[ (<any>ctx.plugins)[pluginName].repoName ];
+
     const user = <User>await repo.getBydId(req.user._id);
     
     if(user == null){
