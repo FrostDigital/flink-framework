@@ -111,6 +111,7 @@ function start() {
     plugins: [
       genericAuthPlugin({
         repoName : "userRepo", 
+        usernameFormat : /.{1,}$/, //Regex to validate username
         enableRoutes : true, //Set true to enable API-endpoints
         enablePasswordReset : true, 
         enablePushNotificationTokens : true,
@@ -240,6 +241,7 @@ Creates a new user.
 | error           | Internal unknown error                                                    | 
 | userExists      | User already exists                                                       |  
 | passwordError   | Password not accepted / not meeting requirements                          | 
+| usernameError   | Username not accepted / not meeting requirements
 
 
 

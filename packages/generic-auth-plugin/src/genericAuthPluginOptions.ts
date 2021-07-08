@@ -12,7 +12,8 @@ export interface genericAuthPluginOptions{
     baseUrl? : string,
     pluginId? : string,
     createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  },
-    validatePasswordMethod? : { (password : string, hash : string, salt : string) : Promise<boolean>  } 
+    validatePasswordMethod? : { (password : string, hash : string, salt : string) : Promise<boolean>  },
+    usernameFormat? : RegExp
 
 
  }

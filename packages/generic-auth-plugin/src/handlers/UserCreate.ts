@@ -25,6 +25,13 @@ export const userCreateHandler: Handler<  FlinkContext<genericAuthContext>, User
     
     let pluginName = origin || "genericAuthPlugin";
     let repo = ctx.repos[ (<any>ctx.plugins)[pluginName].repoName ];
+
+    var re = <RegExp>((<any>ctx.plugins)[pluginName].usernameFormat);
+
+    if(!re.test(username)){
+        return badRequest("Username does not meet requirements", "usernameError");
+    }
+    
     const createUserResponse = await ctx.plugins.genericAuthPlugin.createUser(repo,<JwtAuthPlugin>ctx.auth, username, password, authentificationMethod, roles, profile, ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod   );
     if(createUserResponse.status != "success"){
         switch(createUserResponse.status){

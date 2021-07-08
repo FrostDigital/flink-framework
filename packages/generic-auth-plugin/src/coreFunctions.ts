@@ -16,7 +16,7 @@ import jsonwebtoken from "jsonwebtoken";
 
 export function getJtwTokenPlugin(secret : string, rolePermissions? : { [role: string]: string[]; }, passwordPolicy? : RegExp){
     if(passwordPolicy == undefined){
-        passwordPolicy = /.*/;
+        passwordPolicy = /.{1,}$/;
     }
     if(rolePermissions == undefined){
         rolePermissions = { }

@@ -22,7 +22,8 @@ export * from "./genericAuthPluginOptions"
          repoName : options.repoName,
          passwordResetSettings : options.passwordResetSettings,
          createPasswordHashAndSaltMethod : options.createPasswordHashAndSaltMethod,
-         validatePasswordMethod : options.validatePasswordMethod
+         validatePasswordMethod : options.validatePasswordMethod,
+         usernameFormat : options.usernameFormat || /.{1,}$/
        }
      };
  };
