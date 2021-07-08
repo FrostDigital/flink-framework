@@ -15,7 +15,7 @@ npm i -S @flink-app/firebase-messaging-plugin
 Add and configure plugin in your app startup:
 
 ```
-import { apiDocPlugin } from "@flink-app/api-docs-plugin";
+import { firebaseMessagingPlugin } from "@flink-app/firebase-messaging-plugin";
 
 function start() {
   new FlinkApp<AppContext>({
@@ -27,6 +27,16 @@ function start() {
         })
     ],
   }).start();
+}
+
+```
+
+Add it to your app context (normally `Ctx.ts` in the root folder of your project)
+```
+import { FirebaseMessagingContext } from "@flink-app/firebase-messaging-plugin";
+
+export interface Ctx extends FlinkContext<FirebaseMessagingContext> {
+  ....
 }
 
 ```
