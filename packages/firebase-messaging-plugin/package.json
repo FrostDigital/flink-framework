@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/firebase-messaging-plugin",
-  "version": "0.2.0-alpha.21",
+  "version": "0.2.0-alpha.23",
   "description": "Flink plugin to send Firebase cloud messages",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
