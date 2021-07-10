@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/firebase-messaging-plugin",
-  "version": "0.2.0-alpha.2",
+  "version": "0.2.0-alpha.23",
   "description": "Flink plugin to send Firebase cloud messages",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
@@ -12,8 +12,8 @@
   },
   "author": "joel@frost.se",
   "license": "MIT",
-  "types": "dist/index.d.ts",
-  "main": "dist/index.js",
+  "types": "dist/src/index.d.ts",
+  "main": "dist/src/index.js",
   "publishConfig": {
     "access": "public"
   },
@@ -21,7 +21,7 @@
     "fcm-push": "^1.1.3"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.2.0-alpha.2",
+    "@flink-app/flink": "^0.2.0-alpha.21",
     "@types/express": "^4.17.12",
     "@types/node": "^15.6.2",
     "jasmine-spec-reporter": "^7.0.0",
@@ -30,5 +30,5 @@
     "tsc-watch": "^4.2.9",
     "typescript": "^4.2.4"
   },
-  "gitHead": "55a9cfcb6dd221ca29f729c3edbadceb6ef1aff0"
+  "gitHead": "3d0141c01022b554c90391f6911845c26081853e"
 }

@@ -1,4 +1,4 @@
-## Plugin development
+# Plugin development
 
 Plugins makes sense when you want to reuse functionality in multiple apps or just
 contain functionality in its own module (plugin) to make it more maintainable.

@@ -33,6 +33,7 @@ export interface FlinkResponse<T = any> {
     id: string;
     title: string;
     detail?: string;
+    code?: string;
   };
 
   /**

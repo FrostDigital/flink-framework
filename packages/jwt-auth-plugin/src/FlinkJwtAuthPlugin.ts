@@ -121,9 +121,6 @@ async function authenticateRequest(
 
       const user = await getUser(decodedToken);
 
-      log.debug(
-        `Failed to authenticate request - user ${decodedToken.id} not found`
-      );
 
       req.user = user;
       return true;
