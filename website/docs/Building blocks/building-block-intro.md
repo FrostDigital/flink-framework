@@ -12,4 +12,4 @@ A Flink app contains these "building blocks":
 - Repos - handle database interaction
 - Plugin - extends functionality
 
-It is (of course) completely okay to add any additional components if the app requires it.However these above components are the ones that Flink will look for when wiring the app together.
+It is completely fine to add any additional components if the app requires it. However these above components are the ones that means something to Flink.
