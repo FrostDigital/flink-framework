@@ -1,0 +1,57 @@
+{
+  "Message": {
+    "type": "object",
+    "properties": {
+      "to": {
+        "description": "Devices to send to",
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "notification": {
+        "description": "Use `notification` if sending a standard push notification\nhttps://firebase.google.com/docs/cloud-messaging/concept-options#notifications",
+        "type": "object",
+        "properties": {
+          "title": {
+            "description": "Optional push notification title",
+            "type": "string"
+          },
+          "body": {
+            "description": "Optional body",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "data": {
+        "description": "Use `data` to send data messages.\nhttps://firebase.google.com/docs/cloud-messaging/concept-options#data_messages",
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "data",
+      "to"
+    ]
+  },
+  "SendResult": {
+    "type": "object",
+    "properties": {
+      "failedDevices": {
+        "description": "Devices to which delivery failed",
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "failedDevices"
+    ]
+  }
+}
