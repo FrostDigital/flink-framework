@@ -82,7 +82,7 @@ And add additional one for success scenario:
 
 ```typescript
 it("should get car", () => {
-  const carId = "523b2a8f-9ddb-43e1-8ff1-187fac0acb03";
+  const carId = "60eb69e00000000000000000";
   const { status, data } = await testUtils.get(`/car/${id}`);
 
   expect(status).toBe(200);
@@ -90,15 +90,16 @@ it("should get car", () => {
 });
 ```
 
-Note that above test assumes that a car with id `523b2a8f-9ddb-43e1-8ff1-187fac0acb03` already exists in database.
+Note that above test assumes that a car with id `60eb69e00000000000000000` already exists in database.
 If you need to you can prepare a "test bed" by adding a `beforeAll` or inside the spec.
 
 For example:
 
 ```typescript
+let car: Car;
+
 beforeAll(async () => {
-  flinkApp.db?.collection("cars").insertOne({
-    _id: "523b2a8f-9ddb-43e1-8ff1-187fac0acb03",
+  car = await flinkApp.ctx.repos.create({
     model: "Volvo",
   });
 });

@@ -6,7 +6,7 @@
   "main": "dist/src/index.js",
   "repository": "FrostDigital/flink",
   "scripts": {
-    "test": "node --preserve-symlinks -r ts-node/register -- node_modules/jasmine/bin/jasmine --config=./spec/support/jasmine.json",
+    "test": "jasmine-ts --preserve-symlinks --config=./spec/support/jasmine.json",
     "test:watch": "nodemon --ext ts --exec 'jasmine-ts  --config=./spec/support/jasmine.json'",
     "start": "ts-node src/index.ts",
     "prepublish": "tsc --project tsconfig.dist.json",

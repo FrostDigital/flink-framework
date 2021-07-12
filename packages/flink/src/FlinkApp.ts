@@ -130,7 +130,7 @@ export class FlinkApp<C extends FlinkContext> {
   public started = false;
   // public schemas: { [x: string]: TJS.Definition } = {};
 
-  private ctx?: C;
+  private _ctx?: C;
   private dbOpts?: FlinkOptions["db"];
   private debug = false;
   private onDbConnection?: FlinkOptions["onDbConnection"];
@@ -157,6 +157,13 @@ export class FlinkApp<C extends FlinkContext> {
     this.corsOpts = { ...defaultCorsOptions, ...opts.cors };
     this.auth = opts.auth;
     this.appRoot = opts.appRoot || "./";
+  }
+
+  get ctx() {
+    if (!this._ctx) {
+      throw new Error("Context is not yet initialized");
+    }
+    return this._ctx;
   }
 
   async start() {
@@ -263,12 +270,6 @@ export class FlinkApp<C extends FlinkContext> {
   }
 
   private registerHandler(handlerConfig: HandlerConfig, handler: Handler<any>) {
-    if (!this.ctx) {
-      throw new Error(
-        "Context does not exist (yet), make sure to build context prior to registering handlers"
-      );
-    }
-
     const { routeProps, schema = {}, origin } = handlerConfig;
     const { method } = routeProps;
     const app = this.expressApp!;
@@ -327,7 +328,7 @@ export class FlinkApp<C extends FlinkContext> {
 
         try {
           // 👇 This is where the actual handler gets invoked
-          handlerRes = await handler({ req, ctx: this.ctx!, origin });
+          handlerRes = await handler({ req, ctx: this.ctx, origin });
         } catch (err) {
           log.warn(
             `Handler '${methodAndRoute}' threw unhandled exception ${err}`
@@ -468,7 +469,7 @@ export class FlinkApp<C extends FlinkContext> {
       {}
     );
 
-    this.ctx = {
+    this._ctx = {
       repos,
       plugins: pluginCtx,
       auth: this.auth,
