@@ -51,6 +51,8 @@ export async function createApp({
     scripts: {
       dev: "nodemon",
       test: "node --preserve-symlinks -r jasmine-ts",
+      "test:watch":
+        "nodemon --ext ts --exec 'jasmine-ts  --config=./spec/support/jasmine.json'",
       start:
         "node --preserve-symlinks -r ts-node/register -- src/index.ts --project tsconfig.json",
       prestart: "npm run flink:generate",
@@ -67,7 +69,19 @@ export async function createApp({
   console.log();
 
   await install(["@flink-app/flink"]);
-  await install(["typescript@4.2.3", "ts-node"], true);
+  await install(
+    [
+      "typescript@4.2.3",
+      "ts-node",
+      "nodemon",
+      "jasmine",
+      "jasmine-ts",
+      "@types/jasmine",
+      "jasmine-spec-reporter",
+      "@flink-app/test-utils",
+    ],
+    true
+  );
   console.log();
 
   await cpy("**", root, {
