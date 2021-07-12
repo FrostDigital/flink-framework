@@ -50,9 +50,8 @@ export async function createApp({
     private: true,
     scripts: {
       dev: "nodemon",
-      test: "jasmine-ts --preserve-symlinks --config=./spec/support/jasmine.json",
-      "test:watch":
-        "nodemon --ext ts --exec 'jasmine-ts  --config=./spec/support/jasmine.json'",
+      test: "jasmine-ts --preserve-symlinks",
+      "test:watch": "nodemon --exec jasmine-ts",
       start:
         "node --preserve-symlinks -r ts-node/register -- src/index.ts --project tsconfig.json",
       prestart: "npm run flink:generate",

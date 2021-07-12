@@ -12,7 +12,7 @@ Our goto test engine is jasmine. Unless you do not already have it, install it a
 npm i -D jasmine jasmine-ts @types/jasmine jasmine-spec-reporter nodemon
 ```
 
-## 2. Configure jasmine runner
+## 2. Configure jasmine runner and spec reporter
 
 **Skip this step if you created your app with recent version of `create-flink-app`.**
 
@@ -24,20 +24,31 @@ node_modules/.bin/jasmine-ts init
 
 This will create a `/spec` folder with a `/spec/support/jasmine.json` config file.
 
-Open `jasmine.json` and add jasmine-spec-reporter as reporter:
+Create file `/spec/helpers/reporter.ts`:
 
-```json
-{
-  // ...
-  "reporters": [
-    {
-      "name": "jasmine-spec-reporter#SpecReporter",
-      "options": {
-        "displayStacktrace": "all"
-      }
-    }
-  ]
+```typescript
+import {
+  DisplayProcessor,
+  SpecReporter,
+  StacktraceOption,
+} from "jasmine-spec-reporter";
+import SuiteInfo = jasmine.SuiteInfo;
+
+class CustomProcessor extends DisplayProcessor {
+  public displayJasmineStarted(_info: SuiteInfo, log: string): string {
+    return `TypeScript ${log}`;
+  }
 }
+
+jasmine.getEnv().clearReporters();
+jasmine.getEnv().addReporter(
+  new SpecReporter({
+    spec: {
+      displayStacktrace: StacktraceOption.NONE,
+    },
+    customProcessors: [CustomProcessor],
+  })
+);
 ```
 
 ## 3. Add `scripts` to `package.json`
@@ -49,9 +60,19 @@ Now add `scripts` to run tests in your `package.json`:
   //...
   "scripts": {
     // ...
-    "test": "jasmine-ts --preserve-symlinks --config=./spec/support/jasmine.json",
-    "test:watch": "nodemon --ext ts --exec 'jasmine-ts --config=./spec/support/jasmine.json'"
+    "test": "jasmine-ts --preserve-symlinks",
+    "test:watch": "nodemon --exec jasmine-ts"
   }
+}
+```
+
+Make sure that `nodemon.json` in root of project includes `spec` folder in `watch`:
+
+```json
+{
+  // Add "spec" here if not already present
+  "watch": ["src", "spec"]
+  // ...
 }
 ```
 

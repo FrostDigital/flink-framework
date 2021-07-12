@@ -31,14 +31,16 @@ describe("Pet", () => {
     });
 
     it("should get 404", async () => {
-      const { status } = await testUtils.get("/pet/foo");
+      const nonExistingPetId = "5349b4ddd2781d08c09890f3";
+      const { status } = await testUtils.get(`/pet/${nonExistingPetId}`);
       expect(status).toBe(404);
     });
 
     it("should get pet", async () => {
       const { status, data } = await testUtils.get<Pet>(`/pet/${aPet._id}`);
       expect(status).toBe(200);
-      expect(data).toEqual(aPet);
+      expect(data!._id).toEqual(aPet._id.toString());
+      expect(new Date(data!.created)).toEqual(aPet.created);
     });
   });
 });
