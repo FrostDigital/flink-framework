@@ -7,7 +7,7 @@ and you will write tests/specs that tests the API it exposes by sending and rece
 
 ## Prerequisites
 
-Make sure you have jasmine configured in your app. If not, follow (this)[./configuring-jasmine.md] guide.
+Make sure you have jasmine configured in your app. If not, follow [this](./configuring-jasmine) guide.
 
 Also, make sure you have `@flink-app/test-utils` which has helpers to simplify writing integration tests:
 
