@@ -1,7 +1,7 @@
 {
   "name": "@flink-app/jwt-auth-plugin",
   "version": "0.2.0-alpha.21",
-  "description": "Flink plugin that generates API documentation based on JSON schemas",
+  "description": "Flink plugin for JWT auth",
   "scripts": {
     "test": "node --preserve-symlinks -r ts-node/register -- node_modules/jasmine/bin/jasmine --config=./spec/support/jasmine.json",
     "test:watch": "nodemon --ext ts --exec 'jasmine-ts  --config=./spec/support/jasmine.json'",

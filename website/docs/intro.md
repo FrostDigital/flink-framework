@@ -20,6 +20,8 @@ In fact, Flink will even dictate where in folder structure you must put your sou
 
 All with the goal to make the developer experience as smooth as possible.
 
+Read more about [Pros and Cons](./pros-cons) to find out of Flink is a good fit for you.
+
 ## Getting Started
 
 Get started by **creating a new flink app**.
@@ -43,14 +45,3 @@ npm run dev
 ```
 
 Your service starts at `http://localhost:3333`.
-
-## When is Flink a good fit?
-
-- If you want to develop a headless service that talks HTTP.
-- You enjoy TypeScript and type safety that comes with it.
-- You understand importance of self documenting API's.
-
-## When is Flink _not_ a good fit?
-
-- Project is large in terms of line of code, team size.
-- You want to use vanilla javascript.

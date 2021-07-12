@@ -126,9 +126,10 @@ export class FlinkApp<C extends FlinkContext> {
   public expressApp?: Express;
   public db?: Db;
   public handlers: HandlerConfig[] = [];
+  public port?: number;
+  public started = false;
   // public schemas: { [x: string]: TJS.Definition } = {};
 
-  private port?: number;
   private ctx?: C;
   private dbOpts?: FlinkOptions["db"];
   private debug = false;
@@ -235,7 +236,11 @@ export class FlinkApp<C extends FlinkContext> {
         "magenta",
         `⚡️ HTTP server '${this.name}' is running and waiting for connections on ${this.port}`
       );
+
+      this.started = true;
     });
+
+    return this;
   }
 
   public addHandler(config: HandlerConfig, handlerFn: Handler<any>) {
