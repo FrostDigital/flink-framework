@@ -1,10 +1,11 @@
+import { FlinkApp } from "@flink-app/flink";
 import * as testUtils from "@flink-app/test-utils";
 import { join } from "path";
-import { FlinkApp } from "../../../../flink/dist/src";
+import { Ctx } from "../src/Ctx";
 import { Pet } from "../src/schemas/Pet";
 
 describe("Pet", () => {
-  let flinkApp: FlinkApp<any>;
+  let flinkApp: FlinkApp<Ctx>;
 
   beforeAll(async () => {
     flinkApp = new FlinkApp({
@@ -19,15 +20,14 @@ describe("Pet", () => {
   });
 
   describe("get pet", () => {
-    const aPet: Pet = {
-      _id: "123",
-      age: 12,
-      created: new Date(),
-      name: "Buster",
-    };
+    let aPet: Pet;
 
     beforeAll(async () => {
-      await flinkApp.db?.collection("pets").insertOne(aPet);
+      aPet = await flinkApp.ctx.repos.petRepo.create({
+        age: 12,
+        created: new Date(),
+        name: "Buster",
+      });
     });
 
     it("should get 404", async () => {

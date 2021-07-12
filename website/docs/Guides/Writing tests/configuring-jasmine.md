@@ -49,8 +49,8 @@ Now add `scripts` to run tests in your `package.json`:
   //...
   "scripts": {
     // ...
-    "test": "node --preserve-symlinks -r jasmine-ts",
-    "test:watch": "nodemon --ext ts --exec 'jasmine-ts  --config=./spec/support/jasmine.json'"
+    "test": "jasmine-ts --preserve-symlinks --config=./spec/support/jasmine.json",
+    "test:watch": "nodemon --ext ts --exec 'jasmine-ts --config=./spec/support/jasmine.json'"
   }
 }
 ```
