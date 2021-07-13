@@ -109,7 +109,7 @@ beforeAll(async () => {
 
 ```typescript
 it("should post car", () => {
-  const { status, data } = await testUtils.post(`/car/${id}`, {
+  const { status, data } = await testUtils.post("/car", {
     model: "Tesla",
   });
 
