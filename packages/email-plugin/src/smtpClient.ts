@@ -5,28 +5,28 @@ import { email } from "./schemas/email";
 import { client } from "./schemas/client";
 
 export interface smtpClientOptions {
-    host: string,
-    port: number,
-    secure: boolean
-    auth?: {
-        user: string
-        pass: string
-    },
+  host: string;
+  port: number;
+  secure: boolean;
+  auth?: {
+    user: string;
+    pass: string;
+  };
 }
 
 export class smtpClient implements client {
-    transporter: nodemailer.Transporter;
+  transporter: nodemailer.Transporter;
 
-    constructor(options: smtpClientOptions) {
-        this.transporter = nodemailer.createTransport(options);
-    }
+  constructor(options: smtpClientOptions) {
+    this.transporter = nodemailer.createTransport(options);
+  }
 
-    async send(email: email) {
-        try {
-            await this.transporter.sendMail(email);
-        } catch (ex) {
-            throw internalServerError(JSON.stringify(ex));
-        }
-        return true;
+  async send(email: email) {
+    try {
+      await this.transporter.sendMail(email);
+    } catch (ex) {
+      throw internalServerError(JSON.stringify(ex));
     }
+    return true;
+  }
 }
