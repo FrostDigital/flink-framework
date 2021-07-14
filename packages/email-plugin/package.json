@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/email-plugin",
-  "version": "0.2.0-alpha.24",
+  "version": "0.2.0-alpha.25",
   "description": "Flink plugin that makes it possible to send email",
   "scripts": {
     "test": "echo \"Error: no test specified\"",

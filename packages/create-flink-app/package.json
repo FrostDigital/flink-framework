@@ -1,6 +1,6 @@
 {
   "name": "create-flink-app",
-  "version": "0.2.0-alpha.24",
+  "version": "0.2.0-alpha.26",
   "keywords": [
     "flinkapp",
     "flink"
@@ -23,9 +23,11 @@
     "prepublish": "rimraf ./dist/ && ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.2.0-alpha.24",
+    "@flink-app/flink": "^0.2.0-alpha.25",
+    "@flink-app/test-utils": "^0.2.0-alpha.25",
     "@types/async-retry": "1.4.2",
     "@types/cross-spawn": "^6.0.2",
+    "@types/jasmine": "3.8.1",
     "@types/node": "^12.6.8",
     "@types/prompts": "2.0.1",
     "@types/rimraf": "3.0.0",
@@ -38,6 +40,7 @@
     "cpy": "7.3.0",
     "cross-spawn": "6.0.5",
     "got": "10.7.0",
+    "jasmine-spec-reporter": "^7.0.0",
     "prompts": "2.1.0",
     "rimraf": "3.0.0",
     "tar": "4.4.10",
