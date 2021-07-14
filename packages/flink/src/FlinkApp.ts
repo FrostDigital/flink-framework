@@ -141,6 +141,8 @@ export class FlinkApp<C extends FlinkContext> {
   private corsOpts: FlinkOptions["cors"];
   private appRoot: string;
 
+  private repos: { [x: string]: FlinkRepo<C> } = {};
+
   /**
    * Internal cache used to track registered handlers and potentially any overlapping routes
    */
@@ -417,6 +419,10 @@ export class FlinkApp<C extends FlinkContext> {
     }
   }
 
+  public addRepo(instanceName : string, repoInstance: FlinkRepo<C>   ){
+    this.repos[instanceName] = repoInstance;
+  }  
+
   /**
    * Constructs the app context. Will inject context in all components
    * except for handlers which are handled in later stage.
@@ -430,7 +436,7 @@ export class FlinkApp<C extends FlinkContext> {
       repoFilenames = await fsPromises.readdir(reposRoot);
     } catch (err) {}
 
-    const repos: { [x: string]: FlinkRepo<C> } = {};
+
 
     if (repoFilenames.length > 0) {
       const repoFilenames = await fsPromises.readdir(reposRoot);
@@ -444,7 +450,7 @@ export class FlinkApp<C extends FlinkContext> {
             this.db
           );
 
-          repos[repoInstanceName] = repoInstance;
+          this.repos[repoInstanceName] = repoInstance;
           log.info(`Registered repo ${repoInstanceName}`);
         }
       } else if (repoFilenames.length > 0) {
@@ -470,7 +476,7 @@ export class FlinkApp<C extends FlinkContext> {
     );
 
     this._ctx = {
-      repos,
+      repos : this.repos,
       plugins: pluginCtx,
       auth: this.auth,
     } as C;
