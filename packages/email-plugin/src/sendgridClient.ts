@@ -1,7 +1,9 @@
+
+import { MailService } from '@sendgrid/mail';
+import { internalServerError } from "@flink-app/flink";
+
 import { email } from "./schemas/email";
 import { client } from "./schemas/client";
-import { MailService } from '@sendgrid/mail'
-
 
 export interface sendgridClientOptions {
     /**
@@ -9,20 +11,20 @@ export interface sendgridClientOptions {
      */
     apiKey: string;
 }
-  
 
 export class sendgridClient implements client {
     sendgrid: MailService;
-    constructor( options : sendgridClientOptions){
+
+    constructor(options: sendgridClientOptions) {
         this.sendgrid = new MailService();
         this.sendgrid.setApiKey(options.apiKey);
     }
-    async send(email : email){
-        try{
+
+    async send(email: email) {
+        try {
             await this.sendgrid.send(email);
-        }catch(ex){
-            console.log(ex);
-            return false;
+        } catch (ex) {
+            throw internalServerError(JSON.stringify(ex));
         }
         return true;
     }

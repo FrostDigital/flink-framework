@@ -12,9 +12,9 @@ export type emailPluginOptions = {
 
 };
 
-export interface emailPluginContext{
-  emailPlugin : {
-    client : client
+export interface emailPluginContext {
+  emailPlugin: {
+    client: client
   }
 }
 
@@ -23,13 +23,11 @@ export const emailPlugin = (options: emailPluginOptions): FlinkPlugin => {
   return {
     id: "emailPlugin",
     init: (app) => init(app, options),
-    ctx : {
-      client : options.client,
+    ctx: {
+      client: options.client,
     }
   };
 };
-
-
 
 function init(app: FlinkApp<any>, options: emailPluginOptions) {
 

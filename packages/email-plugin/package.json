@@ -15,13 +15,13 @@
   "main": "dist/index.js",
   "dependencies": {
     "@sendgrid/mail": "^7.4.5",
-    "@types/nodemailer": "^6.4.2",
+    "@types/nodemailer": "^6.4.4",
     "nodemailer": "^6.6.2"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.2.0-alpha.24",
-    "@types/node": "^15.6.2",
-    "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
+    "@flink-app/flink": "^0.2.0-alpha.25",
+    "@types/node": "^16.3.2",
+    "ts-node": "^10.1.0",
+    "typescript": "^4.3.5"
   }
 }
