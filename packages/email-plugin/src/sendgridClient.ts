@@ -1,6 +1,4 @@
 import { MailService } from "@sendgrid/mail";
-import { internalServerError } from "@flink-app/flink";
-
 import { email } from "./schemas/email";
 import { client } from "./schemas/client";
 
@@ -23,7 +21,8 @@ export class sendgridClient implements client {
     try {
       await this.sendgrid.send(email);
     } catch (ex) {
-      throw internalServerError(JSON.stringify(ex));
+      console.log(JSON.stringify(ex));
+      return false;
     }
     return true;
   }

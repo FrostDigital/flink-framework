@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import { internalServerError } from "@flink-app/flink";
 
 import { email } from "./schemas/email";
 import { client } from "./schemas/client";
@@ -25,7 +24,8 @@ export class smtpClient implements client {
     try {
       await this.transporter.sendMail(email);
     } catch (ex) {
-      throw internalServerError(JSON.stringify(ex));
+      console.log(JSON.stringify(ex));
+      return false;
     }
     return true;
   }
