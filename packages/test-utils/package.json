@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/test-utils",
-  "version": "0.2.0-alpha.27",
+  "version": "0.2.0-alpha.29",
   "description": "Test utils for Flink",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
