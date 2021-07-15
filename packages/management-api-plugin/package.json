@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/management-api-plugin",
-  "version": "0.2.0-alpha.21",
+  "version": "0.2.0-alpha.28",
   "description": "Flink plugin that makes it possible to expose management api:s for other plugins",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
