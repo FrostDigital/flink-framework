@@ -1,31 +1,26 @@
 export type email = {
+  /**
+   * From address used to send the email
+   */
+  from: string;
 
-    /**
-     * From address used to send the email
-     */
-    from: string;
+  /**
+   * Email addresses to send to
+   */
+  to: string[];
 
-    /**
-     * Email addresses to send to
-     */
-    to: string[];
-  
-    /**
-     * Reply email
-     */
-    replyTo?: string,
+  /**
+   * Reply email
+   */
+  replyTo?: string;
 
-    /**
-     * Email addresses to add as BCC
-     */
-    bcc?: string[];
+  /**
+   * Email addresses to add as BCC
+   */
+  bcc?: string[];
 
-
-    /**
-     * Subject of email
-     */
-    subject: string
-
-
-  }& ({ text: string } | { html: string })
-  
+  /**
+   * Subject of email
+   */
+  subject: string;
+} & ({ text: string } | { html: string });

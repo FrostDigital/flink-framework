@@ -6,32 +6,25 @@ export type { email } from "./schemas/email";
 
 export type emailPluginOptions = {
   /**
-   * Path for request 
+   * Path for request
    */
-  client: client
-
+  client: client;
 };
 
-export interface emailPluginContext{
-  emailPlugin : {
-    client : client
-  }
+export interface emailPluginContext {
+  emailPlugin: {
+    client: client;
+  };
 }
-
 
 export const emailPlugin = (options: emailPluginOptions): FlinkPlugin => {
   return {
     id: "emailPlugin",
     init: (app) => init(app, options),
-    ctx : {
-      client : options.client,
-    }
+    ctx: {
+      client: options.client,
+    },
   };
 };
 
-
-
-function init(app: FlinkApp<any>, options: emailPluginOptions) {
-
-}
-
+function init(app: FlinkApp<any>, options: emailPluginOptions) {}
