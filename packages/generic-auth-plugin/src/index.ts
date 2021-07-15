@@ -7,6 +7,7 @@ export * from "./genericAuthContext";
 export * from "./coreFunctions";
 export * from "./schemas/User";
 export * from "./genericAuthPluginOptions"
+export * from "./management";
 
  export const genericAuthPlugin = (options: genericAuthPluginOptions): FlinkPlugin => {
     if(options.pluginId == null) options.pluginId = "genericAuthPlugin";
