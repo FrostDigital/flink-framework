@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { parseAndWriteSchemas } from "../src/FlinkTsParser";
 
-export async function run() {
+module.exports = async function run() {
   await parseAndWriteSchemas();
-}
+};

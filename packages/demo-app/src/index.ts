@@ -7,7 +7,9 @@ function start() {
   new FlinkApp<AppContext>({
     name: "Demo app",
     debug: true,
-    loader: (file: any) => import(file),
+    // db: {
+    //   uri: "mongodb://localhost:27017/flink-demo-app",
+    // },
     plugins: [
       apiDocPlugin(),
       firebaseMessagingPlugin({ serverKey: "foo", exposeEndpoints: true }),

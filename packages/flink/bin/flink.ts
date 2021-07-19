@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 
-import { log } from "../src";
-
-const commands = ["generate", "generate-schema"];
-log.setLevel("debug");
+const commands = ["generate", "generate-schema", "run"];
 
 const argv = process.argv.slice(2);
 const argCommand = argv[0];
@@ -18,10 +15,8 @@ if (!commands.includes(argv[0])) {
   process.exit(1);
 }
 
-import("../cli/" + argCommand)
-  .then((i) => i.run())
-  .catch((err) => {
-    console.log(err);
-  });
+const cmd = require("../cli/" + argCommand);
+
+cmd(argv.slice(1));
 
 export default () => {};

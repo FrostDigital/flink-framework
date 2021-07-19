@@ -1,10 +1,10 @@
 import { Request } from "express";
-import { promises as fsPromises } from "fs";
 import { join } from "path";
-import { HttpMethod } from "./FlinkHttpHandler";
-import { FlinkResponse } from "./FlinkResponse";
 import tinyGlob from "tiny-glob";
+import { HttpMethod } from "./FlinkHttpHandler";
 import { log } from "./FlinkLog";
+import { FlinkResponse } from "./FlinkResponse";
+import { sep } from "path";
 
 export function handlersPath(appRoot: string) {
   return join(appRoot, "src", "handlers");
@@ -56,4 +56,27 @@ export async function getSchemaFiles(appRoot: string) {
 
 export function getCollectionNameForRepo(repoFilename: string) {
   return repoFilename.replace("Repo.ts", "").toLowerCase();
+}
+
+export function getRepoInstanceName(fn: string) {
+  const [name] = fn.split(".ts");
+  return name.charAt(0).toLowerCase() + name.substr(1);
+}
+
+/**
+ * Get http method from props or convention based on file name
+ * if it starts with i.e "GetFoo"
+ */
+export function getHttpMethodFromHandlerName(handlerFilename: string) {
+  if (handlerFilename.includes(sep)) {
+    const split = handlerFilename.split(sep);
+    handlerFilename = split[split.length - 1];
+  }
+
+  handlerFilename = handlerFilename.toLocaleLowerCase();
+
+  if (handlerFilename.startsWith(HttpMethod.get)) return HttpMethod.get;
+  if (handlerFilename.startsWith(HttpMethod.post)) return HttpMethod.post;
+  if (handlerFilename.startsWith(HttpMethod.put)) return HttpMethod.put;
+  if (handlerFilename.startsWith(HttpMethod.delete)) return HttpMethod.delete;
 }

@@ -3,22 +3,20 @@ import addFormats from "ajv-formats";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Express, Request } from "express";
-import { promises as fsPromises } from "fs";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
-import { join } from "path";
 import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
 import { internalServerError, notFound, unauthorized } from "./FlinkErrors";
-import { Handler, RouteProps } from "./FlinkHttpHandler";
+import { Handler, HttpMethod, RouteProps } from "./FlinkHttpHandler";
 import { FlinkPlugin } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
 import { FlinkResponse } from "./FlinkResponse";
 import { readJsonFile } from "./FsUtils";
 import generateMockData from "./mock-data-generator";
-import { getCollectionNameForRepo, isError } from "./utils";
+import { isError } from "./utils";
 
 const ajv = new Ajv();
 addFormats(ajv);
@@ -28,6 +26,26 @@ const defaultCorsOptions: FlinkOptions["cors"] = {
   credentials: true,
   origin: ["*"],
 };
+
+/**
+ * This will be populated at compile time when the apps handlers
+ * are picked up by typescript compiler
+ */
+export const scannedHandlers: {
+  routeProps: RouteProps;
+  handlerFn: any;
+  assumedHttpMethod: HttpMethod;
+}[] = [];
+
+/**
+ * This will be populated at compile time when the apps repos
+ * are picked up by typescript compiler
+ */
+export const scannedRepos: {
+  collectionName: string;
+  repoInstanceName: string;
+  Repo: any;
+}[] = [];
 
 export interface FlinkOptions {
   /**
@@ -68,8 +86,9 @@ export interface FlinkOptions {
 
   /**
    * Callback invoked so Flink can load files from host project.
+   * @deprecated not needed anymore since new `flink run`
    */
-  loader: (file: string) => Promise<any>;
+  loader?: (file: string) => Promise<any>;
 
   /**
    * Optional list of plugins that should be configured and used.
@@ -135,11 +154,11 @@ export class FlinkApp<C extends FlinkContext> {
   private debug = false;
   private onDbConnection?: FlinkOptions["onDbConnection"];
 
-  private loader: FlinkOptions["loader"];
+  // private loader: FlinkOptions["loader"];
   private plugins: FlinkPlugin[] = [];
   private auth?: FlinkAuthPlugin;
   private corsOpts: FlinkOptions["cors"];
-  private appRoot: string;
+  // private appRoot: string;
 
   private repos: { [x: string]: FlinkRepo<C> } = {};
 
@@ -154,11 +173,10 @@ export class FlinkApp<C extends FlinkContext> {
     this.dbOpts = opts.db;
     this.debug = !!opts.debug;
     this.onDbConnection = opts.onDbConnection;
-    this.loader = opts.loader;
     this.plugins = opts.plugins || [];
     this.corsOpts = { ...defaultCorsOptions, ...opts.cors };
     this.auth = opts.auth;
-    this.appRoot = opts.appRoot || "./";
+    // this.appRoot = opts.appRoot || "./";
   }
 
   get ctx() {
@@ -275,6 +293,10 @@ export class FlinkApp<C extends FlinkContext> {
     const { routeProps, schema = {}, origin } = handlerConfig;
     const { method } = routeProps;
     const app = this.expressApp!;
+
+    if (!method) {
+      log.error(`Route ${routeProps.path} is missing http method`);
+    }
 
     if (method) {
       const methodAndRoute = `${method.toUpperCase()} ${routeProps.path}`;
@@ -393,75 +415,49 @@ export class FlinkApp<C extends FlinkContext> {
    * Will not register any handlers added programmatically.
    */
   private async registerAppHandlers() {
-    for (const handler of this.handlers) {
-      const { origin = "" } = handler;
-
-      if (origin.endsWith(".ts")) {
-        const { default: oHandlerFn } = await this.loader(
-          "./handlers/" + origin
-        );
-
-        const handlerFn: Handler<C> = oHandlerFn;
-        const { routeProps } = handler;
-
-        if (!routeProps) {
-          log.error(`Missing Props in handler ${handler}`);
-          continue;
-        }
-
-        if (!handlerFn) {
-          log.error(`Missing exported handler function in handler ${handler}`);
-          continue;
-        }
-
-        this.registerHandler(handler, handlerFn);
+    for (const handler of scannedHandlers) {
+      if (!handler.routeProps) {
+        log.error(`Missing Props in handler ${handler}`);
+        continue;
       }
+
+      if (!handler.handlerFn) {
+        log.error(`Missing exported handler function in handler ${handler}`);
+        continue;
+      }
+
+      this.registerHandler(
+        {
+          routeProps: {
+            ...handler.routeProps,
+            method: handler.routeProps.method || handler.assumedHttpMethod,
+          },
+          origin: "",
+        },
+        handler.handlerFn
+      );
     }
   }
 
-  public addRepo(instanceName : string, repoInstance: FlinkRepo<C>   ){
+  public addRepo(instanceName: string, repoInstance: FlinkRepo<C>) {
     this.repos[instanceName] = repoInstance;
-  }  
+  }
 
   /**
    * Constructs the app context. Will inject context in all components
    * except for handlers which are handled in later stage.
    */
   private async buildContext() {
-    const reposRoot = join(this.appRoot, "src", "repos");
+    if (this.dbOpts) {
+      for (const { collectionName, repoInstanceName, Repo } of scannedRepos) {
+        const repoInstance: FlinkRepo<C> = new Repo(collectionName, this.db);
 
-    let repoFilenames: string[] = [];
+        this.repos[repoInstanceName] = repoInstance;
 
-    try {
-      repoFilenames = await fsPromises.readdir(reposRoot);
-    } catch (err) {}
-
-
-
-    if (repoFilenames.length > 0) {
-      const repoFilenames = await fsPromises.readdir(reposRoot);
-
-      if (this.dbOpts) {
-        for (const fn of repoFilenames) {
-          const repoInstanceName = this.getRepoInstanceName(fn);
-          const { default: Repo } = await this.loader("./repos/" + fn);
-          const repoInstance: FlinkRepo<C> = new Repo(
-            getCollectionNameForRepo(fn),
-            this.db
-          );
-
-          this.repos[repoInstanceName] = repoInstance;
-          log.info(`Registered repo ${repoInstanceName}`);
-        }
-      } else if (repoFilenames.length > 0) {
-        log.warn(
-          `No db configured but found repo(s) in ${reposRoot}: ${repoFilenames.join(
-            ", "
-          )}`
-        );
+        log.info(`Registered repo ${repoInstanceName}`);
       }
-    } else {
-      log.debug(`Skipping repos - no repos in ${reposRoot} found`);
+    } else if (scannedRepos.length > 0) {
+      log.warn(`No db configured but found repo(s)`);
     }
 
     const pluginCtx = this.plugins.reduce<{ [x: string]: any }>(
@@ -476,7 +472,7 @@ export class FlinkApp<C extends FlinkContext> {
     );
 
     this._ctx = {
-      repos : this.repos,
+      repos: this.repos,
       plugins: pluginCtx,
       auth: this.auth,
     } as C;
@@ -535,17 +531,6 @@ export class FlinkApp<C extends FlinkContext> {
         }
       }
     }
-  }
-
-  /**
-   * Constructs repo instance name based on
-   * filename.
-   *
-   * For example `FooRepo.ts` will become `fooRepo`.
-   */
-  private getRepoInstanceName(fn: string) {
-    const [name] = fn.split(".ts");
-    return name.charAt(0).toLowerCase() + name.substr(1);
   }
 
   private async authenticate(req: Request, permissions: string | string[]) {
