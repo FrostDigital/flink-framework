@@ -155,7 +155,8 @@ export const GetManagementModule =  (config : GetManagementModuleConfig) :  Mana
         id : config.pluginId || "user",
         uiSettings : {
             title :  config.uiSettings?.title || "Users",
-            icon : config.uiSettings?.icon || ""
+            features : [],
+            //icon : config.uiSettings?.icon || ""
         },
         ui : config.ui,
         type : ManagementApiType.user,
