@@ -17,7 +17,7 @@ export interface ManagementApiEndpoint{
       ui : Boolean;
       uiSettings? : {
         title : string;
-        icon : string;
+        features : string[];
       }
   
   }

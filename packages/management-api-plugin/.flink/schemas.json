@@ -261,13 +261,16 @@
           "title": {
             "type": "string"
           },
-          "icon": {
-            "type": "string"
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "additionalProperties": false,
         "required": [
-          "icon",
+          "features",
           "title"
         ]
       }
@@ -406,13 +409,16 @@
                 "title": {
                   "type": "string"
                 },
-                "icon": {
-                  "type": "string"
+                "features": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false,
               "required": [
-                "icon",
+                "features",
                 "title"
               ]
             }
@@ -448,8 +454,11 @@
             "type": {
               "type": "string"
             },
-            "icon": {
-              "type": "string"
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             },
             "title": {
               "type": "string"
@@ -460,7 +469,7 @@
           },
           "additionalProperties": false,
           "required": [
-            "icon",
+            "features",
             "id",
             "title",
             "type",
@@ -488,8 +497,11 @@
             "type": {
               "type": "string"
             },
-            "icon": {
-              "type": "string"
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             },
             "title": {
               "type": "string"
@@ -500,7 +512,7 @@
           },
           "additionalProperties": false,
           "required": [
-            "icon",
+            "features",
             "id",
             "title",
             "type",
@@ -614,21 +626,9 @@
       "users"
     ]
   },
-  "PostUserLoginReq": {
+  "GetUserMeReq": {
     "type": "object",
-    "properties": {
-      "username": {
-        "type": "string"
-      },
-      "password": {
-        "type": "string"
-      }
-    },
-    "additionalProperties": false,
-    "required": [
-      "password",
-      "username"
-    ]
+    "additionalProperties": false
   },
   "PostUserLoginRes": {
     "type": "object",
@@ -657,6 +657,51 @@
     "required": [
       "token",
       "user"
+    ]
+  },
+  "GetUserMeRes": {
+    "type": "object",
+    "properties": {
+      "user": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "_id",
+          "username"
+        ]
+      },
+      "token": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "token",
+      "user"
+    ]
+  },
+  "PostUserLoginReq": {
+    "type": "object",
+    "properties": {
+      "username": {
+        "type": "string"
+      },
+      "password": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "password",
+      "username"
     ]
   },
   "PostUserReq": {

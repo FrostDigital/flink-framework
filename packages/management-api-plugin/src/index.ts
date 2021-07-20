@@ -4,6 +4,7 @@ import jsonwebtoken from "jsonwebtoken";
 import { ManagementApiOptions, ManagementApiModule, ManagementApiType } from "./schemas/ManagementApi"
 import schemas from "../.flink/schemas.json";
 
+import GetUserMe from "./handlers/User/GetMe";
 import GetUserList from "./handlers/User/GetList";
 import GetUserByUserid from "./handlers/User/GetByUserid";
 import PostUser from "./handlers/User/Post";
@@ -27,7 +28,7 @@ export const managementApiPlugin = (options: ManagementApiOptions): FlinkPlugin 
     "ui" : true,
     "uiSettings" : {
       "title" : "Admin users",
-      "icon" : "",
+      "features" : []
     },
     "endpoints" : []
   }
@@ -45,7 +46,19 @@ export const managementApiPlugin = (options: ManagementApiOptions): FlinkPlugin 
       },
   }, handlerFn :GetUserList })
 
+  managementApiModule.endpoints.push( {
+    config : {
+      routeProps: {
+      method: HttpMethod.get,
+      path: "/me",
+      docs: "Get current user information",
+      },
+      schema: {
+       reqSchema: schemas.GetUserMeReq,
+        resSchema: schemas.GetUserMeRes,
+      },
 
+  }, handlerFn :GetUserMe })
 
   managementApiModule.endpoints.push( {
     config : {
@@ -128,7 +141,7 @@ export const managementApiPlugin = (options: ManagementApiOptions): FlinkPlugin 
         id : m.id,
         ui : m.ui ? "true" : "false",
         type : m.type,
-        icon : m.uiSettings?.icon || "",
+        features : m.uiSettings?.features || [],
         title : m.uiSettings?.title || "",
         //endpoints : [],
       }
@@ -204,7 +217,7 @@ function init(app: FlinkApp<any>, options: ManagementApiOptions ) {
 
     
     if(app.db!=null){
-      app.addRepo("managementuserRepo", new managementuserRepo("ManagmentUserRepo", app.db) )
+      app.addRepo("managementUserRepo", new managementuserRepo("ManagmentUserRepo", app.db) )
     }
 
     

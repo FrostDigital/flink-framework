@@ -37,10 +37,19 @@ function start() {
 ```
 
 
-### Communicating with the mangement api
-To work with the management api you must in the http header r `management-token` send either the `token` specified when register the plugin or a user login token.
+## Communicating with the mangement api
+To work with the management api you must in the http header `management-token` send either the `token` specified when register the plugin or a user login token.
 
 The management API have it's own users system, where you might add, edit or remove management users.
+
+To create a first user to your management api make a POST request to /managementapi/managementapiuser with http-header management-token set to the specified token.
+
+```
+curl 'https://URL-TO-YOUR-API/managementapi/managementapiuser' \
+    -H 'management-token: SECRET_TOKEN_USED_TO_COMMUNICATE_WITH_THE_API' \
+  -H 'Content-Type: application/json;charset=UTF-8' \
+  --data-raw '{"username":"test","password":"test"}' 
+```
 
 
 

@@ -16,7 +16,6 @@ type Params = {
 
 const PostUserLogin: Handler<Ctx, PostUserLoginReq, PostUserLoginRes, Params> = async ({ ctx, req }) => {
 
-
   const user = await ctx.repos.managementUserRepo.getOne({ "username" : req.body.username});
   if(user == null){
     return unauthorized("Username or password invalid");
