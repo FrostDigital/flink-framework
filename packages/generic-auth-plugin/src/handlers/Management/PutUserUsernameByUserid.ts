@@ -13,14 +13,14 @@ const PutManagementUserUsernameByUserid: Handler<FlinkContext, PutManagementUser
     return notFound();
   }
 
-  const existingUser = await repo.getOne({ username : req.body.username.toLocaleLowerCase() });
+  const existingUser = await repo.getOne({ username : req.body.username.toLowerCase() });
   if(existingUser != null){
-    if(existingUser._id != user._id){
+    if(existingUser._id + "" != user._id + ""){
       return conflict("Username already taken");
     }
   }
   
-  await repo.updateOne(user._id, { username : req.body.username.toLocaleLowerCase() });
+  await repo.updateOne(user._id, { username : req.body.username.toLowerCase() });
 
 
     return {

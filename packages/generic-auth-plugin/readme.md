@@ -542,3 +542,55 @@ genericAuthPlugin({
 ````
 
 
+
+## Enabling management-api functions
+This plugin supports the [management-api-plugin](https://github.com/FrostDigital/flink-framework/tree/main/packages/management-api-plugin) structure to expose management apis.
+
+The management API is used by the flink-admin-portal. So to enable managing of app users in flink-admin-portal, you need to exponse this plugins management api functions.
+
+To do this, first install the managemnet-api-plugin and then get the management module from this plugin.
+
+```
+import { GetManagementModule  } from "@flink-app/generic-auth-plugin"
+
+const genericAuthManagementModule =  GetManagementModule(
+  { 
+    ui : true, //Enable UI for this module in flink-admin-portal 
+    uiSettings : {
+       title : "App users", //Title of this module
+       enableUserEdit : true //Make it possible to edit the user
+    }
+  }
+)
+```
+
+Finally add the management module to the list of modules in the managementApiPlugin config:
+
+```
+
+function start() {
+  new FlinkApp<Ctx>({
+    name: "My flink app",
+    debug: true,
+    auth : authPlugin,
+    loader: (file: any) => import(file),
+    db: {
+      uri: "mongodb://localhost:27017/my-flink-app",
+    },
+    plugins: [
+      genericAuthPlugin({
+        repoName : "userRepo", 
+      }),      
+      managementApiPlugin({
+        token : "TOKEN", 
+        jwtSecret : "SECRET",
+        modules : [
+          genericAuthManagementModule
+        ]
+      })
+    ],
+  }).start();
+}
+```
+
+

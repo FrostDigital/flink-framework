@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/generic-auth-plugin",
-  "version": "0.2.0-alpha.33",
+  "version": "0.2.0-alpha.31",
   "description": "Flink plugin that provides a generic user authentification solution.",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
@@ -18,7 +18,7 @@
   "types": "dist/src/index.d.ts",
   "main": "dist/src/index.js",
   "dependencies": {
-    "@flink-app/email-plugin": "^0.2.0-alpha.33",
+    "@flink-app/email-plugin": "^0.2.0-alpha.31",
     "@flink-app/jwt-auth-plugin": "^0.2.0-alpha.31",
     "@flink-app/management-api-plugin": "^0.2.0-alpha.33",
     "handlebars": "^4.7.7",
@@ -30,6 +30,5 @@
     "@types/node": "^15.6.2",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4"
-  },
-  "gitHead": "30288a4d5210ff164a418a016715750daca16b5c"
+  }
 }
