@@ -8,7 +8,7 @@ import { log } from "./FlinkLog";
 import {
   getRoutePropsFromHandlerSourceFile,
   getSchemaFromHandlerSourceFile,
-} from "./FlinkTsUtils";
+} from "./TypeScriptUtils";
 import { getHandlerFiles, getSchemaFiles } from "./utils";
 
 const flinkDir = ".flink";

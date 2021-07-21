@@ -12,12 +12,11 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "noEmit": true,
     "experimentalDecorators": true,
     "checkJs": true,
-    "typeRoots": ["./typings", "./node_modules/@types"],
-    "declaration": true,
-    "outDir": "dist"
+    "typeRoots": ["node_modules/@types", "node_modules/@flink"]
   },
-  "include": ["./src/**/*.ts", "./bin/*", "./cli/*", "./spec/**/*.ts"],
-  "exclude": ["./node_modules/*", "./spec/mock-project/*"]
+  "include": ["./src/**/*.ts", "./.flink/**/*.ts"],
+  "exclude": ["./node_modules/*"]
 }

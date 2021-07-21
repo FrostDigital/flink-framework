@@ -5,6 +5,8 @@ import {
   Node,
   PropertyAssignment,
   SourceFile,
+  Symbol,
+  SyntaxKind,
   ts,
   Type,
 } from "ts-morph";
@@ -68,6 +70,7 @@ function isValidSchemaType(type: Type<ts.Type>) {
 
 /**
  * Reads Route props from handler source file.
+ * @deprecated
  */
 export function getRoutePropsFromHandlerSourceFile(file: SourceFile) {
   // Inspiration: https://stackoverflow.com/a/61218889
@@ -150,4 +153,130 @@ function getHttpMethodFromHandlerName(handlerFilename: string) {
   if (handlerFilename.startsWith(HttpMethod.post)) return HttpMethod.post;
   if (handlerFilename.startsWith(HttpMethod.put)) return HttpMethod.put;
   if (handlerFilename.startsWith(HttpMethod.delete)) return HttpMethod.delete;
+}
+
+/**
+ * Recursively iterates node children to return list of types that is
+ * used in node tree which is not located in same file and hence
+ * needs to be imported.
+ *
+ * Declared types of those are returned.
+ */
+export function getTypesToImport(node: Node<ts.Node>) {
+  const typeRefIdentifiers = node
+    .getDescendantsOfKind(SyntaxKind.TypeReference)
+    .filter(
+      (typeRefNode) => !!typeRefNode.getFirstChildIfKind(SyntaxKind.Identifier)
+    )
+    .map((typeRefNode) =>
+      typeRefNode.getFirstChildIfKindOrThrow(SyntaxKind.Identifier)
+    );
+
+  const typesToImport: Type<ts.Type>[] = [];
+
+  for (const typeRefIdentifier of typeRefIdentifiers) {
+    const typeSymbol = typeRefIdentifier.getSymbolOrThrow();
+
+    const declaredType = typeSymbol.getDeclaredType();
+    const declaration = declaredType.getSymbol()?.getDeclarations()[0];
+
+    if (!declaration) {
+      continue; // should not happen, right?
+    }
+
+    if (declaration.getSourceFile() !== node.getSourceFile()) {
+      typesToImport.push(declaration.getSymbolOrThrow().getDeclaredType());
+    } else {
+      typesToImport.push(...getTypesToImport(declaration));
+    }
+  }
+
+  return typesToImport;
+}
+
+export function printChildren(node: Node<ts.Node>, indent = 0) {
+  for (const child of node.getChildren()) {
+    console.log(
+      " ".repeat(indent),
+      child.getKindName(),
+      child.getText().substr(0, 20).replaceAll("\n", "")
+    );
+
+    if (child.getChildren().length > 0) {
+      printChildren(child, ++indent);
+    }
+  }
+}
+
+export function addImport(toSourceFile: SourceFile, symbol: Symbol) {
+  const symbolDeclaration = symbol.getDeclarations()[0];
+
+  if (!symbolDeclaration) {
+    throw new Error(
+      "Missing declaration for symbol " + symbol.getFullyQualifiedName()
+    );
+  }
+
+  const importName = symbol.getEscapedName();
+  const symbolSourceFile = symbolDeclaration.getSourceFile();
+
+  const isDefaultExport = symbol
+    .getDeclaredType()
+    .getText()
+    .endsWith(".default");
+
+  const importDec = toSourceFile
+    .getImportDeclarations()
+    .find(
+      (importDeclarataion) =>
+        importDeclarataion.getModuleSpecifierSourceFile() === symbolSourceFile
+    );
+
+  if (importDec) {
+    // File already has import to file
+    if (isDefaultExport) {
+      if (!importDec.getDefaultImport()) {
+        importDec.setDefaultImport(importName);
+      }
+    } else {
+      if (
+        !importDec
+          .getNamedImports()
+          .find((specifier) => specifier.getText() === importName)
+      ) {
+        importDec.addNamedImport(importName);
+      }
+    }
+  } else {
+    // Add new import declaration
+    toSourceFile.addImportDeclaration({
+      moduleSpecifier:
+        toSourceFile.getRelativePathAsModuleSpecifierTo(symbolSourceFile),
+      defaultImport: isDefaultExport ? symbol.getEscapedName() : undefined,
+      namedImports: isDefaultExport ? undefined : [symbol.getEscapedName()],
+    });
+  }
+}
+
+/**
+ * Helper to get the default export, if any, from a source file.
+ * @param sf
+ * @returns
+ */
+export function getDefaultExport(sf: SourceFile) {
+  const exportAssignment = sf.getFirstDescendantByKind(
+    SyntaxKind.ExportAssignment
+  );
+
+  if (exportAssignment) {
+    const identifier = exportAssignment.getFirstChildByKind(
+      SyntaxKind.Identifier
+    );
+
+    if (identifier) {
+      return identifier.getSymbolOrThrow().getDeclarations()[0];
+    } else {
+      return exportAssignment.getFirstChild();
+    }
+  }
 }

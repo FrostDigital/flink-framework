@@ -1,10 +1,9 @@
 import { Request } from "express";
-import { join } from "path";
+import { join, sep } from "path";
 import tinyGlob from "tiny-glob";
 import { HttpMethod } from "./FlinkHttpHandler";
 import { log } from "./FlinkLog";
 import { FlinkResponse } from "./FlinkResponse";
-import { sep } from "path";
 
 export function handlersPath(appRoot: string) {
   return join(appRoot, "src", "handlers");
