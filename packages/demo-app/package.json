@@ -6,7 +6,8 @@
   "scripts": {
     "test": "flink build && node --preserve-symlinks -r jasmine-ts",
     "start": "flink run",
-    "dev": "nodemon"
+    "dev": "nodemon",
+    "clean": "rimraf .flink"
   },
   "dependencies": {
     "@flink-app/api-docs-plugin": "^0.2.0-alpha.31",
