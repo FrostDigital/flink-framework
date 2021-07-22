@@ -25,6 +25,4 @@ module.exports = async function run(args: string[]) {
   console.log(`Compilation done, took ${Date.now() - startTime}ms`);
 
   compiler.emit();
-
-  require("child_process").fork(dir + "/dist/.flink/start.js", { cwd: dir });
 };

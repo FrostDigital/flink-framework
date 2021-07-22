@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 
-const commands = ["generate", "generate-schema", "run"];
+const commands = [
+  "build",
+  "run",
+  "generate" /* 'generate' is alias for 'build'   */,
+];
 
 const argv = process.argv.slice(2);
-const argCommand = argv[0];
+let argCommand = argv[0];
 
 if (!argCommand) {
   console.log(`flink [${commands.join("|")}]`);
@@ -13,6 +17,10 @@ if (!argCommand) {
 if (!commands.includes(argv[0])) {
   console.log(`Invalid command: ${argCommand}`);
   process.exit(1);
+}
+
+if (argCommand === "generate") {
+  argCommand = "build";
 }
 
 const cmd = require("../cli/" + argCommand);
