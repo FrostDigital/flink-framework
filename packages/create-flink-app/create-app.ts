@@ -52,11 +52,8 @@ export async function createApp({
       dev: "nodemon",
       test: "jasmine-ts --preserve-symlinks",
       "test:watch": "nodemon --exec jasmine-ts",
-      start:
-        "node --preserve-symlinks -r ts-node/register -- src/index.ts --project tsconfig.json",
-      prestart: "npm run flink:generate",
-      pretest: "npm run flink:generate",
-      "flink:generate": "flink generate",
+      start: "flink run",
+      pretest: "flink build",
     },
   };
   fs.writeFileSync(
