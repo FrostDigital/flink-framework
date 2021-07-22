@@ -13,61 +13,6 @@ import {
 import { HttpMethod, RouteProps } from "./FlinkHttpHandler";
 import { log } from "./FlinkLog";
 
-type ReqResSchemas = {
-  reqSchema: string | undefined;
-  resSchema: string | undefined;
-};
-
-/**
- * Derives schema that is part of handlers generic type argument
- * by inspecting nodes in handler source file.
- */
-export function getSchemaFromHandlerSourceFile(
-  file: SourceFile
-): ReqResSchemas {
-  const handlerFnExport = file
-    .getDefaultExportSymbolOrThrow()
-    .getDeclarations()[0];
-
-  const handlerFnType = handlerFnExport
-    .getSymbolOrThrow()
-    .getTypeAtLocation(handlerFnExport);
-
-  const isHandlerWithoutReqBody = !handlerFnType
-    .getText()
-    .includes(".Handler<");
-
-  const typeArgs = handlerFnType.getAliasTypeArguments();
-
-  const reqSchemaArg = !isHandlerWithoutReqBody ? typeArgs[1] : undefined;
-  const resSchemaArg = typeArgs[isHandlerWithoutReqBody ? 1 : 2];
-
-  if (reqSchemaArg && !isValidSchemaType(reqSchemaArg)) {
-    throw new Error(
-      `Handler ${
-        file.compilerNode.fileName
-      } contains invalid request schema. Schema must be an interface or type that resides in 'src/schemas/' directory. Instead detected type '${reqSchemaArg.getText()}'`
-    );
-  }
-
-  if (resSchemaArg && !isValidSchemaType(resSchemaArg)) {
-    throw new Error(
-      `Handler ${
-        file.compilerNode.fileName
-      } contains invalid response schema. Schema must be an interface or type that resides in 'src/schemas/' directory. Instead detected type '${resSchemaArg.getText()}'`
-    );
-  }
-
-  return {
-    reqSchema: reqSchemaArg?.getSymbol()?.getName(),
-    resSchema: resSchemaArg?.getSymbol()?.getName(),
-  };
-}
-
-function isValidSchemaType(type: Type<ts.Type>) {
-  return type.isAny() || type.isInterface();
-}
-
 /**
  * Reads Route props from handler source file.
  * @deprecated
@@ -192,20 +137,6 @@ export function getTypesToImport(node: Node<ts.Node>) {
   }
 
   return typesToImport;
-}
-
-export function printChildren(node: Node<ts.Node>, indent = 0) {
-  for (const child of node.getChildren()) {
-    console.log(
-      " ".repeat(indent),
-      child.getKindName(),
-      child.getText().substr(0, 20).replaceAll("\n", "")
-    );
-
-    if (child.getChildren().length > 0) {
-      printChildren(child, ++indent);
-    }
-  }
 }
 
 export function addImport(toSourceFile: SourceFile, symbol: Symbol) {

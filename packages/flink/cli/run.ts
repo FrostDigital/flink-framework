@@ -13,6 +13,10 @@ module.exports = async function run(args: string[]) {
   if (args[0] === "dev") {
     await TypeScriptCompiler.clean(dir);
 
+    if (!compiler.getPreEmitDiagnostics()) {
+      process.exit(1);
+    }
+
     await Promise.all([
       compiler.parseRepos(),
       compiler.parseHandlers(),

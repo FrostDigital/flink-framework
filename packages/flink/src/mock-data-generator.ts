@@ -1,5 +1,5 @@
 import { mock, SchemaLike } from "mock-json-schema";
-import { Definition } from "typescript-json-schema";
+import { Definition } from "ts-json-schema-generator";
 
 const generateMockData = (schema: Definition) => {
   // TODO: mock-json-schema does not seem to handle `examples` array, might want to switch to json-schema-faker

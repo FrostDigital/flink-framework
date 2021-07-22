@@ -5,7 +5,7 @@ import cors from "cors";
 import express, { Express, Request } from "express";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
-import * as TJS from "typescript-json-schema";
+import { Definition } from "ts-json-schema-generator";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
@@ -125,7 +125,7 @@ export interface FlinkOptions {
 }
 
 export interface HandlerConfig {
-  schema?: { reqSchema?: TJS.Definition; resSchema?: TJS.Definition };
+  schema?: { reqSchema?: Definition; resSchema?: Definition };
   routeProps: RouteProps;
   /**
    * I.e. filename or plugin name that describes where handler origins from
