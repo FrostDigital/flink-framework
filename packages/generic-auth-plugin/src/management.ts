@@ -10,6 +10,7 @@ import PutManagementUserUsernameByUserid from "./handlers/Management/PutUserUser
 import PutManagementUserRolesByUserid from "./handlers/Management/PutUserRolesByUserid";
 import DeleteManagementUserByUserid from "./handlers/Management/DeleteUserByUserid";
 import GetGetSchemaHandler from "./handlers/Management/GetSchema";
+import PutUserProfileByUseridAppend from "./handlers/Management/PutUserProfileByUseridAppend"
 import { features } from "process";
 
 export interface GetManagementModuleConfig{
@@ -139,6 +140,19 @@ export const GetManagementModule =  (config : GetManagementModuleConfig) :  Mana
             origin : config.pluginId || "genericAuthPlugin"           
             },
     }, handlerFn :PutManagementUserProfileByUserid })        
+
+    endpoints.push( { 
+        config : {
+            routeProps : {
+            path : "/profile/:userid/append",
+            method : HttpMethod.put,
+            schema: {
+                reqSchema: schemas.PutManagementUserProfileByUseridReq,
+                resSchema: schemas.PutManagementUserProfileByUseridRes,
+            },
+            origin : config.pluginId || "genericAuthPlugin"           
+            },
+    }, handlerFn :PutUserProfileByUseridAppend })          
     
     endpoints.push( { 
         config : {
@@ -155,12 +169,12 @@ export const GetManagementModule =  (config : GetManagementModuleConfig) :  Mana
 
     let features : string[] = [];
 
-    // if(config.uiSettings?.enableUserDelete == true){
-    //     features.push("delete");
-    // }
-    // if(config.uiSettings?.enableUserCreate == true){
-    //     features.push("create");
-    // }    
+    if(config.uiSettings?.enableUserDelete == true){
+        features.push("delete");
+    }
+    if(config.uiSettings?.enableUserCreate == true){
+        features.push("create");
+    }    
     if(config.uiSettings?.enableUserEdit == true){
         features.push("edit");
     }        

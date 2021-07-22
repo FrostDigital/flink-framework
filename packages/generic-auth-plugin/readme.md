@@ -546,7 +546,7 @@ genericAuthPlugin({
 ## Enabling management-api functions
 This plugin supports the [management-api-plugin](https://github.com/FrostDigital/flink-framework/tree/main/packages/management-api-plugin) structure to expose management apis.
 
-The management API is used by the flink-admin-portal. So to enable managing of app users in flink-admin-portal, you need to exponse this plugins management api functions.
+The management API is used by [flink-admin](https://github.com/FrostDigital/flink-admin). So to enable managing of app users in flink-admin, you need to exponse this plugins management api functions.
 
 To do this, first install the managemnet-api-plugin and then get the management module from this plugin.
 
@@ -558,7 +558,9 @@ const genericAuthManagementModule =  GetManagementModule(
     ui : true, //Enable UI for this module in flink-admin-portal 
     uiSettings : {
        title : "App users", //Title of this module
-       enableUserEdit : true //Make it possible to edit the user
+       enableUserEdit, : true //Make it possible to edit the user
+       enableUserCreate, : true //Make it possible to create new users
+       enableUserDelete, : true //Make it possible to delete the user
     }
   }
 )
@@ -567,7 +569,7 @@ const genericAuthManagementModule =  GetManagementModule(
 Finally add the management module to the list of modules in the managementApiPlugin config:
 
 ```
-
+      
 function start() {
   new FlinkApp<Ctx>({
     name: "My flink app",
@@ -593,4 +595,69 @@ function start() {
 }
 ```
 
+### Make it possible to edit profile properites
+To make it possible to edit profile properties when editing users, you must expose the JSON-schema of the profile.
 
+To do this, follow these steps:
+
+#### Step 1:
+Create a Schema file for your profile properties, eg. schemas/ProfileProperties.ts 
+
+#### Step 2:
+Configure flink to generate schema files by editing package.json file and replace 
+```
+    "flink:generate": "flink generate"
+```
+
+to:
+```
+    "flink:generate": "flink generate && flink generate-schema"
+```
+
+#### Step 3:
+Restart your flink app (to generate the JSON-schemeas)
+
+#### Step 4:
+Import the JSON-schema and pass it to the `GetManagementModule` function.
+```
+import { GetManagementModule  } from "@flink-app/generic-auth-plugin"
+import schemas from "../.flink/schemas.json";
+
+const genericAuthManagementModule =  GetManagementModule(
+  { 
+    ui : true, //Enable UI for this module in flink-admin-portal
+    profileSchema : schemas.ProfileProperties,
+    uiSettings : {
+       title : "App users", //Title of this module
+       enableUserEdit, : true //Make it possible to edit the user
+       enableUserCreate, : true //Make it possible to create new users
+       enableUserDelete, : true //Make it possible to delete the user
+    }
+  }
+)
+```
+
+
+Please note that only string and enum property types can be edited from the flink-admin interface.
+
+✅ Do:
+```
+export interface ProfileProperties{
+    name : string;
+    city : string;
+    gender : "male" | "female" | "any";
+} 
+```
+
+❌ Dont:
+```
+type myType = {
+    hello : string,
+    world : string
+}
+
+export interface Profile{
+    name : string;
+    type : myType
+} 
+```
