@@ -1,7 +1,8 @@
+import "../.flink/generatedHandlers";
+import "../.flink/generatedRepos";
 import { FlinkApp } from "@flink-app/flink";
 import { jwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 import * as testUtils from "@flink-app/test-utils";
-import { join } from "path";
 import CarListRes from "../src/schemas/CarListRes";
 
 describe("Integration tests", () => {
@@ -10,7 +11,6 @@ describe("Integration tests", () => {
       port: 3335,
       name: "Test app",
       debug: true,
-      loader: (file: any) => import(join("..", "src", file)),
       auth: jwtAuthPlugin({
         secret: "123",
         getUser: async (id) => {

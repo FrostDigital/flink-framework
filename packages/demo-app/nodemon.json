@@ -2,7 +2,7 @@
   "watch": ["src"],
   "ext": "ts,json",
   "ignore": ["*.spec.ts"],
-  "exec": "$(npm bin)/flink generate && node --preserve-symlinks -r ts-node/register -- src/index.ts",
+  "exec": "$(npm bin)/flink run dev",
   "watchOptions": {
     "followSymlinks": false
   }

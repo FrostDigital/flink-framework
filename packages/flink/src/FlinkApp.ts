@@ -3,9 +3,11 @@ import addFormats from "ajv-formats";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Express, Request } from "express";
+import { JSONSchema7Definition } from "json-schema";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
-import { Definition } from "ts-json-schema-generator";
+import { join } from "path";
+import { Schema } from "ts-json-schema-generator";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
@@ -35,6 +37,8 @@ export const scannedHandlers: {
   routeProps: RouteProps;
   handlerFn: any;
   assumedHttpMethod: HttpMethod;
+  reqSchema?: string;
+  resSchema?: string;
 }[] = [];
 
 /**
@@ -125,7 +129,10 @@ export interface FlinkOptions {
 }
 
 export interface HandlerConfig {
-  schema?: { reqSchema?: Definition; resSchema?: Definition };
+  schema?: {
+    reqSchema?: JSONSchema7Definition;
+    resSchema?: JSONSchema7Definition;
+  };
   routeProps: RouteProps;
   /**
    * I.e. filename or plugin name that describes where handler origins from
@@ -148,6 +155,8 @@ export class FlinkApp<C extends FlinkContext> {
   public port?: number;
   public started = false;
   // public schemas: { [x: string]: TJS.Definition } = {};
+
+  public schemas?: Schema;
 
   private _ctx?: C;
   private dbOpts?: FlinkOptions["db"];
@@ -426,6 +435,8 @@ export class FlinkApp<C extends FlinkContext> {
         continue;
       }
 
+      const schemaDefinitions = this.schemas?.definitions || {};
+
       this.registerHandler(
         {
           routeProps: {
@@ -433,6 +444,14 @@ export class FlinkApp<C extends FlinkContext> {
             method: handler.routeProps.method || handler.assumedHttpMethod,
           },
           origin: "",
+          schema: {
+            reqSchema: handler.reqSchema
+              ? schemaDefinitions[handler.reqSchema]
+              : undefined,
+            resSchema: handler.resSchema
+              ? schemaDefinitions[handler.resSchema]
+              : undefined,
+          },
         },
         handler.handlerFn
       );
@@ -543,6 +562,7 @@ export class FlinkApp<C extends FlinkContext> {
   }
 
   private async readSchemasAndHandlerMetadata() {
-    this.handlers = await readJsonFile(".flink/handlers.json");
+    this.schemas =
+      (await readJsonFile(join(".flink", "schemas", "schemas.json"))) || {};
   }
 }

@@ -78,6 +78,13 @@ class TypeScriptCompiler {
   }
 
   /**
+   * Emits compiled javascript source to dist folder
+   */
+  emit() {
+    this.project.emitSync();
+  }
+
+  /**
    * Catch any compilation errors. Will return false if any Errors
    * exists. Warnings will be passed thru but logged.
    */

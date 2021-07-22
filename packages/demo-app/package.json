@@ -4,12 +4,9 @@
   "description": "Demo app used as documentation and to run integration tests",
   "private": true,
   "scripts": {
-    "test": "node --preserve-symlinks -r jasmine-ts",
-    "start": "node --preserve-symlinks -r ts-node/register -- src/index.ts --project tsconfig.json",
-    "dev": "npm run flink:generate && nodemon",
-    "prestart": "npm run flink:generate",
-    "pretest": "npm run flink:generate",
-    "flink:generate": "flink generate"
+    "test": "flink build && node --preserve-symlinks -r jasmine-ts",
+    "start": "flink run",
+    "dev": "nodemon"
   },
   "dependencies": {
     "@flink-app/api-docs-plugin": "^0.2.0-alpha.31",
