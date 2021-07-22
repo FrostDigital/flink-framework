@@ -2,8 +2,15 @@ import { promises as fsPromises } from "fs";
 import { join } from "path";
 import glob from "tiny-glob";
 import {
+  createFormatter,
+  createParser,
+  Schema,
+  SchemaGenerator,
+} from "ts-json-schema-generator";
+import {
   DiagnosticCategory,
-  Node,
+  ImportDeclarationStructure,
+  OptionalKind,
   Project,
   SourceFile,
   SyntaxKind,
@@ -28,6 +35,7 @@ interface TypeScriptCompilerOptions {
 class TypeScriptCompiler {
   private debug: boolean;
   private project: Project;
+  private schemaGenerator?: SchemaGenerator;
 
   constructor(private cwd: string, { debug }: TypeScriptCompilerOptions = {}) {
     this.debug = !!debug;
@@ -37,6 +45,7 @@ class TypeScriptCompiler {
       compilerOptions: {
         noEmit: false,
         outDir: join(cwd, "dist"),
+        // incremental: true,
       },
     });
 
@@ -49,6 +58,10 @@ class TypeScriptCompiler {
     }
   }
 
+  /**
+   * Deletes all generated files.
+   * @param cwd
+   */
   static async clean(cwd: string) {
     const flinkDir = join(cwd, ".flink");
 
@@ -66,7 +79,7 @@ class TypeScriptCompiler {
 
   /**
    * Catch any compilation errors. Will return false if any Errors
-   * exists. Warnings will be passed thru.
+   * exists. Warnings will be passed thru but logged.
    */
   getPreEmitDiagnostics() {
     const preEmitDiag = this.project.getPreEmitDiagnostics();
@@ -114,12 +127,18 @@ export const handlers = [];
 scannedHandlers.push(...handlers);
     `
     );
-
     const handlersArr = generatedFile
       .getVariableDeclarationOrThrow("handlers")
       .getFirstDescendantByKindOrThrow(SyntaxKind.ArrayLiteralExpression);
 
     let i = 0;
+
+    const imports: OptionalKind<ImportDeclarationStructure>[] = [];
+
+    const schemasToGenerate: {
+      reqSchemaType?: string;
+      resSchemaType?: string;
+    }[] = [];
 
     for (const sf of this.project.getSourceFiles()) {
       if (!sf.getFilePath().includes("src/handlers/")) {
@@ -130,26 +149,34 @@ scannedHandlers.push(...handlers);
 
       const namespaceImport = sf.getBaseNameWithoutExtension() + "_" + i;
 
-      generatedFile.addImportDeclaration({
+      imports.push({
         namespaceImport,
         moduleSpecifier: generatedFile.getRelativePathAsModuleSpecifierTo(sf),
       });
 
       const assumedHttpMethod = getHttpMethodFromHandlerName(sf.getBaseName());
 
+      const schemaTypes = await this.extractSchemasFromHandlerTypeArguments(sf);
+
       handlersArr.insertElement(
         i,
         `{routeProps: ${namespaceImport}.Route, handlerFn: ${namespaceImport}.default, assumedHttpMethod: ${
           assumedHttpMethod ? "HttpMethod." + assumedHttpMethod : undefined
-        }}`
+        }, reqSchema: "${schemaTypes?.reqSchemaType || ""}", resSchema: "${
+          schemaTypes?.resSchemaType || ""
+        }"}`
       );
 
-      this.extractSchemasFromHandler(sf);
+      schemasToGenerate.push(schemaTypes || {});
 
       i++;
     }
 
-    generatedFile.saveSync();
+    generatedFile.addImportDeclarations(imports);
+
+    await generatedFile.save();
+
+    await this.generateAndSaveJsonSchemas(schemasToGenerate);
 
     return generatedFile;
   }
@@ -168,6 +195,8 @@ scannedHandlers.push(...handlers);
       .getVariableDeclarationOrThrow("repos")
       .getFirstDescendantByKindOrThrow(SyntaxKind.ArrayLiteralExpression);
 
+    const imports: OptionalKind<ImportDeclarationStructure>[] = [];
+
     let i = 0;
 
     for (const sf of this.project.getSourceFiles()) {
@@ -177,7 +206,7 @@ scannedHandlers.push(...handlers);
 
       console.log(`Detected repo ${sf.getBaseName()}`);
 
-      generatedFile.addImportDeclaration({
+      imports.push({
         defaultImport: sf.getBaseNameWithoutExtension(),
         moduleSpecifier: generatedFile.getRelativePathAsModuleSpecifierTo(sf),
       });
@@ -193,6 +222,8 @@ scannedHandlers.push(...handlers);
 
       i++;
     }
+
+    generatedFile.addImportDeclarations(imports);
 
     await generatedFile.save();
 
@@ -231,8 +262,29 @@ import "../src/index";
     );
   }
 
-  private extractSchemasFromHandler(sf: SourceFile) {
-    const d = Date.now();
+  /**
+   * Parses handlers `Handler<...>` function and its type arguments to extract
+   * which schemas to use.
+   *
+   * There are multiple ways of defining schema types as valid ts and this
+   * implementation aims to support all of these.
+   *
+   * Some examples of different cases (check spec/mock-project/src/handlers for more):
+   *
+   * ```
+   * // Interface reference
+   * Handler<Ctx, Car>
+   * // Inline type definition with reference to interface
+   * Handler<Ctx, {car: Car}>
+   * // Inline type definition with literal values
+   * Handler<Ctx, {car: {model: string}}>
+   * // Array
+   * Handler<Ctx, Car[]>
+   * // Array with inline type definition
+   * Handler<Ctx, {car: Car}[]>
+   * ```
+   */
+  private async extractSchemasFromHandlerTypeArguments(sf: SourceFile) {
     const defaultExport = getDefaultExport(sf);
 
     if (defaultExport) {
@@ -264,12 +316,22 @@ import "../src/index";
         );
       }
 
-      if (reqSchema) {
-        this.createIntermediateSchemaFile(reqSchema, sf, "ReqSchema");
-      }
-      if (resSchema) {
-        this.createIntermediateSchemaFile(resSchema, sf, "ResSchema");
-      }
+      const createReqSchemaPromise = reqSchema
+        ? this.createIntermediateSchemaFile(reqSchema, sf, "ReqSchema")
+        : Promise.resolve("");
+      const createResSchemaPromise = resSchema
+        ? this.createIntermediateSchemaFile(resSchema, sf, "ResSchema")
+        : Promise.resolve("");
+
+      const [reqSchemaType, resSchemaType] = await Promise.all([
+        createReqSchemaPromise,
+        createResSchemaPromise,
+      ]);
+
+      return {
+        reqSchemaType,
+        resSchemaType,
+      };
     } else {
       console.warn(
         `Handler ${sf.getBaseName()} is missing default exported handler function`
@@ -277,7 +339,7 @@ import "../src/index";
     }
   }
 
-  private createIntermediateSchemaFile(
+  private async createIntermediateSchemaFile(
     schema: Type<ts.Type>,
     handlerFile: SourceFile,
     suffix: string
@@ -308,7 +370,14 @@ import "../src/index";
 
       if (declaration.getSourceFile() === handlerFile) {
         // Interface is declared within handler file
-        generatedSchemaInterfaceStr = `export ${declaration.getText()}`;
+
+        // generatedSchemaInterfaceStr = `export ${declaration.getText()}`;
+        generatedSchemaInterfaceStr = `export interface ${schemaInterfaceName} {          
+          ${schema
+            .getProperties()
+            .map((p) => p.getValueDeclarationOrThrow().getText())
+            .join("\n")}
+        }`;
 
         for (const typeToImport of getTypesToImport(declaration)) {
           addImport(
@@ -383,8 +452,65 @@ import "../src/index";
         schemaSourceFile.getText().length,
         "\n" + generatedSchemaInterfaceStr
       );
-      schemaSourceFile.saveSync();
+      await schemaSourceFile.save();
+
+      return schemaInterfaceName;
     }
+    return;
+  }
+
+  private initJsonSchemaGenerator() {
+    const formatter = createFormatter({});
+    const parser = createParser(this.project.getProgram().compilerObject, {});
+    const generator = new SchemaGenerator(
+      this.project.getProgram().compilerObject,
+      parser,
+      formatter,
+      {}
+    );
+
+    return generator;
+  }
+
+  private generateAndSaveJsonSchemas(
+    schemas: { reqSchemaType?: string; resSchemaType?: string }[]
+  ) {
+    const jsonSchemas: Schema[] = [];
+
+    for (const { reqSchemaType, resSchemaType } of schemas) {
+      if (reqSchemaType) {
+        jsonSchemas.push(this.generateJsonSchema(reqSchemaType));
+      }
+      if (resSchemaType) {
+        jsonSchemas.push(this.generateJsonSchema(resSchemaType));
+      }
+    }
+
+    const mergedSchemas = jsonSchemas.reduce(
+      (out, schema) => {
+        if (schema.definitions) {
+          out.definitions = { ...out.definitions, ...schema.definitions };
+        }
+        return out;
+      },
+      {
+        $schema: "http://json-schema.org/draft-07/schema#",
+        $ref: "#/definitions/GetCarWithArraySchema_ResSchema",
+        definitions: {},
+      }
+    );
+
+    return fsPromises.writeFile(
+      join(this.cwd, ".flink", "schemas", "schemas.json"),
+      JSON.stringify(mergedSchemas, null, 2)
+    );
+  }
+
+  private generateJsonSchema(typeName: string) {
+    if (!this.schemaGenerator) {
+      this.schemaGenerator = this.initJsonSchemaGenerator();
+    }
+    return this.schemaGenerator.createSchema(typeName);
   }
 }
 
