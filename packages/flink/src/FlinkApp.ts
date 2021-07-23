@@ -154,8 +154,6 @@ export class FlinkApp<C extends FlinkContext> {
   public handlers: HandlerConfig[] = [];
   public port?: number;
   public started = false;
-  // public schemas: { [x: string]: TJS.Definition } = {};
-
   public schemas?: Schema;
 
   private _ctx?: C;
@@ -163,11 +161,10 @@ export class FlinkApp<C extends FlinkContext> {
   private debug = false;
   private onDbConnection?: FlinkOptions["onDbConnection"];
 
-  // private loader: FlinkOptions["loader"];
   private plugins: FlinkPlugin[] = [];
   private auth?: FlinkAuthPlugin;
   private corsOpts: FlinkOptions["cors"];
-  // private appRoot: string;
+  private routingConfigured = false;
 
   private repos: { [x: string]: FlinkRepo<C> } = {};
 
@@ -263,11 +260,17 @@ export class FlinkApp<C extends FlinkContext> {
       offsetTime = Date.now();
     }
 
-    this.expressApp.use((req, res, next) => {
-      res.status(404).json(notFound());
+    // Register 404 with slight delay to allow all manually added routes to be added
+    // TODO: Is there a better solution to force this handler to always run last?
+    setTimeout(() => {
+      this.expressApp!.use((req, res, next) => {
+        res.status(404).json(notFound());
+      });
+
+      this.routingConfigured = true;
     });
 
-    this.expressApp.listen(this.port, () => {
+    this.expressApp?.listen(this.port, () => {
       log.fontColorLog(
         "magenta",
         `⚡️ HTTP server '${this.name}' is running and waiting for connections on ${this.port}`
@@ -279,7 +282,30 @@ export class FlinkApp<C extends FlinkContext> {
     return this;
   }
 
-  public addHandler(config: HandlerConfig, handlerFn: Handler<any>) {
+  /**
+   * Manually registers a handler.
+   *
+   * Typescript compiler will scan handler function and set schemas
+   * which are derived from handler function type arguments.
+   *
+   * @param config
+   * @param handlerFn
+   * @param __schemas schemas, set by compiler
+   */
+  public addHandler(
+    config: HandlerConfig,
+    handlerFn: Handler<any>,
+    __schema?: {
+      reqSchema?: string;
+      resSchema?: string;
+    }
+  ) {
+    if (this.routingConfigured) {
+      throw new Error(
+        "Cannot add handler after routes has been registered, make sure to invoke earlier"
+      );
+    }
+
     const dup = this.handlers.find(
       (h) =>
         h.routeProps.path === config.routeProps.path &&
@@ -292,6 +318,15 @@ export class FlinkApp<C extends FlinkContext> {
         `${config.routeProps.method} ${config.routeProps.path} overlaps existing route`
       );
     }
+
+    config.schema = {
+      reqSchema: __schema?.reqSchema
+        ? (this.schemas?.definitions || {})[__schema?.reqSchema]
+        : undefined,
+      resSchema: __schema?.resSchema
+        ? (this.schemas?.definitions || {})[__schema?.resSchema]
+        : undefined,
+    };
 
     this.handlers.push(config);
 
@@ -310,7 +345,10 @@ export class FlinkApp<C extends FlinkContext> {
     if (method) {
       const methodAndRoute = `${method.toUpperCase()} ${routeProps.path}`;
 
+      console.log("registering", method, routeProps.path);
+
       app[method](routeProps.path, async (req, res) => {
+        console.log(111111111111);
         if (routeProps.permissions) {
           if (!(await this.authenticate(req, routeProps.permissions))) {
             return res.status(401).json(unauthorized());

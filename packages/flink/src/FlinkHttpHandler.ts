@@ -76,7 +76,7 @@ export type Handler<
 > = (props: {
   req: FlinkRequest<ReqSchema, P, Q>;
   ctx: Ctx;
-  origin? : string;
+  origin?: string;
 }) => Promise<FlinkResponse<ResSchema | FlinkError>>;
 
 /**

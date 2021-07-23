@@ -8,6 +8,7 @@ import {
   SchemaGenerator,
 } from "ts-json-schema-generator";
 import {
+  ArrayLiteralExpression,
   DiagnosticCategory,
   ImportDeclarationStructure,
   OptionalKind,
@@ -16,6 +17,7 @@ import {
   SyntaxKind,
   ts,
   Type,
+  TypeReferenceNode,
 } from "ts-morph";
 import {
   addImport,
@@ -138,17 +140,45 @@ scannedHandlers.push(...handlers);
       .getVariableDeclarationOrThrow("handlers")
       .getFirstDescendantByKindOrThrow(SyntaxKind.ArrayLiteralExpression);
 
-    let i = 0;
+    const autoRegHandlers = await this.parseAutoRegisteredHandlers(
+      generatedFile,
+      handlersArr
+    );
 
+    const manualRegHandlers = await this.parseManuallyRegisteredHandlers();
+
+    generatedFile.addImportDeclarations(autoRegHandlers.imports);
+
+    await generatedFile.save();
+
+    await this.generateAndSaveJsonSchemas([
+      ...autoRegHandlers.schemasToGenerate,
+      ...manualRegHandlers.schemasToGenerate,
+    ]);
+
+    return generatedFile;
+  }
+
+  /**
+   * Scan `/src/handlers/*.ts` for handlers that are eligible
+   * for auto registration.
+   */
+  private async parseAutoRegisteredHandlers(
+    generatedFile: SourceFile,
+    handlersArr: ArrayLiteralExpression
+  ) {
     const imports: OptionalKind<ImportDeclarationStructure>[] = [];
-
+    let i = 0;
     const schemasToGenerate: {
       reqSchemaType?: string;
       resSchemaType?: string;
     }[] = [];
 
     for (const sf of this.project.getSourceFiles()) {
-      if (!sf.getFilePath().includes("src/handlers/")) {
+      if (
+        !sf.getFilePath().includes("src/handlers/") ||
+        !sf.getVariableDeclaration("Route")
+      ) {
         continue;
       }
 
@@ -163,7 +193,7 @@ scannedHandlers.push(...handlers);
 
       const assumedHttpMethod = getHttpMethodFromHandlerName(sf.getBaseName());
 
-      const schemaTypes = await this.extractSchemasFromHandlerTypeArguments(sf);
+      const schemaTypes = await this.extractSchemasFromHandlerSourceFile(sf);
 
       handlersArr.insertElement(
         i,
@@ -179,13 +209,64 @@ scannedHandlers.push(...handlers);
       i++;
     }
 
-    generatedFile.addImportDeclarations(imports);
+    return {
+      imports,
+      schemasToGenerate,
+    };
+  }
 
-    await generatedFile.save();
+  /**
+   * Parse handlers added using `app.addHandler(...)`
+   */
+  private async parseManuallyRegisteredHandlers() {
+    const schemasToGenerate: {
+      reqSchemaType?: string;
+      resSchemaType?: string;
+    }[] = [];
 
-    await this.generateAndSaveJsonSchemas(schemasToGenerate);
+    for (const sf of this.project.getSourceFiles()) {
+      // Search all files for `addHandler` invocations
+      // TODO: Additional filtering needed? As now any method named addHandler will be picked up.
+      const addHandlerCallExpressions = sf
+        .getDescendantsOfKind(SyntaxKind.CallExpression)
+        .filter(
+          (node) =>
+            node
+              .getFirstDescendantByKind(SyntaxKind.PropertyAccessExpression)
+              ?.getName() === "addHandler"
+        );
 
-    return generatedFile;
+      for (const callExp of addHandlerCallExpressions) {
+        const snippet = callExp
+          .getText()
+          .replaceAll(/ |\n|\r|\t/g, "")
+          .substr(0, 40);
+
+        console.log(
+          `Detected handler in file ${sf.getBaseName()} (line ${callExp.getStartLineNumber()}): ${snippet}...`
+        );
+
+        const [_propsArg, handlerArg] = callExp.getArguments();
+
+        const typeRef = handlerArg
+          .getSymbolOrThrow()
+          .getValueDeclarationOrThrow()
+          .getFirstDescendantByKindOrThrow(SyntaxKind.TypeReference);
+
+        // Extract schema type from handler fn
+        const schemas = await this.extractSchemaTypeFromHandler(typeRef);
+
+        schemasToGenerate.push(schemas);
+
+        // Add name of schema type to invocation so we, at runtime, knows which schema to use
+        callExp.insertArgument(
+          2,
+          `{reqSchema: "${schemas.reqSchemaType}", resSchema: "${schemas.resSchemaType}"}`
+        );
+      }
+    }
+
+    return { schemasToGenerate };
   }
 
   async parseRepos() {
@@ -291,7 +372,7 @@ import "../src/index";
    * Handler<Ctx, {car: Car}[]>
    * ```
    */
-  private async extractSchemasFromHandlerTypeArguments(sf: SourceFile) {
+  private async extractSchemasFromHandlerSourceFile(sf: SourceFile) {
     const defaultExport = getDefaultExport(sf);
 
     if (defaultExport) {
@@ -299,46 +380,7 @@ import "../src/index";
         SyntaxKind.TypeReference
       );
 
-      // Name of Handler function - should be either `Handler` or `GetHandler`
-      const handlerType = handlerTypeRef.getTypeName().getText();
-
-      // Get type arguments a.k.a. generics which holds schemas such as this `Handler<Ctx, ReqSchema, ResSchema>`
-      const handlerTypeArgs = handlerTypeRef.getType().getAliasTypeArguments();
-
-      let reqSchema: Type<ts.Type> | undefined;
-      let resSchema: Type<ts.Type> | undefined;
-
-      if (handlerType === "Handler") {
-        // `Handler<Ctx, ReqSchema, ResSchema>`
-        // 0 = Ctx, 1 = Req schema, 2 = Res schema
-        reqSchema = handlerTypeArgs[1];
-        resSchema = handlerTypeArgs[2];
-      } else if (handlerType === "GetHandler") {
-        // `GetHandler<Ctx, ResSchema>`
-        // 0 = Ctx, 1 = Res schema
-        resSchema = handlerTypeArgs[1];
-      } else {
-        fail(
-          `Unknown handler type ${handlerType} - should be Handler or GetHandler`
-        );
-      }
-
-      const createReqSchemaPromise = reqSchema
-        ? this.createIntermediateSchemaFile(reqSchema, sf, "ReqSchema")
-        : Promise.resolve("");
-      const createResSchemaPromise = resSchema
-        ? this.createIntermediateSchemaFile(resSchema, sf, "ResSchema")
-        : Promise.resolve("");
-
-      const [reqSchemaType, resSchemaType] = await Promise.all([
-        createReqSchemaPromise,
-        createResSchemaPromise,
-      ]);
-
-      return {
-        reqSchemaType,
-        resSchemaType,
-      };
+      return this.extractSchemaTypeFromHandler(handlerTypeRef);
     } else {
       console.warn(
         `Handler ${sf.getBaseName()} is missing default exported handler function`
@@ -346,7 +388,7 @@ import "../src/index";
     }
   }
 
-  private async createIntermediateSchemaFile(
+  private async createIntermediateTsSchema(
     schema: Type<ts.Type>,
     handlerFile: SourceFile,
     suffix: string
@@ -377,8 +419,6 @@ import "../src/index";
 
       if (declaration.getSourceFile() === handlerFile) {
         // Interface is declared within handler file
-
-        // generatedSchemaInterfaceStr = `export ${declaration.getText()}`;
         generatedSchemaInterfaceStr = `export interface ${schemaInterfaceName} {          
           ${schema
             .getProperties()
@@ -459,7 +499,6 @@ import "../src/index";
         schemaSourceFile.getText().length,
         "\n" + generatedSchemaInterfaceStr
       );
-      await schemaSourceFile.save();
 
       return schemaInterfaceName;
     }
@@ -518,6 +557,64 @@ import "../src/index";
       this.schemaGenerator = this.initJsonSchemaGenerator();
     }
     return this.schemaGenerator.createSchema(typeName);
+  }
+
+  private async extractSchemaTypeFromHandler(
+    handlerTypeReference: TypeReferenceNode
+  ) {
+    // Name of Handler function - should be either `Handler` or `GetHandler`
+    const handlerType = handlerTypeReference.getTypeName().getText();
+
+    // Get type arguments a.k.a. generics which holds schemas such as this `Handler<Ctx, ReqSchema, ResSchema>`
+    const handlerTypeArgs = handlerTypeReference
+      .getType()
+      .getAliasTypeArguments();
+
+    let reqSchema: Type<ts.Type> | undefined;
+    let resSchema: Type<ts.Type> | undefined;
+
+    if (handlerType === "Handler") {
+      // `Handler<Ctx, ReqSchema, ResSchema>`
+      // 0 = Ctx, 1 = Req schema, 2 = Res schema
+      reqSchema = handlerTypeArgs[1];
+      resSchema = handlerTypeArgs[2];
+    } else if (handlerType === "GetHandler") {
+      // `GetHandler<Ctx, ResSchema>`
+      // 0 = Ctx, 1 = Res schema
+      resSchema = handlerTypeArgs[1];
+    } else {
+      fail(
+        `Unknown handler type ${handlerType} - should be Handler or GetHandler`
+      );
+    }
+
+    // TODO: Which source file?
+    const sf = handlerTypeReference.getSourceFile();
+
+    const createReqSchemaPromise = reqSchema
+      ? this.createIntermediateTsSchema(
+          reqSchema,
+          sf,
+          `${handlerTypeReference.getStartLineNumber()}_ReqSchema`
+        )
+      : Promise.resolve("");
+    const createResSchemaPromise = resSchema
+      ? this.createIntermediateTsSchema(
+          resSchema,
+          sf,
+          `${handlerTypeReference.getStartLineNumber()}_ResSchema`
+        )
+      : Promise.resolve("");
+
+    const [reqSchemaType, resSchemaType] = await Promise.all([
+      createReqSchemaPromise,
+      createResSchemaPromise,
+    ]);
+
+    return {
+      reqSchemaType,
+      resSchemaType,
+    };
   }
 }
 

@@ -15,7 +15,7 @@
     "noEmit": true,
     "experimentalDecorators": true,
     "checkJs": true,
-    "typeRoots": ["node_modules/@types", "node_modules/@flink"]
+    "typeRoots": ["node_modules/@types", "node_modules/@flink-app"]
   },
   "include": ["./src/**/*.ts", "./.flink/**/*.ts"],
   "exclude": ["./node_modules/*"]

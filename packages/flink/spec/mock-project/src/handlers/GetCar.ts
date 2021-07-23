@@ -4,7 +4,6 @@ import Car from "../schemas/Car";
 export const Route: RouteProps = {
   path: "/car",
   method: HttpMethod.get,
-  permissions: "*",
 };
 
 const GetCar: GetHandler<any, Car> = async ({ ctx, req }) => {
