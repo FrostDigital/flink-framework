@@ -333,9 +333,7 @@ scannedHandlers.push(...handlers);
         sf.getFilePath().endsWith(appEntryScript)
       )
     ) {
-      console.error(
-        `Entry script '${appEntryScript}' does not exist, make sure to enter absolute path from project root such as '/src/index.ts'`
-      );
+      console.error(`Cannot find entry script '${appEntryScript}'`);
       return process.exit(1);
     }
 
