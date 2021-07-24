@@ -31,6 +31,7 @@ module.exports = async function run(args: string[]) {
   let entry = "/src/index.ts";
   if (args.includes("--entry")) {
     entry = args[args.indexOf("--entry") + 1];
+    entry = entry.startsWith("/") ? entry : "/" + entry;
   }
 
   const compiler = new TypeScriptCompiler(dir);

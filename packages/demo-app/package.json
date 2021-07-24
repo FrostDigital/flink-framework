@@ -4,7 +4,7 @@
   "description": "Demo app used as documentation and to run integration tests",
   "private": true,
   "scripts": {
-    "test": "flink build && node --preserve-symlinks -r jasmine-ts",
+    "test": "flink run --entry spec/support/runner.ts",
     "start": "flink run",
     "dev": "nodemon",
     "clean": "rimraf .flink"

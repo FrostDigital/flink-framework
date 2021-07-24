@@ -1,5 +1,3 @@
-import "../.flink/generatedHandlers";
-import "../.flink/generatedRepos";
 import { FlinkApp, GetHandler, HttpMethod } from "@flink-app/flink";
 import { jwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 import * as testUtils from "@flink-app/test-utils";
