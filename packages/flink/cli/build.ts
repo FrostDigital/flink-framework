@@ -3,12 +3,38 @@ import TypeScriptCompiler from "../src/TypeScriptCompiler";
 
 module.exports = async function run(args: string[]) {
   const startTime = Date.now();
-  let dir = "./";
-  if (args.includes("--dir")) {
-    dir = args[args.indexOf("--dir") + 1];
+
+  if (args.includes("--help")) {
+    console.log(`
+    Description
+      Builds the application.
+      Will generate intermediates files in .flink and compile/transpile
+      javascript bundle in /dist folder
+
+    Usage
+      $ flink build <dir>
+
+    <dir> represents the directory of the Flink application.
+    If no directory is provided, the current directory will be used.
+      
+    Options            
+      --help    Displays this message
+      `);
+
+    process.exit(0);
   }
 
-  const compiler = new TypeScriptCompiler(dir, {});
+  let dir = "./";
+  if (args[0] && !args[0].startsWith("--")) {
+    dir = args[0];
+  }
+
+  let exclude = "/spec";
+  if (args.includes("--exclude")) {
+    exclude = args[args.indexOf("--exclude") + 1];
+  }
+
+  const compiler = new TypeScriptCompiler(dir);
 
   await TypeScriptCompiler.clean(dir);
 
@@ -18,7 +44,7 @@ module.exports = async function run(args: string[]) {
 
   await Promise.all([
     compiler.parseRepos(),
-    compiler.parseHandlers(),
+    compiler.parseHandlers(exclude.split(",")),
     compiler.generateStartScript(),
   ]);
 

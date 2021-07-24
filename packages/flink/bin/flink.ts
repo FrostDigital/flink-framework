@@ -2,15 +2,17 @@
 
 const commands = [
   "build",
-  "run",
   "generate" /* 'generate' is alias for 'build'   */,
+  "run",
+  "clean",
+  "help",
 ];
 
 const argv = process.argv.slice(2);
 let argCommand = argv[0];
 
-if (!argCommand) {
-  console.log(`flink [${commands.join("|")}]`);
+if (!argCommand || argv[0] === "help") {
+  console.log(`Usage: flink [${commands.join("|")}]`);
   process.exit();
 }
 
