@@ -1,13 +1,15 @@
 import "../.flink/generatedHandlers";
 import "../.flink/generatedRepos";
-import { FlinkApp } from "@flink-app/flink";
+import { FlinkApp, GetHandler, HttpMethod } from "@flink-app/flink";
 import { jwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 import * as testUtils from "@flink-app/test-utils";
 import CarListRes from "../src/schemas/CarListRes";
 
 describe("Integration tests", () => {
+  let flinkApp: FlinkApp<any>;
+
   beforeAll(async () => {
-    const flinkApp = new FlinkApp<any>({
+    flinkApp = await new FlinkApp<any>({
       port: 3335,
       name: "Test app",
       debug: true,
@@ -22,11 +24,43 @@ describe("Integration tests", () => {
           admin: ["*"],
         },
       }),
-    });
+    }).start();
 
-    await flinkApp.start();
+    flinkApp.addHandler(
+      {
+        routeProps: {
+          path: "/manually-added-handler-wo-schema",
+          method: HttpMethod.get,
+        },
+      },
+      async () => {
+        return {
+          data: "Hello world",
+        };
+      }
+    );
+
+    const handlerWithSchema: GetHandler<any, { msg: string }> = async () => {
+      return {
+        data: { msg: "Hello world" },
+      };
+    };
+
+    flinkApp.addHandler(
+      {
+        routeProps: {
+          path: "/manually-added-handler-with-schema",
+          method: HttpMethod.get,
+        },
+      },
+      handlerWithSchema
+    );
 
     testUtils.init(flinkApp);
+  });
+
+  it("should register routes", () => {
+    expect(flinkApp.getRegisteredRoutes().length).toBe(13);
   });
 
   it("should get 404", async () => {
@@ -135,7 +169,5 @@ describe("Integration tests", () => {
 
       expect(res.status).toBe(401);
     });
-
-    it("should allow access when user has correct permissions", () => {});
   });
 });

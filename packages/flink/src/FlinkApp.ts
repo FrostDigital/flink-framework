@@ -139,6 +139,10 @@ export interface HandlerConfig {
    */
   origin?: string;
 }
+
+export interface HandlerConfigWithMethod extends HandlerConfig {
+  routeProps: RouteProps & { method: HttpMethod };
+}
 export interface HandlerConfigWithSchemaRefs
   extends Omit<HandlerConfig, "schema" | "origin"> {
   schema?: {
@@ -293,7 +297,7 @@ export class FlinkApp<C extends FlinkContext> {
    * @param __schemas schemas, set by compiler
    */
   public addHandler(
-    config: HandlerConfig,
+    config: HandlerConfigWithMethod,
     handlerFn: Handler<any>,
     __schema?: {
       reqSchema?: string;
@@ -345,10 +349,7 @@ export class FlinkApp<C extends FlinkContext> {
     if (method) {
       const methodAndRoute = `${method.toUpperCase()} ${routeProps.path}`;
 
-      console.log("registering", method, routeProps.path);
-
       app[method](routeProps.path, async (req, res) => {
-        console.log(111111111111);
         if (routeProps.permissions) {
           if (!(await this.authenticate(req, routeProps.permissions))) {
             return res.status(401).json(unauthorized());
@@ -446,10 +447,7 @@ export class FlinkApp<C extends FlinkContext> {
         );
         return process.exit(1); // TODO: Do we need to exit?
       } else {
-        this.handlerRouteCache.set(
-          methodAndRoute,
-          JSON.stringify(routeProps) // TODO
-        );
+        this.handlerRouteCache.set(methodAndRoute, JSON.stringify(routeProps));
         log.info(`Registered route ${methodAndRoute}`);
       }
     }
@@ -602,5 +600,9 @@ export class FlinkApp<C extends FlinkContext> {
   private async readSchemasAndHandlerMetadata() {
     this.schemas =
       (await readJsonFile(join(".flink", "schemas", "schemas.json"))) || {};
+  }
+
+  public getRegisteredRoutes() {
+    return Array.from(this.handlerRouteCache.values());
   }
 }

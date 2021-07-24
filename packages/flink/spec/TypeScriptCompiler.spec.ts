@@ -5,9 +5,7 @@ describe("TypeScriptCompiler", () => {
 
   beforeAll(async () => {
     await TypeScriptCompiler.clean("spec/mock-project");
-    compiler = new TypeScriptCompiler("spec/mock-project", {
-      debug: true,
-    });
+    compiler = new TypeScriptCompiler("spec/mock-project");
   });
 
   it("should get premit diagnostics", () => {

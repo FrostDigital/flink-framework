@@ -30,18 +30,11 @@ import {
   getRepoInstanceName,
 } from "./utils";
 
-interface TypeScriptCompilerOptions {
-  debug?: boolean;
-}
-
 class TypeScriptCompiler {
-  private debug: boolean;
   private project: Project;
   private schemaGenerator?: SchemaGenerator;
 
-  constructor(private cwd: string, { debug }: TypeScriptCompilerOptions = {}) {
-    this.debug = !!debug;
-
+  constructor(private cwd: string) {
     this.project = new Project({
       tsConfigFilePath: join(cwd, "tsconfig.json"),
       compilerOptions: {
@@ -51,13 +44,12 @@ class TypeScriptCompiler {
       },
     });
 
-    if (this.debug) {
-      console.log(
-        "Loaded",
-        this.project.getSourceFiles().length,
-        "source file(s)"
-      );
-    }
+    console.log(
+      "Loaded",
+      this.project.getSourceFiles().length,
+      "source file(s) from",
+      cwd
+    );
   }
 
   /**
@@ -77,6 +69,8 @@ class TypeScriptCompiler {
     for (const file of files) {
       await fsPromises.rm(join(cwd, file));
     }
+
+    return flinkDir;
   }
 
   /**
@@ -120,14 +114,14 @@ class TypeScriptCompiler {
   }
 
   /**
-   * Scan project for handlers and add those to Flinks
+   * Scans project for handlers and add those to Flink
    * "singleton" property `scannedHandlers` so they can
    * be registered during start.
    *
-   * Will also extract handlers request and response schemas
-   * to its own file and parse them into JSON schemas.
+   * Also extract handlers request and response schemas from Handler
+   * type arguments.
    */
-  async parseHandlers() {
+  async parseHandlers(excludeDirs: string[] = []) {
     const generatedFile = this.createSourceFile(
       ["generatedHandlers.ts"],
       `// Generated ${new Date()}
@@ -145,7 +139,9 @@ scannedHandlers.push(...handlers);
       handlersArr
     );
 
-    const manualRegHandlers = await this.parseManuallyRegisteredHandlers();
+    const manualRegHandlers = await this.parseManuallyRegisteredHandlers(
+      excludeDirs
+    );
 
     generatedFile.addImportDeclarations(autoRegHandlers.imports);
 
@@ -184,7 +180,8 @@ scannedHandlers.push(...handlers);
 
       console.log(`Detected handler ${sf.getBaseName()}`);
 
-      const namespaceImport = sf.getBaseNameWithoutExtension() + "_" + i;
+      const namespaceImport =
+        sf.getBaseNameWithoutExtension().replaceAll(".", "_") + "_" + i;
 
       imports.push({
         namespaceImport,
@@ -218,13 +215,17 @@ scannedHandlers.push(...handlers);
   /**
    * Parse handlers added using `app.addHandler(...)`
    */
-  private async parseManuallyRegisteredHandlers() {
+  private async parseManuallyRegisteredHandlers(excludeDirs: string[]) {
     const schemasToGenerate: {
       reqSchemaType?: string;
       resSchemaType?: string;
     }[] = [];
 
     for (const sf of this.project.getSourceFiles()) {
+      if (excludeDirs.find((dir) => sf.getFilePath().startsWith(dir))) {
+        continue;
+      }
+
       // Search all files for `addHandler` invocations
       // TODO: Additional filtering needed? As now any method named addHandler will be picked up.
       const addHandlerCallExpressions = sf
@@ -237,32 +238,33 @@ scannedHandlers.push(...handlers);
         );
 
       for (const callExp of addHandlerCallExpressions) {
-        const snippet = callExp
-          .getText()
-          .replaceAll(/ |\n|\r|\t/g, "")
-          .substr(0, 40);
-
-        console.log(
-          `Detected handler in file ${sf.getBaseName()} (line ${callExp.getStartLineNumber()}): ${snippet}...`
-        );
-
         const [_propsArg, handlerArg] = callExp.getArguments();
 
         const typeRef = handlerArg
           .getSymbolOrThrow()
           .getValueDeclarationOrThrow()
-          .getFirstDescendantByKindOrThrow(SyntaxKind.TypeReference);
+          .getFirstDescendantByKind(SyntaxKind.TypeReference);
 
-        // Extract schema type from handler fn
-        const schemas = await this.extractSchemaTypeFromHandler(typeRef);
+        if (typeRef) {
+          const snippet = callExp
+            .getText()
+            .replaceAll(/ |\n|\r|\t/g, "")
+            .substr(0, 50);
+          console.log(
+            `Detected handler in file ${sf.getBaseName()} (line ${typeRef.getStartLineNumber()}): ${snippet}...`
+          );
 
-        schemasToGenerate.push(schemas);
+          // Extract schema type from handler fn
+          const schemas = await this.extractSchemaTypeFromHandler(typeRef);
 
-        // Add name of schema type to invocation so we, at runtime, knows which schema to use
-        callExp.insertArgument(
-          2,
-          `{reqSchema: "${schemas.reqSchemaType}", resSchema: "${schemas.resSchemaType}"}`
-        );
+          schemasToGenerate.push(schemas);
+
+          // Add name of schema type to invocation so we, at runtime, knows which schema to use
+          callExp.insertArgument(
+            2,
+            `{reqSchema: "${schemas.reqSchemaType}", resSchema: "${schemas.resSchemaType}"}`
+          );
+        }
       }
     }
 
@@ -325,13 +327,24 @@ scannedHandlers.push(...handlers);
    * Note that order is of importance so generated metadata are imported and initialized before start of flink app.
    * Otherwise singletons `scannedRepos` and `scannedHandlers` will not have been set.
    */
-  async generateStartScript() {
+  async generateStartScript(appEntryScript = "/src/index.ts") {
+    if (
+      !this.project.getSourceFile((sf) =>
+        sf.getFilePath().endsWith(appEntryScript)
+      )
+    ) {
+      console.error(
+        `Entry script '${appEntryScript}' does not exist, make sure to enter absolute path from project root such as '/src/index.ts'`
+      );
+      return process.exit(1);
+    }
+
     const sf = this.createSourceFile(
       ["start.ts"],
       `// Generated ${new Date()}
 import "./generatedHandlers";
 import "./generatedRepos";
-import "../src/index";
+import "..${appEntryScript.replaceAll(".ts", "")}";
 `
     );
 
@@ -397,7 +410,9 @@ import "../src/index";
       return; // 'any' indicates that no schema is used
     }
 
-    const handlerFileName = handlerFile.getBaseNameWithoutExtension();
+    const handlerFileName = handlerFile
+      .getBaseNameWithoutExtension()
+      .replaceAll(".", "_");
 
     let generatedSchemaInterfaceStr = "";
 
