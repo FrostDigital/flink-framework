@@ -542,6 +542,7 @@ export class FlinkApp<C extends FlinkContext> {
         log.debug("Connecting to db");
         const client = await mongodb.connect(this.dbOpts.uri, {
           useUnifiedTopology: true,
+          connectTimeoutMS: 4000,
         });
         this.db = client.db();
       } catch (err) {
