@@ -20,7 +20,6 @@ import { firebaseMessagingPlugin } from "@flink-app/firebase-messaging-plugin";
 function start() {
   new FlinkApp<AppContext>({
     name: "My app",
-    loader: (file: any) => import(file),
     plugins: [
         firebaseMessagingPlugin({
             serverKey: "YOUR FIREBASE SERVER KEY"
@@ -32,6 +31,7 @@ function start() {
 ```
 
 Add it to your app context (normally `Ctx.ts` in the root folder of your project)
+
 ```
 import { FirebaseMessagingContext } from "@flink-app/firebase-messaging-plugin";
 

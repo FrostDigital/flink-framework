@@ -22,7 +22,6 @@ import { emailPlugin, sendgridClient } from "@flink-app/email-plugin";
 function start() {
   new FlinkApp<AppContext>({
     name: "My app",
-    loader: (file: any) => import(file),
     plugins: [
         // Register plugin
         emailPlugin({
@@ -57,7 +56,6 @@ import { emailPlugin, smtpClient } from "@flink-app/email-plugin";
 function start() {
   new FlinkApp<AppContext>({
     name: "My app",
-    loader: (file: any) => import(file),
     plugins: [
         // Register plugin
         emailPlugin({

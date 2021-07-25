@@ -10,7 +10,6 @@ describe("Pet", () => {
   beforeAll(async () => {
     flinkApp = new FlinkApp({
       name: "Test",
-      loader: (file) => import(join(process.cwd(), "src", file)),
       db: {
         uri: "mongodb://localhost:27017/my-flink-app-test",
       },
