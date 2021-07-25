@@ -49,11 +49,12 @@ export async function createApp({
     version: "0.1.0",
     private: true,
     scripts: {
-      dev: "nodemon",
-      test: "jasmine-ts --preserve-symlinks",
-      "test:watch": "nodemon --exec jasmine-ts",
+      dev: 'nodemon --exec "flink run"',
+      test: "flink run --entry spec/support/runner.ts",
+      "test:watch": 'nodemon --exec "flink run --entry spec/support/runner.ts"',
       start: "flink run",
-      pretest: "flink build",
+      build: "flink build",
+      clean: "flink clean && rimraf dist",
     },
   };
   fs.writeFileSync(
@@ -76,6 +77,7 @@ export async function createApp({
       "jasmine-spec-reporter",
       "@flink-app/test-utils",
       "@types/mongodb",
+      "rimraf",
     ],
     true
   );

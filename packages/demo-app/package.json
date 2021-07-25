@@ -4,10 +4,12 @@
   "description": "Demo app used as documentation and to run integration tests",
   "private": true,
   "scripts": {
+    "build": "flink build",
+    "dev": "nodemon --exec \"flink run\"",
     "test": "flink run --entry spec/support/runner.ts",
+    "test:watch": "nodemon --exec \"flink run --entry spec/support/runner.ts\"",
     "start": "flink run",
-    "dev": "nodemon",
-    "clean": "rimraf .flink"
+    "clean": "flink clean && rimraf dist"
   },
   "dependencies": {
     "@flink-app/api-docs-plugin": "^0.2.0-alpha.31",

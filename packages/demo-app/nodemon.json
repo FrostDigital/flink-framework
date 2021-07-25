@@ -1,7 +1,6 @@
 {
-  "watch": ["src"],
+  "watch": ["src", "spec"],
   "ext": "ts,json",
-  "ignore": ["*.spec.ts"],
   "exec": "$(npm bin)/flink run dev",
   "watchOptions": {
     "followSymlinks": false
