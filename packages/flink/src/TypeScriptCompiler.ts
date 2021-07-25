@@ -21,7 +21,7 @@ import {
   TypeReferenceNode,
 } from "ts-morph";
 import {
-  addImport,
+  addImports,
   getDefaultExport,
   getTypesToImport,
 } from "./TypeScriptUtils";
@@ -163,7 +163,7 @@ scannedHandlers.push(...handlers);
 
     await generatedFile.save();
 
-    this.createIntermediateSchemaFile();
+    await this.createIntermediateSchemaFile();
 
     await this.generateAndSaveJsonSchemas([
       ...autoRegHandlers.schemasToGenerate,
@@ -646,29 +646,16 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
    * Creates generated source file that contains all
    * TypeScript schemas that has been derived from handlers.
    */
-  private createIntermediateSchemaFile() {
+  private async createIntermediateSchemaFile() {
     const schemaSourceFile = this.createSourceFile(
       ["schemas", `schemas.ts`],
       `// Generated ${new Date()}
 ${this.parsedTsSchemas.join("\n\n")}`
     );
 
-    // Remove duplicates
-    this.tsSchemasSymbolsToImports = this.tsSchemasSymbolsToImports.filter(
-      (symbol, index, self) =>
-        self.findIndex(
-          (oSymbol) =>
-            oSymbol.getFullyQualifiedName() === symbol.getFullyQualifiedName()
-        ) === index
-    );
+    addImports(schemaSourceFile, this.tsSchemasSymbolsToImports);
 
-    // Note: Adding imports is a performance savvy task, this could prob be optimized
-    // so we use sourceFile.addImportDeclarations (plural) instead
-    for (const symbolToImport of this.tsSchemasSymbolsToImports) {
-      addImport(schemaSourceFile, symbolToImport);
-    }
-
-    schemaSourceFile.saveSync();
+    return schemaSourceFile.save();
   }
 }
 

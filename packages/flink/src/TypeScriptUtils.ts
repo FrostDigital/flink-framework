@@ -190,6 +190,64 @@ export function addImport(toSourceFile: SourceFile, symbol: Symbol) {
 }
 
 /**
+ * Adds imports to modules where provided symbols resides.
+ * Imports are added to provided source file.
+ * @param toSourceFile
+ * @param symbols
+ */
+export function addImports(toSourceFile: SourceFile, symbols: Symbol[]) {
+  const importsByModuleSpecifier = new Map<
+    string,
+    { defaultImportName?: string; importNames: string[] }
+  >();
+
+  for (const symbol of symbols) {
+    const symbolDeclaration = symbol.getDeclarations()[0];
+
+    if (!symbolDeclaration) {
+      throw new Error(
+        "Missing declaration for symbol " + symbol.getFullyQualifiedName()
+      );
+    }
+
+    const importName = symbol.getEscapedName();
+    const symbolSourceFile = symbolDeclaration.getSourceFile();
+    const isDefaultExport = symbol
+      .getDeclaredType()
+      .getText()
+      .endsWith(".default");
+
+    const moduleSpecifier =
+      toSourceFile.getRelativePathAsModuleSpecifierTo(symbolSourceFile);
+
+    let aImport = importsByModuleSpecifier.get(moduleSpecifier);
+
+    if (!aImport) {
+      importsByModuleSpecifier.set(moduleSpecifier, {
+        defaultImportName: isDefaultExport ? importName : undefined,
+        importNames: isDefaultExport ? [] : [importName],
+      });
+    } else {
+      if (isDefaultExport) {
+        aImport.defaultImportName = importName;
+      } else if (!aImport.importNames.includes(importName)) {
+        aImport.importNames.push(importName);
+      }
+    }
+  }
+
+  toSourceFile.addImportDeclarations(
+    Array.from(importsByModuleSpecifier.entries()).map(
+      ([moduleSpecifier, aImport]) => ({
+        moduleSpecifier,
+        defaultImport: aImport.defaultImportName,
+        namedImports: aImport.importNames,
+      })
+    )
+  );
+}
+
+/**
  * Helper to get the default export, if any, from a source file.
  * @param sf
  * @returns
