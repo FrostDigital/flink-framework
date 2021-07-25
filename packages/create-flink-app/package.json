@@ -20,7 +20,8 @@
   ],
   "scripts": {
     "dev": "ncc build ./index.ts -w -o dist/",
-    "prepublish": "rimraf ./dist/ && ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register"
+    "build": "rimraf ./dist/ && ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register",
+    "prepublish": "npm run build"
   },
   "devDependencies": {
     "@flink-app/flink": "^0.2.0-alpha.31",
