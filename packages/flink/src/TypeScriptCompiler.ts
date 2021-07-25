@@ -668,7 +668,7 @@ ${this.parsedTsSchemas.join("\n\n")}`
       addImport(schemaSourceFile, symbolToImport);
     }
 
-    schemaSourceFile.save();
+    schemaSourceFile.saveSync();
   }
 }
 
