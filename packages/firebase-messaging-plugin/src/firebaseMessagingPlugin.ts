@@ -6,7 +6,6 @@ import {
   log,
 } from "@flink-app/flink";
 import FCM from "fcm-push";
-import schemas from "../.flink/schemas.json";
 import { FirebaseMessagingContext } from "./FirebaseMessagingContext";
 import Message from "./schemas/Message";
 import SendResult from "./schemas/SendResult";
@@ -48,10 +47,6 @@ export const firebaseMessagingPlugin = (
             permissions: [
               options.permissions?.send || "firebase-messaging:send",
             ],
-          },
-          schema: {
-            reqSchema: schemas.Message,
-            resSchema: schemas.SendResult,
           },
         },
         sendHandler
