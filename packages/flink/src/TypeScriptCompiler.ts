@@ -14,6 +14,7 @@ import {
   OptionalKind,
   Project,
   SourceFile,
+  Symbol,
   SyntaxKind,
   ts,
   Type,
@@ -33,6 +34,21 @@ import {
 class TypeScriptCompiler {
   private project: Project;
   private schemaGenerator?: SchemaGenerator;
+
+  /**
+   * Parsed typescript schemas that will be added to intermediate
+   * schemas.ts file.
+   *
+   * This will be written to file in a batch for performance reasons.
+   */
+  private parsedTsSchemas: string[] = [];
+
+  /**
+   * Imports needed for schemas.ts.
+   *
+   * This will be added to file in a batch for performance reasons.
+   */
+  private tsSchemasSymbolsToImports: Symbol[] = [];
 
   constructor(private cwd: string) {
     this.project = new Project({
@@ -146,6 +162,8 @@ scannedHandlers.push(...handlers);
     generatedFile.addImportDeclarations(autoRegHandlers.imports);
 
     await generatedFile.save();
+
+    this.createIntermediateSchemaFile();
 
     await this.generateAndSaveJsonSchemas([
       ...autoRegHandlers.schemasToGenerate,
@@ -383,8 +401,10 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
    * Handler<Ctx, {car: Car}[]>
    * ```
    */
-  private async extractSchemasFromHandlerSourceFile(sf: SourceFile) {
-    const defaultExport = getDefaultExport(sf);
+  private async extractSchemasFromHandlerSourceFile(
+    handlerSourceFile: SourceFile
+  ) {
+    const defaultExport = getDefaultExport(handlerSourceFile);
 
     if (defaultExport) {
       const handlerTypeRef = defaultExport.getFirstDescendantByKindOrThrow(
@@ -394,12 +414,12 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
       return this.extractSchemaTypeFromHandler(handlerTypeRef);
     } else {
       console.warn(
-        `Handler ${sf.getBaseName()} is missing default exported handler function`
+        `Handler ${handlerSourceFile.getBaseName()} is missing default exported handler function`
       );
     }
   }
 
-  private async createIntermediateTsSchema(
+  private async saveIntermediateTsSchema(
     schema: Type<ts.Type>,
     handlerFile: SourceFile,
     suffix: string
@@ -415,11 +435,6 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
     let generatedSchemaInterfaceStr = "";
 
     const schemaInterfaceName = `${handlerFileName}_${suffix}`;
-
-    const schemaSourceFile = this.createSourceFile(
-      ["schemas", `${handlerFileName}_${suffix}.ts`],
-      `// Generated ${new Date()}`
-    );
 
     if (schema.isInterface()) {
       /*
@@ -440,15 +455,14 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
         }`;
 
         for (const typeToImport of getTypesToImport(declaration)) {
-          addImport(
-            schemaSourceFile,
+          this.tsSchemasSymbolsToImports.push(
             typeToImport.getSymbolOrThrow().getDeclaredType().getSymbolOrThrow()
           );
         }
       } else {
         // Interface is imported from other file
         generatedSchemaInterfaceStr = `export interface ${schemaInterfaceName} extends ${interfaceName} {}`;
-        addImport(schemaSourceFile, schemaSymbol);
+        this.tsSchemasSymbolsToImports.push(schemaSymbol);
       }
     } else if (schema.isArray()) {
       const arrayTypeArg = schema.getTypeArguments()[0];
@@ -458,7 +472,7 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
 
       if (declaration.getSourceFile() !== handlerFile) {
         generatedSchemaInterfaceStr = `export interface ${schemaInterfaceName} extends Array<${interfaceName}> {}`;
-        addImport(schemaSourceFile, schemaSymbol);
+        this.tsSchemasSymbolsToImports.push(schemaSymbol);
       } else {
         if (arrayTypeArg.isInterface()) {
           const props = arrayTypeArg
@@ -472,8 +486,7 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
         }
 
         for (const typeToImport of getTypesToImport(declaration)) {
-          addImport(
-            schemaSourceFile,
+          this.tsSchemasSymbolsToImports.push(
             typeToImport.getSymbolOrThrow().getDeclaredType().getSymbolOrThrow()
           );
         }
@@ -493,8 +506,7 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
         );
 
       typeRefIdentifiers.forEach((tr) => {
-        addImport(
-          schemaSourceFile,
+        this.tsSchemasSymbolsToImports.push(
           tr.getSymbolOrThrow().getDeclaredType().getSymbolOrThrow()
         );
       });
@@ -508,10 +520,7 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
     }
 
     if (generatedSchemaInterfaceStr) {
-      schemaSourceFile.insertText(
-        schemaSourceFile.getText().length,
-        "\n" + generatedSchemaInterfaceStr
-      );
+      this.parsedTsSchemas.push(generatedSchemaInterfaceStr);
 
       return schemaInterfaceName;
     }
@@ -605,14 +614,14 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
     const sf = handlerTypeReference.getSourceFile();
 
     const createReqSchemaPromise = reqSchema
-      ? this.createIntermediateTsSchema(
+      ? this.saveIntermediateTsSchema(
           reqSchema,
           sf,
           `${handlerTypeReference.getStartLineNumber()}_ReqSchema`
         )
       : Promise.resolve("");
     const createResSchemaPromise = resSchema
-      ? this.createIntermediateTsSchema(
+      ? this.saveIntermediateTsSchema(
           resSchema,
           sf,
           `${handlerTypeReference.getStartLineNumber()}_ResSchema`
@@ -628,6 +637,35 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
       reqSchemaType,
       resSchemaType,
     };
+  }
+
+  /**
+   * Creates generated source file that contains all
+   * TypeScript schemas that has been derived from handlers.
+   */
+  private createIntermediateSchemaFile() {
+    const schemaSourceFile = this.createSourceFile(
+      ["schemas", `schemas.ts`],
+      `// Generated ${new Date()}
+${this.parsedTsSchemas.join("\n\n")}`
+    );
+
+    // Remove duplicates
+    this.tsSchemasSymbolsToImports = this.tsSchemasSymbolsToImports.filter(
+      (symbol, index, self) =>
+        self.findIndex(
+          (oSymbol) =>
+            oSymbol.getFullyQualifiedName() === symbol.getFullyQualifiedName()
+        ) === index
+    );
+
+    // Note: Adding imports is a performance savvy task, this could prob be optimized
+    // so we use sourceFile.addImportDeclarations (plural) instead
+    for (const symbolToImport of this.tsSchemasSymbolsToImports) {
+      addImport(schemaSourceFile, symbolToImport);
+    }
+
+    schemaSourceFile.save();
   }
 }
 
