@@ -258,8 +258,11 @@ scannedHandlers.push(...handlers);
       for (const callExp of addHandlerCallExpressions) {
         const [_propsArg, handlerArg] = callExp.getArguments();
 
-        const typeRef = handlerArg
-          .getSymbolOrThrow()
+        const handlerSymbol =
+          handlerArg.getSymbolOrThrow().getAliasedSymbol() ||
+          handlerArg.getSymbolOrThrow();
+
+        const typeRef = handlerSymbol
           .getValueDeclarationOrThrow()
           .getFirstDescendantByKind(SyntaxKind.TypeReference);
 
