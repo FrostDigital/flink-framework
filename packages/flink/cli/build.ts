@@ -34,9 +34,9 @@ module.exports = async function run(args: string[]) {
     exclude = args[args.indexOf("--exclude") + 1];
   }
 
-  const compiler = new TypeScriptCompiler(dir);
-
   await TypeScriptCompiler.clean(dir);
+
+  const compiler = new TypeScriptCompiler(dir);
 
   if (!compiler.getPreEmitDiagnostics()) {
     process.exit(1);

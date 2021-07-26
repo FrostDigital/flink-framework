@@ -1,8 +1,10 @@
 import { sep } from "path";
 import {
   ArrayLiteralExpression,
+  ImportDeclarationStructure,
   LiteralExpression,
   Node,
+  OptionalKind,
   PropertyAssignment,
   SourceFile,
   Symbol,
@@ -198,7 +200,7 @@ export function addImport(toSourceFile: SourceFile, symbol: Symbol) {
 export function addImports(toSourceFile: SourceFile, symbols: Symbol[]) {
   const importsByModuleSpecifier = new Map<
     string,
-    { defaultImportName?: string; importNames: string[] }
+    { defaultImportName?: string; namedImports: string[] }
   >();
 
   for (const symbol of symbols) {
@@ -210,7 +212,10 @@ export function addImports(toSourceFile: SourceFile, symbols: Symbol[]) {
       );
     }
 
-    const importName = symbol.getEscapedName();
+    const importName = symbol.getDeclaredType().isInterface()
+      ? getInterfaceName(symbol)
+      : symbol.getEscapedName();
+
     const symbolSourceFile = symbolDeclaration.getSourceFile();
     const isDefaultExport = symbol
       .getDeclaredType()
@@ -225,23 +230,28 @@ export function addImports(toSourceFile: SourceFile, symbols: Symbol[]) {
     if (!aImport) {
       importsByModuleSpecifier.set(moduleSpecifier, {
         defaultImportName: isDefaultExport ? importName : undefined,
-        importNames: isDefaultExport ? [] : [importName],
+        namedImports: isDefaultExport ? [] : [importName],
       });
     } else {
       if (isDefaultExport) {
         aImport.defaultImportName = importName;
-      } else if (!aImport.importNames.includes(importName)) {
-        aImport.importNames.push(importName);
+      } else if (!aImport.namedImports.includes(importName)) {
+        aImport.namedImports.push(importName);
       }
     }
   }
 
   toSourceFile.addImportDeclarations(
     Array.from(importsByModuleSpecifier.entries()).map(
-      ([moduleSpecifier, aImport]) => ({
+      ([
+        moduleSpecifier,
+        aImport,
+      ]): OptionalKind<ImportDeclarationStructure> => ({
         moduleSpecifier,
         defaultImport: aImport.defaultImportName,
-        namedImports: aImport.importNames,
+        namedImports: aImport.namedImports.length
+          ? aImport.namedImports
+          : undefined,
       })
     )
   );
@@ -268,4 +278,22 @@ export function getDefaultExport(sf: SourceFile) {
       return exportAssignment.getFirstChild();
     }
   }
+}
+
+/**
+ * Returns name of interface from interface symbol.
+ *
+ * @param symbol
+ * @returns
+ */
+export function getInterfaceName(symbol: Symbol) {
+  const declaration = symbol.getDeclarations()[0];
+
+  if (!declaration) {
+    throw new Error("Missing declaration of interface symbol");
+  }
+
+  return declaration
+    .getFirstChildByKindOrThrow(SyntaxKind.Identifier)
+    .getText();
 }

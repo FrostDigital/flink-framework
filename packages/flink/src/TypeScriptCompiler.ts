@@ -23,6 +23,7 @@ import {
 import {
   addImports,
   getDefaultExport,
+  getInterfaceName,
   getTypesToImport,
 } from "./TypeScriptUtils";
 import {
@@ -445,7 +446,7 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
        * schema is defined directly for example `Handler<Ctx, Car>`
        */
       const schemaSymbol = schema.getSymbolOrThrow();
-      const interfaceName = schemaSymbol.getEscapedName();
+      const interfaceName = getInterfaceName(schemaSymbol);
       const declaration = schemaSymbol.getDeclarations()[0];
 
       if (declaration.getSourceFile() === handlerFile) {
