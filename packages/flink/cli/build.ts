@@ -30,7 +30,7 @@ module.exports = async function run(args: string[]) {
     dir = args[0];
   }
 
-  const exclude = getOption(args, "exclude", "/spec");
+  const exclude = getOption(args, "exclude", "/spec") as string;
 
   await TypeScriptCompiler.clean(dir);
 
