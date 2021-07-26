@@ -16,7 +16,7 @@ This plugin enables the following functionalities:
 - User profile
 - Push notification token management
 
-Plugin can both be used by accessing core functions by calling them direcly from your code, or by using the embedded API endpoints.
+Plugin can both be used by accessing core functions by calling them directly from your code, or by using the embedded API endpoints.
 
 ## Installation
 
@@ -153,7 +153,7 @@ Context used when processing the handlebars template for subject and html is:
 
 ### getJtwTokenPlugin()
 
-The function have the following defenition:
+The function have the following definition:
 
 ```
 getJtwTokenPlugin(secret: string, rolePermissions?: { [role: string]: string[]; } | undefined, passwordPolicy?: RegExp | undefined): JwtAuthPlugin
@@ -180,7 +180,7 @@ In this plugin the role `user` with the permission `authenticated` is added auto
 
 ## Making authenticated requests
 
-After loggin in by calling `user/login` any subsequent calls should contain the Bearer Authentification token header like this:
+After logging in by calling `user/login` any subsequent calls should contain the Bearer Authentification token header like this:
 
 ```
 Authorization: Bearer <token>
@@ -318,7 +318,7 @@ Initiates a password reset. Username must be in form of an e-mail for the passwo
 
 ### POST /user/password/reset/complete
 
-Completes a password reset by suppling the passwordRestToken recived from step 1, the code from the email sent to the user and the new password.
+Completes a password reset by supplying the passwordRestToken received from step 1, the code from the email sent to the user and the new password.
 
 #### Request data:
 
