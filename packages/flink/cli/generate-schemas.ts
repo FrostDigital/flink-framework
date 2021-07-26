@@ -19,7 +19,7 @@ module.exports = async function run(args: string[]) {
       Outputs generated file(s) to dir '.flink' or if any other --out-dir is specified.
 
     Usage
-      $ flink generate-schemas <dir> --types-dir <types-dir> --out-dir <out-dir>
+      $ flink generate-schemas <dir> --types-dir <types-dir> --out-file <out-file>
 
       <dir> is project root as directory where tsconfig.son resides.
        
