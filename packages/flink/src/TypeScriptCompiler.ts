@@ -20,6 +20,7 @@ import {
   Type,
   TypeReferenceNode,
 } from "ts-morph";
+import { writeJsonFile } from "./FsUtils";
 import {
   addImports,
   getDefaultExport,
@@ -572,9 +573,9 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
       }
     );
 
-    return fsPromises.writeFile(
+    return writeJsonFile(
       join(this.cwd, ".flink", "schemas", "schemas.json"),
-      JSON.stringify(mergedSchemas, null, 2)
+      mergedSchemas
     );
   }
 

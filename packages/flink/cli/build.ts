@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import TypeScriptCompiler from "../src/TypeScriptCompiler";
+import { getOption } from "./cli-utils";
 
 module.exports = async function run(args: string[]) {
   const startTime = Date.now();
@@ -29,10 +30,7 @@ module.exports = async function run(args: string[]) {
     dir = args[0];
   }
 
-  let exclude = "/spec";
-  if (args.includes("--exclude")) {
-    exclude = args[args.indexOf("--exclude") + 1];
-  }
+  const exclude = getOption(args, "exclude", "/spec");
 
   await TypeScriptCompiler.clean(dir);
 

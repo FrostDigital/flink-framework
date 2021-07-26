@@ -8,10 +8,12 @@ module.exports = async function run(args: string[]) {
       Removes all generated files.
 
     Usage
-      $ flink clean
+      $ flink clean <dir>
+
+    <dir> represents the directory of the Flink application.
+    If no directory is provided, the current directory will be used.
       
     Options
-      --dir     Directory to project root where tsconfig.json is located, default "./"      
       --help    Displays this message
       `);
 
@@ -19,8 +21,8 @@ module.exports = async function run(args: string[]) {
   }
 
   let dir = "./";
-  if (args.includes("--dir")) {
-    dir = args[args.indexOf("--dir") + 1];
+  if (args[0] && !args[0].startsWith("--")) {
+    dir = args[0];
   }
 
   const cleanedFolder = await TypeScriptCompiler.clean(dir);

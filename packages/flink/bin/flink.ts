@@ -5,6 +5,7 @@ const commands = [
   "generate" /* 'generate' is alias for 'build'   */,
   "run",
   "clean",
+  "generate-schemas",
   "help",
 ];
 
