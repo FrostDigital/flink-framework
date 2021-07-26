@@ -65,18 +65,15 @@ export async function createApp({
   console.log(`Installing dependencies using npm...`);
   console.log();
 
-  await install(["@flink-app/flink", "mongodb"]);
+  await install(["@flink-app/flink"]);
   await install(
     [
       "typescript@4.2.3",
-      "ts-node",
       "nodemon",
       "jasmine",
-      "jasmine-ts",
       "@types/jasmine",
       "jasmine-spec-reporter",
       "@flink-app/test-utils",
-      "@types/mongodb",
       "rimraf",
     ],
     true
