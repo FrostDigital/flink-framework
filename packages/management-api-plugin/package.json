@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\"",
     "build": "flink build",
     "prepublish": "npm run build",
-    "watch": "nodemon --exec \"flink build\""
+    "watch": "nodemon --exec \"flink build\"",
+    "postinstall": "flink generate-schemas"
   },
   "author": "johan@frost.se",
   "publishConfig": {

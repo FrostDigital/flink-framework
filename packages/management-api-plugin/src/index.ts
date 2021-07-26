@@ -2,9 +2,11 @@ import {
   FlinkApp,
   FlinkPlugin,
   HttpMethod,
+  JSONSchema,
   unauthorized,
 } from "@flink-app/flink";
 import jsonwebtoken from "jsonwebtoken";
+import schemas from "../.flink/generated-schemas.json";
 import GetManagement from "./handlers/Management/Get";
 import DeleteUserById from "./handlers/User/DeleteByUserid";
 import GetUserByUserid from "./handlers/User/GetByUserid";
@@ -12,15 +14,15 @@ import GetUserList from "./handlers/User/GetList";
 import PostUser from "./handlers/User/Post";
 import PostUserLogin from "./handlers/User/PostLogin";
 import PutUserById from "./handlers/User/PutByUserid";
-import managementuserRepo from "./repos/ManagementUserRepo";
 import {
   ManagementApiModule,
   ManagementApiOptions,
   ManagementApiType,
-} from "./schemas/ManagementApi";
+} from "./models/ManagementApi";
+import managementuserRepo from "./repos/ManagementUserRepo";
 import { Module, ModuleList } from "./schemas/ModuleList";
 
-export * from "./schemas/ManagementApi";
+export * from "./models/ManagementApi";
 
 export const managementApiPlugin = (
   options: ManagementApiOptions
@@ -43,10 +45,10 @@ export const managementApiPlugin = (
         path: "",
         docs: "List all management users",
       },
-      // schema: {
-      //   reqSchema: schemas.GetUserListReq,
-      //   resSchema: schemas.GetUserListRes,
-      // },
+      schema: {
+        reqSchema: schemas.definitions.GetUserListReq as JSONSchema,
+        resSchema: schemas.definitions.GetUserListRes as JSONSchema,
+      },
     },
     handlerFn: GetUserList,
   });
@@ -58,10 +60,10 @@ export const managementApiPlugin = (
         path: "/:userid",
         docs: "Get one mangement user by id",
       },
-      // schema: {
-      //   reqSchema: schemas.GetUserByUseridReq,
-      //   resSchema: schemas.GetUserByUseridRes,
-      // },
+      schema: {
+        reqSchema: schemas.definitions.GetUserByUseridReq as JSONSchema,
+        resSchema: schemas.definitions.GetUserByUseridRes as JSONSchema,
+      },
     },
     handlerFn: GetUserByUserid,
   });
@@ -73,10 +75,10 @@ export const managementApiPlugin = (
         path: "",
         docs: "Create a new management user",
       },
-      // schema: {
-      //   reqSchema: schemas.PostUserReq,
-      //   resSchema: schemas.PostUserRes,
-      // },
+      schema: {
+        reqSchema: schemas.definitions.PostUserReq as JSONSchema,
+        resSchema: schemas.definitions.PostUserRes as JSONSchema,
+      },
     },
     handlerFn: PostUser,
   });
@@ -88,10 +90,10 @@ export const managementApiPlugin = (
         path: "/:userid",
         docs: "Deletes a management user",
       },
-      // schema: {
-      //   reqSchema: schemas.DeleteUserByUseridReq,
-      //   resSchema: schemas.DeleteUserByUseridReq,
-      // },
+      schema: {
+        reqSchema: schemas.definitions.DeleteUserByUseridReq as JSONSchema,
+        resSchema: schemas.definitions.DeleteUserByUseridReq as JSONSchema,
+      },
     },
     handlerFn: DeleteUserById,
   });
@@ -103,10 +105,10 @@ export const managementApiPlugin = (
         path: "/:userid",
         docs: "Updates a management user",
       },
-      // schema: {
-      //   reqSchema: schemas.PutUserByUseridReq,
-      //   resSchema: schemas.PutUserByUseridRes,
-      // },
+      schema: {
+        reqSchema: schemas.definitions.PutUserByUseridReq as JSONSchema,
+        resSchema: schemas.definitions.PutUserByUseridRes as JSONSchema,
+      },
     },
     handlerFn: PutUserById,
   });
@@ -118,10 +120,10 @@ export const managementApiPlugin = (
         path: "/login",
         docs: "Authnticats a management user",
       },
-      // schema: {
-      //   reqSchema: schemas.PostUserLoginReq,
-      //   resSchema: schemas.PostUserLoginRes,
-      // },
+      schema: {
+        reqSchema: schemas.definitions.PostUserLoginReq as JSONSchema,
+        resSchema: schemas.definitions.PostUserLoginRes as JSONSchema,
+      },
     },
     handlerFn: PostUserLogin,
   });
@@ -200,10 +202,6 @@ function init(app: FlinkApp<any>, options: ManagementApiOptions) {
         path: baseUrl,
         docs: "Gets information about configured management api",
       },
-      // schema: {
-      //   reqSchema: schemas.GetManagementReq,
-      //   resSchema: schemas.GetManagementRes,
-      // },
     },
     GetManagement
   );

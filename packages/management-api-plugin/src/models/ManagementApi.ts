@@ -1,17 +1,10 @@
-import {
-  HandlerConfig,
-  Handler,
-  HandlerConfigWithMethod,
-} from "@flink-app/flink";
+import { Handler, HandlerConfigWithMethod } from "@flink-app/flink";
 
 export interface ManagementApiEndpoint {
   config: HandlerConfigWithMethod;
   handlerFn: Handler<any>;
 }
-export enum ManagementApiType {
-  user = "USER",
-  managementUser = "MANAGEMENT_USER",
-}
+
 export interface ManagementApiModule {
   id: string;
   type: ManagementApiType;
@@ -27,4 +20,9 @@ export interface ManagementApiOptions {
   baseUrl?: string;
   jwtSecret: string;
   modules: ManagementApiModule[];
+}
+
+export enum ManagementApiType {
+  user = "USER",
+  managementUser = "MANAGEMENT_USER",
 }

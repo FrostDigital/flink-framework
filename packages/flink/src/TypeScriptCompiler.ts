@@ -568,7 +568,7 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
       },
       {
         $schema: "http://json-schema.org/draft-07/schema#",
-        $ref: "#/definitions/GetCarWithArraySchema_ResSchema",
+        $ref: "#/definitions/Schemas",
         definitions: {},
       }
     );
