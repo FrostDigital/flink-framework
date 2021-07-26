@@ -1,7 +1,7 @@
 export function getOption(
   args: string[],
   name: string,
-  defaultValue: string,
+  defaultValue: string | boolean,
   opts: { isBoolean?: boolean } = {}
 ) {
   const option = `--${name}`;

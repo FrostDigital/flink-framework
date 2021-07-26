@@ -1,11 +1,12 @@
 #!/usr/bin/env node
+import { JSONSchema7, JSONSchema7Definition } from "json-schema";
 import { join } from "path";
 import {
   createFormatter,
   createParser,
   SchemaGenerator,
 } from "ts-json-schema-generator";
-import { Project } from "ts-morph";
+import { Project, SyntaxKind, ts } from "ts-morph";
 import { writeJsonFile } from "../src/FsUtils";
 import { getOption } from "./cli-utils";
 
@@ -37,8 +38,17 @@ module.exports = async function run(args: string[]) {
     dir = args[0];
   }
 
+  const verbose = getOption(args, "verbose", false, {
+    isBoolean: true,
+  }) as boolean;
+
   const typesDir = getOption(args, "types-dir", "./src/schemas") as string;
-  const outFile = getOption(args, "out-file", "./.flink") as string;
+
+  const outFile = getOption(
+    args,
+    "out-file",
+    "./.flink/generated-schemas.json"
+  ) as string;
 
   const project = new Project({
     tsConfigFilePath: join(dir, "tsconfig.json"),
@@ -52,20 +62,81 @@ module.exports = async function run(args: string[]) {
 
   console.log("Found", project.getSourceFiles().length, "files");
 
+  const schemaDeclarations: ts.Node[] = [];
+
+  const generator = initJsonSchemaGenerator(project);
+
+  const jsonSchemas: JSONSchema7[] = [];
+
   for (const sf of project.getSourceFiles()) {
     if (sf.getDefaultExportSymbol()) {
       console.warn(
         `WARN: Schema file ${sf.getBaseName()} has default export, but only named exports are picked up by json schemas parser`
       );
     }
+
+    const sourceFileInterfaceDeclarations = sf.getChildrenOfKind(
+      SyntaxKind.InterfaceDeclaration
+    );
+
+    const sourceFileEnumDeclarations = sf.getChildrenOfKind(
+      SyntaxKind.EnumDeclaration
+    );
+
+    const sourceFileDeclarations = [
+      ...sourceFileEnumDeclarations,
+      ...sourceFileInterfaceDeclarations,
+    ];
+
+    schemaDeclarations.push(
+      ...sourceFileDeclarations.map((d) => d.compilerNode)
+    );
+
+    verbose &&
+      console.log(
+        "Found",
+        sourceFileDeclarations.length,
+        "schema(s) in file",
+        sf.getBaseName()
+      );
+
+    try {
+      const schema = generator.createSchemaFromNodes(
+        sourceFileInterfaceDeclarations.map((d) => d.compilerNode)
+      );
+      jsonSchemas.push(schema);
+      // console.log("Created schemas");
+    } catch (err) {
+      console.error(
+        "Failed to generate schema in file",
+        sf.getBaseName() + ":",
+        err.message
+      );
+    }
   }
 
-  const generator = initJsonSchemaGenerator(project);
-  const schemas = generator.createSchema("*");
+  const mergedSchemas = jsonSchemas.reduce(
+    (out, schema) => {
+      if (schema)
+        if (schema.definitions) {
+          out.definitions = { ...out.definitions, ...schema.definitions };
+        }
+      return out;
+    },
+    {
+      $schema: "http://json-schema.org/draft-07/schema#",
+      $ref: "#/definitions/Schemas",
+      definitions: {},
+    }
+  );
 
-  await writeJsonFile(join(dir, outFile), schemas, {
+  const file = join(dir, outFile);
+
+  await writeJsonFile(file, mergedSchemas, {
     ensureDir: true,
   });
+
+  console.log("Wrote file", file);
 };
 
 function initJsonSchemaGenerator(project: Project) {
