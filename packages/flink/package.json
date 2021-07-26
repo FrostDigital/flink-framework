@@ -9,7 +9,8 @@
     "test": "jasmine-ts --preserve-symlinks --config=./spec/support/jasmine.json",
     "test:watch": "nodemon --ext ts --exec 'jasmine-ts  --config=./spec/support/jasmine.json'",
     "start": "ts-node src/index.ts",
-    "prepublish": "tsc --project tsconfig.dist.json",
+    "prepublish": "npm run build",
+    "build": "tsc --project tsconfig.dist.json",
     "watch": "tsc-watch --project tsconfig.dist.json"
   },
   "bin": {

@@ -3,11 +3,10 @@ import addFormats from "ajv-formats";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Express, Request } from "express";
-import { JSONSchema7Definition } from "json-schema";
+import { JSONSchema7 } from "json-schema";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
 import { join } from "path";
-import { Schema } from "ts-json-schema-generator";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
@@ -28,6 +27,8 @@ const defaultCorsOptions: FlinkOptions["cors"] = {
   credentials: true,
   origin: ["*"],
 };
+
+export type JSONSchema = JSONSchema7;
 
 /**
  * This will be populated at compile time when the apps handlers
@@ -130,8 +131,8 @@ export interface FlinkOptions {
 
 export interface HandlerConfig {
   schema?: {
-    reqSchema?: JSONSchema7Definition;
-    resSchema?: JSONSchema7Definition;
+    reqSchema?: JSONSchema;
+    resSchema?: JSONSchema;
   };
   routeProps: RouteProps;
   /**
@@ -158,7 +159,7 @@ export class FlinkApp<C extends FlinkContext> {
   public handlers: HandlerConfig[] = [];
   public port?: number;
   public started = false;
-  public schemas?: Schema;
+  public schemas?: JSONSchema;
 
   private _ctx?: C;
   private dbOpts?: FlinkOptions["db"];
@@ -325,10 +326,10 @@ export class FlinkApp<C extends FlinkContext> {
 
     config.schema = {
       reqSchema: __schema?.reqSchema
-        ? (this.schemas?.definitions || {})[__schema?.reqSchema]
+        ? ((this.schemas?.definitions || {})[__schema?.reqSchema] as JSONSchema)
         : undefined,
       resSchema: __schema?.resSchema
-        ? (this.schemas?.definitions || {})[__schema?.resSchema]
+        ? ((this.schemas?.definitions || {})[__schema?.resSchema] as JSONSchema)
         : undefined,
     };
 
@@ -482,10 +483,10 @@ export class FlinkApp<C extends FlinkContext> {
           origin: "",
           schema: {
             reqSchema: handler.reqSchema
-              ? schemaDefinitions[handler.reqSchema]
+              ? (schemaDefinitions[handler.reqSchema] as JSONSchema)
               : undefined,
             resSchema: handler.resSchema
-              ? schemaDefinitions[handler.resSchema]
+              ? (schemaDefinitions[handler.resSchema] as JSONSchema)
               : undefined,
           },
         },

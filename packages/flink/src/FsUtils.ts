@@ -45,7 +45,7 @@ export async function writeJsonFile(
   try {
     jsonStr = JSON.stringify(content, null, 2);
   } catch (err) {
-    console.error("Failed to parse content into json string:", content);
+    console.error("Failed to parse content into json string");
     throw new Error(err);
   }
 
