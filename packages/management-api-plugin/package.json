@@ -4,11 +4,9 @@
   "description": "Flink plugin that makes it possible to expose management api:s for other plugins",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
-    "prepublish": "npm run flink:generate && tsc",
-    "watch": "npm run flink:generate && tsc-watch",
-    "prestart": "npm run flink:generate",
-    "pretest": "npm run flink:generate",
-    "flink:generate": "flink generate-schema"
+    "build": "flink build",
+    "prepublish": "npm run build",
+    "watch": "nodemon --exec \"flink build\""
   },
   "author": "johan@frost.se",
   "publishConfig": {
