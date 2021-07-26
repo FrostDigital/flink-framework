@@ -201,7 +201,7 @@ scannedHandlers.push(...handlers);
       console.log(`Detected handler ${sf.getBaseName()}`);
 
       const namespaceImport =
-        sf.getBaseNameWithoutExtension().replaceAll(".", "_") + "_" + i;
+        sf.getBaseNameWithoutExtension().replace(/\./g, "_") + "_" + i;
 
       imports.push({
         namespaceImport,
@@ -271,7 +271,7 @@ scannedHandlers.push(...handlers);
         if (typeRef) {
           const snippet = callExp
             .getText()
-            .replaceAll(/ |\n|\r|\t/g, "")
+            .replace(/ |\n|\r|\t/g, "")
             .substr(0, 50);
           console.log(
             `Detected handler in file ${sf.getBaseName()} (line ${typeRef.getStartLineNumber()}): ${snippet}...`
@@ -365,7 +365,7 @@ scannedHandlers.push(...handlers);
       `// Generated ${new Date()}
 import "./generatedHandlers";
 import "./generatedRepos";
-import "..${appEntryScript.replaceAll(".ts", "")}";
+import "..${appEntryScript.replace(/\.ts/g, "")}";
 `
     );
 
@@ -435,7 +435,7 @@ import "..${appEntryScript.replaceAll(".ts", "")}";
 
     const handlerFileName = handlerFile
       .getBaseNameWithoutExtension()
-      .replaceAll(".", "_");
+      .replace(/\./g, "_");
 
     let generatedSchemaInterfaceStr = "";
 
