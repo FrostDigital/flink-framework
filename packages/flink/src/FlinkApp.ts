@@ -333,12 +333,12 @@ export class FlinkApp<C extends FlinkContext> {
         : undefined,
     };
 
-    this.handlers.push(config);
-
     this.registerHandler(config, handlerFn);
   }
 
   private registerHandler(handlerConfig: HandlerConfig, handler: Handler<any>) {
+    this.handlers.push(handlerConfig);
+
     const { routeProps, schema = {}, origin } = handlerConfig;
     const { method } = routeProps;
     const app = this.expressApp!;
