@@ -198,6 +198,7 @@ export const GetManagementModule = (
     id: config.pluginId || "user",
     uiSettings: {
       title: config.uiSettings?.title || "Users",
+      icon: "",
       features,
     },
     ui: config.ui,
