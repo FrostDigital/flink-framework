@@ -15,7 +15,7 @@ const PutManagementUserPasswordByUserid: Handler<FlinkContext, PutManagementUser
     }
 
 
-    const resp =  await ctx.plugins.genericAuthPlugin.changePassword(repo, <JwtAuthPlugin>ctx.auth, req.user._id, req.body.password, );
+    const resp =  await ctx.plugins.genericAuthPlugin.changePassword(repo, <JwtAuthPlugin>ctx.auth, user._id, req.body.password, );
 
     const auth = <JwtAuthPlugin>ctx.auth;
 

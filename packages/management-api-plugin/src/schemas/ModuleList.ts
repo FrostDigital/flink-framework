@@ -5,7 +5,7 @@ export interface ModuleList {
 export interface Module {
   id: string;
   type: string;
-  icon: string;
+  features: string[];
   title: string;
   ui: string;
   //endpoints : ModuleEndpoint[]

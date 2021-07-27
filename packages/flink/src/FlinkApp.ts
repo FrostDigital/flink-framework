@@ -25,7 +25,7 @@ addFormats(ajv);
 const defaultCorsOptions: FlinkOptions["cors"] = {
   allowedHeaders: "",
   credentials: true,
-  origin: ["*"],
+  origin: [/.*/],
 };
 
 export type JSONSchema = JSONSchema7;
@@ -110,9 +110,9 @@ export interface FlinkOptions {
    */
   cors?: {
     /**
-     * Origin(s) to allow, defaults ["*"]
+     * Origin(s) to allow
      */
-    origin?: string[];
+    origin?: RegExp[];
 
     credentials?: boolean;
 

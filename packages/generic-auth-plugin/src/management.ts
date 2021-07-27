@@ -12,6 +12,7 @@ import PutManagementUserUsernameByUserid from "./handlers/Management/PutUserUser
 import PutManagementUserRolesByUserid from "./handlers/Management/PutUserRolesByUserid";
 import DeleteManagementUserByUserid from "./handlers/Management/DeleteUserByUserid";
 import GetGetSchemaHandler from "./handlers/Management/GetSchema";
+import PutUserProfileByUseridAppend from "./handlers/Management/PutUserProfileByUseridAppend";
 
 export interface GetManagementModuleConfig {
   pluginId?: string;
@@ -19,7 +20,9 @@ export interface GetManagementModuleConfig {
   ui: boolean;
   uiSettings?: {
     title: string;
-    icon: string;
+    enableUserDelete?: boolean;
+    enableUserCreate?: boolean;
+    enableUserEdit?: boolean;
   };
 }
 
@@ -152,6 +155,21 @@ export const GetManagementModule = (
   endpoints.push({
     config: {
       routeProps: {
+        path: "/profile/:userid/append",
+        method: HttpMethod.put,
+        // schema: {
+        //   reqSchema: schemas.PutManagementUserProfileByUseridReq,
+        //   resSchema: schemas.PutManagementUserProfileByUseridRes,
+        // },
+        origin: config.pluginId || "genericAuthPlugin",
+      },
+    },
+    handlerFn: PutUserProfileByUseridAppend,
+  });
+
+  endpoints.push({
+    config: {
+      routeProps: {
         path: "/roles/:userid",
         method: HttpMethod.put,
         // schema: {
@@ -164,11 +182,23 @@ export const GetManagementModule = (
     handlerFn: PutManagementUserRolesByUserid,
   });
 
+  let features: string[] = [];
+
+  if (config.uiSettings?.enableUserDelete == true) {
+    features.push("delete");
+  }
+  if (config.uiSettings?.enableUserCreate == true) {
+    features.push("create");
+  }
+  if (config.uiSettings?.enableUserEdit == true) {
+    features.push("edit");
+  }
+
   let module: ManagementApiModule = {
     id: config.pluginId || "user",
     uiSettings: {
       title: config.uiSettings?.title || "Users",
-      icon: config.uiSettings?.icon || "",
+      features,
     },
     ui: config.ui,
     type: ManagementApiType.user,

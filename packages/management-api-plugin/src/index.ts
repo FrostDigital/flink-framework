@@ -9,6 +9,9 @@ import jsonwebtoken from "jsonwebtoken";
 import schemas from "../.flink/generated-schemas.json";
 import GetManagement from "./handlers/Management/Get";
 import DeleteUserById from "./handlers/User/DeleteByUserid";
+
+import GetUserMe from "./handlers/User/GetMe";
+import GetUserList from "./handlers/User/GetList";
 import GetUserByUserid from "./handlers/User/GetByUserid";
 import GetUserList from "./handlers/User/GetList";
 import PostUser from "./handlers/User/Post";
@@ -34,6 +37,7 @@ export const managementApiPlugin = (
     uiSettings: {
       title: "Admin users",
       icon: "",
+      features: [],
     },
     endpoints: [],
   };
@@ -118,7 +122,7 @@ export const managementApiPlugin = (
       routeProps: {
         method: HttpMethod.post,
         path: "/login",
-        docs: "Authnticats a management user",
+        docs: "Authenticates a management user",
       },
       schema: {
         reqSchema: schemas.definitions.PostUserLoginReq as JSONSchema,
@@ -133,12 +137,13 @@ export const managementApiPlugin = (
   let moduleList: ModuleList = {
     modules: [],
   };
+
   options.modules.forEach((m) => {
     let module: Module = {
       id: m.id,
       ui: m.ui ? "true" : "false",
       type: m.type,
-      icon: m.uiSettings?.icon || "",
+      features: m.uiSettings?.features || [],
       title: m.uiSettings?.title || "",
       //endpoints : [],
     };
