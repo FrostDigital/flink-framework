@@ -9,10 +9,11 @@ export interface ManagementApiModule {
   id: string;
   type: ManagementApiType;
   endpoints: ManagementApiEndpoint[];
-  ui: Boolean;
+  ui: boolean;
   uiSettings?: {
     title: string;
     icon: string;
+    features: string[];
   };
 }
 export interface ManagementApiOptions {
