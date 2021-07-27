@@ -111,14 +111,18 @@ class TypeScriptCompiler {
       for (const diag of preEmitDiag) {
         if (diag.getCategory() === DiagnosticCategory.Error) {
           console.error(
-            `[ERROR] ${diag.getSourceFile()?.getBaseName()}:`,
+            `[ERROR] ${diag
+              .getSourceFile()
+              ?.getBaseName()} (line ${diag.getLineNumber()}):`,
             diag.getMessageText()
           );
           hasError = true;
         }
         if (diag.getCategory() === DiagnosticCategory.Warning) {
           console.warn(
-            `[WARNING] ${diag.getSourceFile()?.getBaseName()}:`,
+            `[WARNING] ${diag
+              .getSourceFile()
+              ?.getBaseName()} (line ${diag.getLineNumber()}):`,
             diag.getMessageText()
           );
         }
