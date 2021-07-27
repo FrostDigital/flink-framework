@@ -9,11 +9,9 @@ import jsonwebtoken from "jsonwebtoken";
 import schemas from "../.flink/generated-schemas.json";
 import GetManagement from "./handlers/Management/Get";
 import DeleteUserById from "./handlers/User/DeleteByUserid";
-
-import GetUserMe from "./handlers/User/GetMe";
-import GetUserList from "./handlers/User/GetList";
 import GetUserByUserid from "./handlers/User/GetByUserid";
 import GetUserList from "./handlers/User/GetList";
+import GetUserMe from "./handlers/User/GetMe";
 import PostUser from "./handlers/User/Post";
 import PostUserLogin from "./handlers/User/PostLogin";
 import PutUserById from "./handlers/User/PutByUserid";
@@ -61,8 +59,23 @@ export const managementApiPlugin = (
     config: {
       routeProps: {
         method: HttpMethod.get,
+        path: "/me",
+        docs: "Get current user information",
+      },
+      schema: {
+        reqSchema: schemas.definitions.GetUserMeReq as JSONSchema,
+        resSchema: schemas.definitions.GetUserMeRes as JSONSchema,
+      },
+    },
+    handlerFn: GetUserMe,
+  });
+
+  managementApiModule.endpoints.push({
+    config: {
+      routeProps: {
+        method: HttpMethod.get,
         path: "/:userid",
-        docs: "Get one mangement user by id",
+        docs: "Get one management user by id",
       },
       schema: {
         reqSchema: schemas.definitions.GetUserByUseridReq as JSONSchema,
