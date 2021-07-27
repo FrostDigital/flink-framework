@@ -615,8 +615,10 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
       // 0 = Ctx, 1 = Res schema
       resSchema = handlerTypeArgs[1];
     } else {
-      fail(
-        `Unknown handler type ${handlerType} - should be Handler or GetHandler`
+      throw new Error(
+        `Unknown handler type ${handlerType} in ${handlerTypeReference
+          .getSourceFile()
+          .getBaseName()} - should be Handler or GetHandler`
       );
     }
 
