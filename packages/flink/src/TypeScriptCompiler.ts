@@ -545,7 +545,7 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
     return generator;
   }
 
-  private generateAndSaveJsonSchemas(
+  private async generateAndSaveJsonSchemas(
     schemas: { reqSchemaType?: string; resSchemaType?: string }[]
   ) {
     const jsonSchemas: Schema[] = [];
@@ -573,10 +573,11 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
       }
     );
 
-    return writeJsonFile(
-      join(this.cwd, ".flink", "schemas", "schemas.json"),
-      mergedSchemas
-    );
+    const filePath = join(this.cwd, ".flink", "schemas", "schemas.json");
+
+    await writeJsonFile(filePath, mergedSchemas);
+
+    this.project.addSourceFileAtPath(filePath);
   }
 
   private generateJsonSchema(typeName: string) {
