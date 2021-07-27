@@ -1,6 +1,5 @@
 import { FlinkApp } from "@flink-app/flink";
 import * as testUtils from "@flink-app/test-utils";
-import { join } from "path";
 import { Ctx } from "../src/Ctx";
 import { Pet } from "../src/schemas/Pet";
 
