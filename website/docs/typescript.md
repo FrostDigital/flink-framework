@@ -10,4 +10,4 @@ In fact, Flink uses the TypeScript compiler to analyse source code which is an i
 
 This means that you should _not_ attempt to use Flink with vanilla javascript 💥
 
-> Note: At the time of writing the TS compiler implementation in Flink is in alpha and subject to change, although it should not (in theory) lead to any breaking changes from developer perspective.
+> Note: At the time of writing the TS compiler implementation in Flink is in beta and subject to change, although it should not (in theory) lead to any breaking changes from developer perspective.
