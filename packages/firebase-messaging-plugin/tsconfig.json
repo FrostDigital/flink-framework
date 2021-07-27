@@ -18,6 +18,6 @@
     "checkJs": true,
     "outDir": "dist"
   },
-  "include": ["./src/**/*.ts", "./.flink/**/*.ts"],
+  "include": ["./src/**/*.ts", "./.flink/**/*"],
   "exclude": ["./node_modules/*"]
 }
