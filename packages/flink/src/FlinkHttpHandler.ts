@@ -66,6 +66,11 @@ export interface RouteProps {
    * If handler should not be auto registered
    */
   skipAutoRegister?: boolean;
+
+  /**
+   * I.e. filename or plugin name that describes where handler origins from
+   */
+  origin?: string;
 }
 
 /**
@@ -96,3 +101,25 @@ export type GetHandler<
   P = Params,
   Q = Query
 > = Handler<Ctx, any, ResSchema, P, Q>;
+
+/**
+ * Type for Handler file. Describes shape of exports when using
+ * syntax like:
+ *
+ * `import * as FooHandler from "./src/handlers/FooHandler"
+ */
+export type HandlerFile = {
+  default: Handler<any>;
+  Route?: RouteProps;
+  /**
+   * Name of schemas, is set at compile time by Flink compiler.
+   */
+  __schemas?: {
+    reqSchema?: string;
+    resSchema?: string;
+  };
+  /**
+   * Typescript source file name, is set at compile time by Flink compiler.
+   */
+  __file?: string;
+};

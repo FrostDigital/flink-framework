@@ -41,5 +41,6 @@ export interface FlinkPlugin {
    */
   init?: (app: FlinkApp<any>, db?: Db) => void | Promise<void>;
 
+  // TODO: Is this really used?
   handlers?: any[];
 }

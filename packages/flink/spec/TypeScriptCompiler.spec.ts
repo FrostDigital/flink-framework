@@ -19,6 +19,7 @@ describe("TypeScriptCompiler", () => {
 
   it("should parse handlers and generate file", async () => {
     const generatedFile = await compiler.parseHandlers();
+    compiler.emit();
 
     expect(generatedFile.getText()).toContain(
       `import { autoRegisteredHandlers, HttpMethod } from "@flink-app/flink"`

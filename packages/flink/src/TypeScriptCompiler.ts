@@ -19,6 +19,7 @@ import {
   ts,
   Type,
   TypeReferenceNode,
+  VariableDeclarationKind,
 } from "ts-morph";
 import { writeJsonFile } from "./FsUtils";
 import {
@@ -109,12 +110,18 @@ class TypeScriptCompiler {
       let hasError = false;
 
       for (const diag of preEmitDiag) {
+        let message = diag.getMessageText();
+
+        while (typeof message !== "string") {
+          message = message.getMessageText();
+        }
+
         if (diag.getCategory() === DiagnosticCategory.Error) {
           console.error(
             `[ERROR] ${diag
               .getSourceFile()
               ?.getBaseName()} (line ${diag.getLineNumber()}):`,
-            diag.getMessageText()
+            message
           );
           hasError = true;
         }
@@ -123,7 +130,7 @@ class TypeScriptCompiler {
             `[WARNING] ${diag
               .getSourceFile()
               ?.getBaseName()} (line ${diag.getLineNumber()}):`,
-            diag.getMessageText()
+            message
           );
         }
       }
@@ -156,34 +163,23 @@ autoRegisteredHandlers.push(...handlers);
       .getVariableDeclarationOrThrow("handlers")
       .getFirstDescendantByKindOrThrow(SyntaxKind.ArrayLiteralExpression);
 
-    const autoRegHandlers = await this.parseAutoRegisteredHandlers(
-      generatedFile,
-      handlersArr
-    );
+    const handlers = await this.parseHandlerDir(generatedFile, handlersArr);
 
-    // const manualRegHandlers = await this.parseManuallyRegisteredHandlers(
-    //   excludeDirs
-    // );
-
-    generatedFile.addImportDeclarations(autoRegHandlers.imports);
+    generatedFile.addImportDeclarations(handlers.imports);
 
     await generatedFile.save();
 
     await this.createIntermediateSchemaFile();
 
-    await this.generateAndSaveJsonSchemas([
-      ...autoRegHandlers.schemasToGenerate,
-      // ...manualRegHandlers.schemasToGenerate,
-    ]);
+    await this.generateAndSaveJsonSchemas(handlers.schemasToGenerate);
 
     return generatedFile;
   }
 
   /**
-   * Scan `/src/handlers/*.ts` for handlers that are eligible
-   * for auto registration.
+   * Scan  `/src/handlers/*.ts` for handler files and register those.
    */
-  private async parseAutoRegisteredHandlers(
+  private async parseHandlerDir(
     generatedFile: SourceFile,
     handlersArr: ArrayLiteralExpression
   ) {
@@ -195,14 +191,17 @@ autoRegisteredHandlers.push(...handlers);
     }[] = [];
 
     for (const sf of this.project.getSourceFiles()) {
-      if (
-        !sf.getFilePath().includes("src/handlers/") ||
-        !sf.getVariableDeclaration("Route")
-      ) {
+      if (!sf.getFilePath().includes("src/handlers/")) {
         continue;
       }
 
-      console.log(`Detected handler ${sf.getBaseName()}`);
+      const isAutoRegister = this.isAutoRegisterableHandler(sf);
+
+      console.log(
+        `Detected handler ${sf.getBaseName()} ${
+          !isAutoRegister ? "(non auto registered)" : ""
+        }`
+      );
 
       const namespaceImport =
         sf.getBaseNameWithoutExtension().replace(/\./g, "_") + "_" + i;
@@ -216,18 +215,41 @@ autoRegisteredHandlers.push(...handlers);
 
       const schemaTypes = await this.extractSchemasFromHandlerSourceFile(sf);
 
-      handlersArr.insertElement(
-        i,
-        `{routeProps: ${namespaceImport}.Route, handlerFn: ${namespaceImport}.default, assumedHttpMethod: ${
-          assumedHttpMethod ? "HttpMethod." + assumedHttpMethod : undefined
-        }, reqSchema: "${schemaTypes?.reqSchemaType || ""}", resSchema: "${
-          schemaTypes?.resSchemaType || ""
-        }"}`
-      );
+      // Append schemas and metadata to source file that will be part of emitted dist bundle (javascript)
+      sf.addVariableStatement({
+        declarationKind: VariableDeclarationKind.Const,
+        isExported: true,
+        declarations: [
+          {
+            name: "__schemas",
+            initializer: `{ reqSchema: "${
+              schemaTypes?.reqSchemaType || ""
+            }", resSchema: "${schemaTypes?.resSchemaType || ""}"  }`,
+          },
+          {
+            name: "__assumedHttpMethod",
+            initializer: `"${assumedHttpMethod || ""}"`,
+          },
+          {
+            name: "__file",
+            initializer: `"${sf.getBaseName()}"`,
+          },
+        ],
+      });
+
+      if (isAutoRegister) {
+        handlersArr.insertElement(
+          i,
+          `{routeProps: ${namespaceImport}.Route, handlerFn: ${namespaceImport}.default, assumedHttpMethod: ${
+            assumedHttpMethod ? "HttpMethod." + assumedHttpMethod : undefined
+          }, reqSchema: "${schemaTypes?.reqSchemaType || ""}", resSchema: "${
+            schemaTypes?.resSchemaType || ""
+          }"}`
+        );
+        i++;
+      }
 
       schemasToGenerate.push(schemaTypes || {});
-
-      i++;
     }
 
     return {
@@ -236,75 +258,13 @@ autoRegisteredHandlers.push(...handlers);
     };
   }
 
-  /**
-   * Parse handlers added using `app.addHandler(...)`
-   */
-  private async parseManuallyRegisteredHandlers(excludeDirs: string[]) {
-    const schemasToGenerate: {
-      reqSchemaType?: string;
-      resSchemaType?: string;
-    }[] = [];
-
-    for (const sf of this.project.getSourceFiles()) {
-      if (excludeDirs.find((dir) => sf.getFilePath().startsWith(dir))) {
-        continue;
-      }
-
-      // Search all files for `addHandler` invocations
-      // TODO: Additional filtering needed? As now any method named addHandler will be picked up.
-      const addHandlerCallExpressions = sf
-        .getDescendantsOfKind(SyntaxKind.CallExpression)
-        .filter(
-          (node) =>
-            node
-              .getFirstDescendantByKind(SyntaxKind.PropertyAccessExpression)
-              ?.getName() === "addHandler"
-        );
-
-      for (const callExp of addHandlerCallExpressions) {
-        const [_propsArg, handlerArg] = callExp.getArguments();
-
-        const handlerSymbol =
-          handlerArg.getSymbolOrThrow().getAliasedSymbol() ||
-          handlerArg.getSymbolOrThrow();
-
-        const typeRef = handlerSymbol
-          .getValueDeclarationOrThrow()
-          .getFirstDescendantByKind(SyntaxKind.TypeReference);
-
-        if (typeRef) {
-          const snippet = callExp
-            .getText()
-            .replace(/ |\n|\r|\t/g, "")
-            .substr(0, 50);
-          console.log(
-            `Detected handler in file ${sf.getBaseName()} (line ${typeRef.getStartLineNumber()}): ${snippet}...`
-          );
-
-          // Extract schema type from handler fn
-          const schemas = await this.extractSchemaTypeFromHandler(typeRef);
-
-          schemasToGenerate.push(schemas);
-
-          // Add name of schema type to invocation so we, at runtime, knows which schema to use
-          callExp.insertArgument(
-            2,
-            `{reqSchema: "${schemas.reqSchemaType}", resSchema: "${schemas.resSchemaType}"}`
-          );
-        }
-      }
-    }
-
-    return { schemasToGenerate };
-  }
-
   async parseRepos() {
     const generatedFile = this.createSourceFile(
       ["generatedRepos.ts"],
       `// Generated ${new Date()}
-  import { scannedRepos } from "@flink-app/flink";
+  import { autoRegisteredRepos } from "@flink-app/flink";
   export const repos = [];
-  scannedRepos.push(...repos);
+  autoRegisteredRepos.push(...repos);
       `
     );
 
@@ -352,7 +312,7 @@ autoRegisteredHandlers.push(...handlers);
    * actual Flink app to start.
    *
    * Note that order is of importance so generated metadata are imported and initialized before start of flink app.
-   * Otherwise singletons `scannedRepos` and `autoRegisteredHandlers` will not have been set.
+   * Otherwise singletons `autoRegisteredRepos` and `autoRegisteredHandlers` will not have been set.
    */
   async generateStartScript(appEntryScript = "/src/index.ts") {
     if (
@@ -665,6 +625,29 @@ ${this.parsedTsSchemas.join("\n\n")}`
     addImports(schemaSourceFile, this.tsSchemasSymbolsToImports);
 
     return schemaSourceFile.save();
+  }
+
+  /**
+   * Check if handler source file is up for auto registration by inspecting
+   * the Route.
+   *
+   * @param sf handler file
+   * @returns
+   */
+  private isAutoRegisterableHandler(sf: SourceFile) {
+    const route = sf.getVariableDeclaration("Route");
+
+    if (!route) {
+      return false;
+    }
+
+    const routeProps = route.getFirstDescendantByKindOrThrow(
+      SyntaxKind.ObjectLiteralExpression
+    );
+
+    const skipAutoRegProp = routeProps.getProperty("skipAutoRegister");
+
+    return !skipAutoRegProp || skipAutoRegProp.getText().endsWith("false");
   }
 }
 

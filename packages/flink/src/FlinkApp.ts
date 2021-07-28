@@ -11,7 +11,12 @@ import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
 import { internalServerError, notFound, unauthorized } from "./FlinkErrors";
-import { Handler, HttpMethod, RouteProps } from "./FlinkHttpHandler";
+import {
+  Handler,
+  HandlerFile,
+  HttpMethod,
+  RouteProps,
+} from "./FlinkHttpHandler";
 import { FlinkPlugin } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
 import { FlinkResponse } from "./FlinkResponse";
@@ -46,7 +51,7 @@ export const autoRegisteredHandlers: {
  * This will be populated at compile time when the apps repos
  * are picked up by typescript compiler
  */
-export const scannedRepos: {
+export const autoRegisteredRepos: {
   collectionName: string;
   repoInstanceName: string;
   Repo: any;
@@ -138,7 +143,7 @@ export interface HandlerConfig {
   /**
    * I.e. filename or plugin name that describes where handler origins from
    */
-  origin?: string;
+  // origin?: string;
 }
 
 export interface HandlerConfigWithMethod extends HandlerConfig {
@@ -292,18 +297,11 @@ export class FlinkApp<C extends FlinkContext> {
    *
    * Typescript compiler will scan handler function and set schemas
    * which are derived from handler function type arguments.
-   *
-   * @param config
-   * @param handlerFn
-   * @param __schemas schemas, set by compiler
    */
+  // TODO: Rename to addHandler
   public addHandler(
-    config: HandlerConfigWithMethod,
-    handlerFn: Handler<any>,
-    __schema?: {
-      reqSchema?: string;
-      resSchema?: string;
-    }
+    handler: HandlerFile,
+    routePropsOverride?: Partial<HandlerConfig["routeProps"]>
   ) {
     if (this.routingConfigured) {
       throw new Error(
@@ -311,35 +309,76 @@ export class FlinkApp<C extends FlinkContext> {
       );
     }
 
+    const routeProps = { ...(handler.Route || {}), ...routePropsOverride };
+
+    if (!routeProps.method) {
+      log.error(
+        `Failed to register handler '${handler.__file}': Missing 'method' in route props, either set it or name handler file with HTTP method as prefix`
+      );
+      return;
+    }
+
+    if (!routeProps.path) {
+      log.error(
+        `Failed to register handler '${handler.__file}': Missing 'path' in route props`
+      );
+      return;
+    }
+
     const dup = this.handlers.find(
       (h) =>
-        h.routeProps.path === config.routeProps.path &&
-        h.routeProps.method === config.routeProps.method
+        h.routeProps.path === routeProps.path &&
+        h.routeProps.method === routeProps.method
     );
+
+    const methodAndPath = `${routeProps.method.toUpperCase()} ${
+      routeProps.path
+    }`;
 
     if (dup) {
       // TODO: Not sure if there is a case where you'd want to overwrite a route?
+      log.warn(`${methodAndPath} overlaps existing route`);
+    }
+
+    const handlerConfig: HandlerConfigWithMethod = {
+      routeProps: {
+        ...routeProps,
+        method: routeProps.method!,
+        path: routeProps.path!,
+      },
+      schema: {
+        reqSchema: handler.__schemas?.reqSchema
+          ? ((this.schemas?.definitions || {})[
+              handler.__schemas?.reqSchema
+            ] as JSONSchema)
+          : undefined,
+        resSchema: handler.__schemas?.resSchema
+          ? ((this.schemas?.definitions || {})[
+              handler.__schemas?.resSchema
+            ] as JSONSchema)
+          : undefined,
+      },
+    };
+
+    if (handler.__schemas?.reqSchema && !handlerConfig.schema?.reqSchema) {
       log.warn(
-        `${config.routeProps.method} ${config.routeProps.path} overlaps existing route`
+        `Expected request schema ${handler.__schemas.reqSchema} for handler ${methodAndPath} but no such schema was found`
       );
     }
 
-    config.schema = {
-      reqSchema: __schema?.reqSchema
-        ? ((this.schemas?.definitions || {})[__schema?.reqSchema] as JSONSchema)
-        : undefined,
-      resSchema: __schema?.resSchema
-        ? ((this.schemas?.definitions || {})[__schema?.resSchema] as JSONSchema)
-        : undefined,
-    };
+    if (handler.__schemas?.resSchema && !handlerConfig.schema?.resSchema) {
+      log.warn(
+        `Expected response schema ${handler.__schemas.resSchema} for handler ${methodAndPath} but no such schema was found`
+      );
+    }
 
-    this.registerHandler(config, handlerFn);
+    this.registerHandler(handlerConfig, handler.default);
   }
 
   private registerHandler(handlerConfig: HandlerConfig, handler: Handler<any>) {
     this.handlers.push(handlerConfig);
 
-    const { routeProps, schema = {}, origin } = handlerConfig;
+    const { routeProps, schema = {} } = handlerConfig;
     const { method } = routeProps;
     const app = this.expressApp!;
 
@@ -401,7 +440,11 @@ export class FlinkApp<C extends FlinkContext> {
 
         try {
           // 👇 This is where the actual handler gets invoked
-          handlerRes = await handler({ req, ctx: this.ctx, origin });
+          handlerRes = await handler({
+            req,
+            ctx: this.ctx,
+            origin: routeProps.origin,
+          });
         } catch (err) {
           log.warn(
             `Handler '${methodAndRoute}' threw unhandled exception ${err}`
@@ -479,8 +522,8 @@ export class FlinkApp<C extends FlinkContext> {
           routeProps: {
             ...handler.routeProps,
             method: handler.routeProps.method || handler.assumedHttpMethod,
+            origin: this.name,
           },
-          origin: "",
           schema: {
             reqSchema: handler.reqSchema
               ? (schemaDefinitions[handler.reqSchema] as JSONSchema)
@@ -505,14 +548,18 @@ export class FlinkApp<C extends FlinkContext> {
    */
   private async buildContext() {
     if (this.dbOpts) {
-      for (const { collectionName, repoInstanceName, Repo } of scannedRepos) {
+      for (const {
+        collectionName,
+        repoInstanceName,
+        Repo,
+      } of autoRegisteredRepos) {
         const repoInstance: FlinkRepo<C> = new Repo(collectionName, this.db);
 
         this.repos[repoInstanceName] = repoInstance;
 
         log.info(`Registered repo ${repoInstanceName}`);
       }
-    } else if (scannedRepos.length > 0) {
+    } else if (autoRegisteredRepos.length > 0) {
       log.warn(`No db configured but found repo(s)`);
     }
 

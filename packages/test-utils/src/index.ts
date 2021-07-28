@@ -93,7 +93,7 @@ export async function del<T = any>(
 function validateApp() {
   if (!app) {
     throw new Error(
-      "App not initialized, run `init(app)`` prior to invoking get/post/put/del"
+      "App not initialized, run `init(app)` prior to invoking get/post/put/del"
     );
   }
 }

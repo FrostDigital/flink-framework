@@ -1,6 +1,7 @@
-import { FlinkApp, GetHandler, HttpMethod } from "@flink-app/flink";
+import { FlinkApp, HttpMethod } from "@flink-app/flink";
 import { jwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 import * as testUtils from "@flink-app/test-utils";
+import * as NonAutoRegisteredHandler from "../src/handlers/NonAutoRegisteredHandler";
 import CarListRes from "../src/schemas/CarListRes";
 
 describe("Integration tests", () => {
@@ -24,41 +25,13 @@ describe("Integration tests", () => {
       }),
     }).start();
 
-    flinkApp.addHandler(
-      {
-        routeProps: {
-          path: "/manually-added-handler-wo-schema",
-          method: HttpMethod.get,
-        },
-      },
-      async () => {
-        return {
-          data: "Hello world",
-        };
-      }
-    );
-
-    const handlerWithSchema: GetHandler<any, { msg: string }> = async () => {
-      return {
-        data: { msg: "Hello world" },
-      };
-    };
-
-    flinkApp.addHandler(
-      {
-        routeProps: {
-          path: "/manually-added-handler-with-schema",
-          method: HttpMethod.get,
-        },
-      },
-      handlerWithSchema
-    );
+    flinkApp.addHandler(NonAutoRegisteredHandler, { method: HttpMethod.get });
 
     testUtils.init(flinkApp);
   });
 
   it("should register routes", () => {
-    expect(flinkApp.getRegisteredRoutes().length).toBe(13);
+    expect(flinkApp.getRegisteredRoutes().length).toBe(12);
   });
 
   it("should get 404", async () => {
