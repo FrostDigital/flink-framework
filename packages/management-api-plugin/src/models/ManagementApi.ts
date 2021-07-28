@@ -1,14 +1,9 @@
-import { Handler, HandlerConfigWithMethod } from "@flink-app/flink";
-
-export interface ManagementApiEndpoint {
-  config: HandlerConfigWithMethod;
-  handlerFn: Handler<any>;
-}
+import { HandlerFile, RouteProps } from "@flink-app/flink";
 
 export interface ManagementApiModule {
   id: string;
   type: ManagementApiType;
-  endpoints: ManagementApiEndpoint[];
+  endpoints: { handler: HandlerFile; routeProps: Partial<RouteProps> }[];
   ui: boolean;
   uiSettings?: {
     title: string;

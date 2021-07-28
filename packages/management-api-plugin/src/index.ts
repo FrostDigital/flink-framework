@@ -2,19 +2,17 @@ import {
   FlinkApp,
   FlinkPlugin,
   HttpMethod,
-  JSONSchema,
   unauthorized,
 } from "@flink-app/flink";
 import jsonwebtoken from "jsonwebtoken";
-import schemas from "../.flink/generated-schemas.json";
-import GetManagement from "./handlers/Management/Get";
-import DeleteUserById from "./handlers/User/DeleteByUserid";
-import GetUserByUserid from "./handlers/User/GetByUserid";
-import GetUserList from "./handlers/User/GetList";
-import GetUserMe from "./handlers/User/GetMe";
-import PostUser from "./handlers/User/Post";
-import PostUserLogin from "./handlers/User/PostLogin";
-import PutUserById from "./handlers/User/PutByUserid";
+import * as GetManagement from "./handlers/Management/Get";
+import * as DeleteUserById from "./handlers/User/DeleteByUserid";
+import * as GetUserByUserid from "./handlers/User/GetByUserid";
+import * as GetUserList from "./handlers/User/GetList";
+import * as GetUserMe from "./handlers/User/GetMe";
+import * as PostUser from "./handlers/User/Post";
+import * as PostUserLogin from "./handlers/User/PostLogin";
+import * as PutUserById from "./handlers/User/PutByUserid";
 import {
   ManagementApiModule,
   ManagementApiOptions,
@@ -41,108 +39,68 @@ export const managementApiPlugin = (
   };
 
   managementApiModule.endpoints.push({
-    config: {
-      routeProps: {
-        method: HttpMethod.get,
-        path: "",
-        docs: "List all management users",
-      },
-      schema: {
-        reqSchema: schemas.definitions.GetUserListReq as JSONSchema,
-        resSchema: schemas.definitions.GetUserListRes as JSONSchema,
-      },
+    handler: GetUserList,
+    routeProps: {
+      method: HttpMethod.get,
+      path: "",
+      docs: "List all management users",
     },
-    handlerFn: GetUserList,
   });
 
   managementApiModule.endpoints.push({
-    config: {
-      routeProps: {
-        method: HttpMethod.get,
-        path: "/me",
-        docs: "Get current user information",
-      },
-      schema: {
-        reqSchema: schemas.definitions.GetUserMeReq as JSONSchema,
-        resSchema: schemas.definitions.GetUserMeRes as JSONSchema,
-      },
+    handler: GetUserMe,
+    routeProps: {
+      method: HttpMethod.get,
+      path: "/me",
+      docs: "Get current user information",
     },
-    handlerFn: GetUserMe,
   });
 
   managementApiModule.endpoints.push({
-    config: {
-      routeProps: {
-        method: HttpMethod.get,
-        path: "/:userid",
-        docs: "Get one management user by id",
-      },
-      schema: {
-        reqSchema: schemas.definitions.GetUserByUseridReq as JSONSchema,
-        resSchema: schemas.definitions.GetUserByUseridRes as JSONSchema,
-      },
+    handler: GetUserByUserid,
+    routeProps: {
+      method: HttpMethod.get,
+      path: "/:userid",
+      docs: "Get one management user by id",
     },
-    handlerFn: GetUserByUserid,
   });
 
   managementApiModule.endpoints.push({
-    config: {
-      routeProps: {
-        method: HttpMethod.post,
-        path: "",
-        docs: "Create a new management user",
-      },
-      schema: {
-        reqSchema: schemas.definitions.PostUserReq as JSONSchema,
-        resSchema: schemas.definitions.PostUserRes as JSONSchema,
-      },
+    handler: PostUser,
+
+    routeProps: {
+      method: HttpMethod.post,
+      path: "",
+      docs: "Create a new management user",
     },
-    handlerFn: PostUser,
   });
 
   managementApiModule.endpoints.push({
-    config: {
-      routeProps: {
-        method: HttpMethod.delete,
-        path: "/:userid",
-        docs: "Deletes a management user",
-      },
-      schema: {
-        reqSchema: schemas.definitions.DeleteUserByUseridReq as JSONSchema,
-        resSchema: schemas.definitions.DeleteUserByUseridReq as JSONSchema,
-      },
+    handler: DeleteUserById,
+
+    routeProps: {
+      method: HttpMethod.delete,
+      path: "/:userid",
+      docs: "Deletes a management user",
     },
-    handlerFn: DeleteUserById,
   });
 
   managementApiModule.endpoints.push({
-    config: {
-      routeProps: {
-        method: HttpMethod.put,
-        path: "/:userid",
-        docs: "Updates a management user",
-      },
-      schema: {
-        reqSchema: schemas.definitions.PutUserByUseridReq as JSONSchema,
-        resSchema: schemas.definitions.PutUserByUseridRes as JSONSchema,
-      },
+    handler: PutUserById,
+    routeProps: {
+      method: HttpMethod.put,
+      path: "/:userid",
+      docs: "Updates a management user",
     },
-    handlerFn: PutUserById,
   });
 
   managementApiModule.endpoints.push({
-    config: {
-      routeProps: {
-        method: HttpMethod.post,
-        path: "/login",
-        docs: "Authenticates a management user",
-      },
-      schema: {
-        reqSchema: schemas.definitions.PostUserLoginReq as JSONSchema,
-        resSchema: schemas.definitions.PostUserLoginRes as JSONSchema,
-      },
+    handler: PostUserLogin,
+    routeProps: {
+      method: HttpMethod.post,
+      path: "/login",
+      docs: "Authenticates a management user",
     },
-    handlerFn: PostUserLogin,
   });
 
   options.modules.push(managementApiModule);
@@ -162,7 +120,7 @@ export const managementApiPlugin = (
     };
     m.endpoints.forEach((e) => {
       let url = options.baseUrl || "/managementapi";
-      url += "/" + m.id + e.config.routeProps.path;
+      url += "/" + m.id + e.routeProps.path;
       // module.endpoints.push({
       //   method : e.config.routeProps.method?.toString() || "get",
       //   url : url
@@ -213,16 +171,10 @@ function init(app: FlinkApp<any>, options: ManagementApiOptions) {
     }
   });
 
-  app.addHandler(
-    {
-      routeProps: {
-        method: HttpMethod.get,
-        path: baseUrl,
-        docs: "Gets information about configured management api",
-      },
-    },
-    GetManagement
-  );
+  app.addHandler(GetManagement, {
+    path: baseUrl,
+    docs: "Gets information about configured management api",
+  });
 
   if (app.db != null) {
     app.addRepo(
@@ -233,9 +185,9 @@ function init(app: FlinkApp<any>, options: ManagementApiOptions) {
 
   options.modules.forEach((module) => {
     module.endpoints.forEach((endpoint) => {
-      endpoint.config.routeProps.path =
-        baseUrl + "/" + module.id + endpoint.config.routeProps.path;
-      app.addHandler(endpoint.config, endpoint.handlerFn);
+      endpoint.routeProps.path =
+        baseUrl + "/" + module.id + endpoint.routeProps.path;
+      app.addHandler(endpoint.handler, endpoint.routeProps);
     });
   });
 }
