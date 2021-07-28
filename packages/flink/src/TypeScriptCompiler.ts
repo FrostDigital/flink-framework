@@ -137,7 +137,7 @@ class TypeScriptCompiler {
 
   /**
    * Scans project for handlers and add those to Flink
-   * "singleton" property `scannedHandlers` so they can
+   * "singleton" property `autoRegisteredHandlers` so they can
    * be registered during start.
    *
    * Also extract handlers request and response schemas from Handler
@@ -147,9 +147,9 @@ class TypeScriptCompiler {
     const generatedFile = this.createSourceFile(
       ["generatedHandlers.ts"],
       `// Generated ${new Date()}
-import { scannedHandlers, HttpMethod } from "@flink-app/flink";
+import { autoRegisteredHandlers, HttpMethod } from "@flink-app/flink";
 export const handlers = [];
-scannedHandlers.push(...handlers);
+autoRegisteredHandlers.push(...handlers);
     `
     );
     const handlersArr = generatedFile
@@ -161,9 +161,9 @@ scannedHandlers.push(...handlers);
       handlersArr
     );
 
-    const manualRegHandlers = await this.parseManuallyRegisteredHandlers(
-      excludeDirs
-    );
+    // const manualRegHandlers = await this.parseManuallyRegisteredHandlers(
+    //   excludeDirs
+    // );
 
     generatedFile.addImportDeclarations(autoRegHandlers.imports);
 
@@ -173,7 +173,7 @@ scannedHandlers.push(...handlers);
 
     await this.generateAndSaveJsonSchemas([
       ...autoRegHandlers.schemasToGenerate,
-      ...manualRegHandlers.schemasToGenerate,
+      // ...manualRegHandlers.schemasToGenerate,
     ]);
 
     return generatedFile;
@@ -352,7 +352,7 @@ scannedHandlers.push(...handlers);
    * actual Flink app to start.
    *
    * Note that order is of importance so generated metadata are imported and initialized before start of flink app.
-   * Otherwise singletons `scannedRepos` and `scannedHandlers` will not have been set.
+   * Otherwise singletons `scannedRepos` and `autoRegisteredHandlers` will not have been set.
    */
   async generateStartScript(appEntryScript = "/src/index.ts") {
     if (

@@ -34,7 +34,7 @@ export type JSONSchema = JSONSchema7;
  * This will be populated at compile time when the apps handlers
  * are picked up by typescript compiler
  */
-export const scannedHandlers: {
+export const autoRegisteredHandlers: {
   routeProps: RouteProps;
   handlerFn: any;
   assumedHttpMethod: HttpMethod;
@@ -461,7 +461,7 @@ export class FlinkApp<C extends FlinkContext> {
    * Will not register any handlers added programmatically.
    */
   private async registerAppHandlers() {
-    for (const handler of scannedHandlers) {
+    for (const handler of autoRegisteredHandlers) {
       if (!handler.routeProps) {
         log.error(`Missing Props in handler ${handler}`);
         continue;

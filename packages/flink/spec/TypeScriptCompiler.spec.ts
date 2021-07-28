@@ -21,7 +21,7 @@ describe("TypeScriptCompiler", () => {
     const generatedFile = await compiler.parseHandlers();
 
     expect(generatedFile.getText()).toContain(
-      `import { scannedHandlers, HttpMethod } from "@flink-app/flink"`
+      `import { autoRegisteredHandlers, HttpMethod } from "@flink-app/flink"`
     );
     expect(generatedFile.getText()).toContain(
       `import * as GetCar_0 from "../src/handlers/GetCar"`

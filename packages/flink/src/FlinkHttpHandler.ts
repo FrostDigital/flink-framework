@@ -61,6 +61,11 @@ export interface RouteProps {
    * Supports markdown strings.
    */
   docs?: string; // TODO
+
+  /**
+   * If handler should not be auto registered
+   */
+  skipAutoRegister?: boolean;
 }
 
 /**
