@@ -1,25 +1,32 @@
-
-import { FlinkContext, Handler, internalServerError, notFound } from "@flink-app/flink";
+import { FlinkContext, Handler, notFound } from "@flink-app/flink";
 import { genericAuthContext } from "../genericAuthContext";
 import { PushNotificationToken } from "../schemas/PushNotificationToken";
 import { PushNotificatioNTokenRes } from "../schemas/PushNotificationTokenRes";
 import { User } from "../schemas/User";
 
-export const postUserRemoveTokenHandler : Handler<  FlinkContext<genericAuthContext>, PushNotificationToken,  PushNotificatioNTokenRes > = async ({ ctx, req, origin }) => {
+const postUserRemoveTokenHandler: Handler<
+  FlinkContext<genericAuthContext>,
+  PushNotificationToken,
+  PushNotificatioNTokenRes
+> = async ({ ctx, req, origin }) => {
+  let pluginName = origin || "genericAuthPlugin";
+  let repo = ctx.repos[(<any>ctx.plugins)[pluginName].repoName];
 
-    let pluginName = origin || "genericAuthPlugin";
-    let repo = ctx.repos[ (<any>ctx.plugins)[pluginName].repoName ];
+  const user = <User>await repo.getBydId(req.user._id);
 
-    const user = <User>await repo.getBydId(req.user._id);
-    
-    if(user == null){
-        return notFound("User not found");
-    }
+  if (user == null) {
+    return notFound("User not found");
+  }
 
-    user.pushNotificationTokens = user.pushNotificationTokens.filter( (t) => t.deviceId != req.body.deviceId);
+  user.pushNotificationTokens = user.pushNotificationTokens.filter(
+    (t) => t.deviceId != req.body.deviceId
+  );
 
-    await repo.updateOne(user._id, { pushNotificationTokens : user.pushNotificationTokens});
+  await repo.updateOne(user._id, {
+    pushNotificationTokens: user.pushNotificationTokens,
+  });
 
-    return { data : { status : "success"  }};
-
+  return { data: { status: "success" } };
 };
+
+export default postUserRemoveTokenHandler;

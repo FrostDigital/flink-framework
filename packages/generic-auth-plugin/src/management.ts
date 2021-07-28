@@ -3,16 +3,16 @@ import {
   ManagementApiType,
 } from "@flink-app/management-api-plugin";
 import { HttpMethod } from "@flink-app/flink";
-import { userCreateHandler } from "./handlers/UserCreate";
-import GetManagementUser from "./handlers/Management/GetUser";
-import GetManagementUserByUserid from "./handlers/Management/GetUserByUserid";
-import PutManagementUserPasswordByUserid from "./handlers/Management/PutUserPasswordByUserid";
-import PutManagementUserProfileByUserid from "./handlers/Management/PutUserProfileByUserid";
-import PutManagementUserUsernameByUserid from "./handlers/Management/PutUserUsernameByUserid";
-import PutManagementUserRolesByUserid from "./handlers/Management/PutUserRolesByUserid";
-import DeleteManagementUserByUserid from "./handlers/Management/DeleteUserByUserid";
+import * as userCreateHandler from "./handlers/UserCreate";
+import * as GetManagementUser from "./handlers/Management/GetUser";
+import * as GetManagementUserByUserid from "./handlers/Management/GetUserByUserid";
+import * as PutManagementUserPasswordByUserid from "./handlers/Management/PutUserPasswordByUserid";
+import * as PutManagementUserProfileByUserid from "./handlers/Management/PutUserProfileByUserid";
+import * as PutManagementUserUsernameByUserid from "./handlers/Management/PutUserUsernameByUserid";
+import * as PutManagementUserRolesByUserid from "./handlers/Management/PutUserRolesByUserid";
+import * as DeleteManagementUserByUserid from "./handlers/Management/DeleteUserByUserid";
 import GetGetSchemaHandler from "./handlers/Management/GetSchema";
-import PutUserProfileByUseridAppend from "./handlers/Management/PutUserProfileByUseridAppend";
+import * as PutUserProfileByUseridAppend from "./handlers/Management/PutUserProfileByUseridAppend";
 
 export interface GetManagementModuleConfig {
   pluginId?: string;
@@ -31,155 +31,97 @@ export const GetManagementModule = (
 ): ManagementApiModule => {
   if (config.pluginId == null) config.pluginId = "genericAuthPlugin";
 
-  let endpoints = [];
+  let endpoints: ManagementApiModule["endpoints"] = [];
   endpoints.push({
-    config: {
-      routeProps: {
-        path: "",
-        method: HttpMethod.post,
-        // schema: {
-        //   reqSchema: schemas.UserCreateReq,
-        //   resSchema: schemas.UserCreateRes,
-        // },
-        origin: config.pluginId || "genericAuthPlugin",
-      },
+    routeProps: {
+      path: "",
+      method: HttpMethod.post,
+      origin: config.pluginId || "genericAuthPlugin",
     },
-    handlerFn: userCreateHandler,
+    handler: userCreateHandler,
   });
 
   endpoints.push({
-    config: {
-      routeProps: {
-        path: "",
-        method: HttpMethod.get,
-        // schema: {
-        //   reqSchema: schemas.GetManagementUserReq,
-        //   resSchema: schemas.GetManagementUserRes,
-        // },
-        origin: config.pluginId || "genericAuthPlugin",
-      },
+    routeProps: {
+      path: "",
+      method: HttpMethod.get,
+      origin: config.pluginId || "genericAuthPlugin",
     },
-    handlerFn: GetManagementUser,
+    handler: GetManagementUser,
+  });
+
+  // TODO: This will not work :(
+  // endpoints.push({
+  //   routeProps: {
+  //     path: "/profile/schema",
+  //     method: HttpMethod.get,
+  //     origin: config.pluginId || "genericAuthPlugin",
+  //   },
+  //   handler: GetGetSchemaHandler(config.profileSchema),
+  // });
+
+  endpoints.push({
+    routeProps: {
+      path: "/:userid",
+      method: HttpMethod.get,
+      origin: config.pluginId || "genericAuthPlugin",
+    },
+
+    handler: GetManagementUserByUserid,
   });
 
   endpoints.push({
-    config: {
-      routeProps: {
-        path: "/profile/schema",
-        method: HttpMethod.get,
-        // schema: {
-        //   reqSchema: schemas.PutManagementUserRolesByUseridReq,
-        //   resSchema: schemas.PutManagementUserRolesByUseridRes,
-        // },
-        origin: config.pluginId || "genericAuthPlugin",
-      },
+    routeProps: {
+      path: "/:userid",
+      method: HttpMethod.delete,
+      origin: config.pluginId || "genericAuthPlugin",
     },
-    handlerFn: GetGetSchemaHandler(config.profileSchema),
+    handler: DeleteManagementUserByUserid,
   });
 
   endpoints.push({
-    config: {
-      routeProps: {
-        path: "/:userid",
-        method: HttpMethod.get,
-        // schema: {
-        //   reqSchema: schemas.GetManagementUserByUseridReq,
-        //   resSchema: schemas.GetManagementUserByUseridRes,
-        // },
-        origin: config.pluginId || "genericAuthPlugin",
-      },
+    routeProps: {
+      path: "/password/:userid",
+      method: HttpMethod.put,
+      origin: config.pluginId || "genericAuthPlugin",
     },
-    handlerFn: GetManagementUserByUserid,
+    handler: PutManagementUserPasswordByUserid,
   });
 
   endpoints.push({
-    config: {
-      routeProps: {
-        path: "/:userid",
-        method: HttpMethod.delete,
-        // schema: {
-        //   reqSchema: schemas.DeleteManagementUserByUseridReq,
-        //   resSchema: schemas.DeleteManagementUserByUseridRes,
-        // },
-        origin: config.pluginId || "genericAuthPlugin",
-      },
+    routeProps: {
+      path: "/username/:userid",
+      method: HttpMethod.put,
+      origin: config.pluginId || "genericAuthPlugin",
     },
-    handlerFn: DeleteManagementUserByUserid,
+    handler: PutManagementUserUsernameByUserid,
   });
 
   endpoints.push({
-    config: {
-      routeProps: {
-        path: "/password/:userid",
-        method: HttpMethod.put,
-        // schema: {
-        //   reqSchema: schemas.PutManagementUserPasswordByUseridReq,
-        //   resSchema: schemas.PutManagementUserPasswordByUseridRes,
-        // },
-        origin: config.pluginId || "genericAuthPlugin",
-      },
+    routeProps: {
+      path: "/profile/:userid",
+      method: HttpMethod.put,
+      origin: config.pluginId || "genericAuthPlugin",
     },
-    handlerFn: PutManagementUserPasswordByUserid,
+    handler: PutManagementUserProfileByUserid,
   });
 
   endpoints.push({
-    config: {
-      routeProps: {
-        path: "/username/:userid",
-        method: HttpMethod.put,
-        // schema: {
-        //   reqSchema: schemas.PutManagementUserUsernameByUseridReq,
-        //   resSchema: schemas.PutManagementUserPasswordByUseridRes,
-        // },
-        origin: config.pluginId || "genericAuthPlugin",
-      },
+    routeProps: {
+      path: "/profile/:userid/append",
+      method: HttpMethod.put,
+      origin: config.pluginId || "genericAuthPlugin",
     },
-    handlerFn: PutManagementUserUsernameByUserid,
+    handler: PutUserProfileByUseridAppend,
   });
 
   endpoints.push({
-    config: {
-      routeProps: {
-        path: "/profile/:userid",
-        method: HttpMethod.put,
-        // schema: {
-        //   reqSchema: schemas.PutManagementUserProfileByUseridReq,
-        //   resSchema: schemas.PutManagementUserProfileByUseridRes,
-        // },
-        origin: config.pluginId || "genericAuthPlugin",
-      },
+    routeProps: {
+      path: "/roles/:userid",
+      method: HttpMethod.put,
+      origin: config.pluginId || "genericAuthPlugin",
     },
-    handlerFn: PutManagementUserProfileByUserid,
-  });
-
-  endpoints.push({
-    config: {
-      routeProps: {
-        path: "/profile/:userid/append",
-        method: HttpMethod.put,
-        // schema: {
-        //   reqSchema: schemas.PutManagementUserProfileByUseridReq,
-        //   resSchema: schemas.PutManagementUserProfileByUseridRes,
-        // },
-        origin: config.pluginId || "genericAuthPlugin",
-      },
-    },
-    handlerFn: PutUserProfileByUseridAppend,
-  });
-
-  endpoints.push({
-    config: {
-      routeProps: {
-        path: "/roles/:userid",
-        method: HttpMethod.put,
-        // schema: {
-        //   reqSchema: schemas.PutManagementUserRolesByUseridReq,
-        //   resSchema: schemas.PutManagementUserRolesByUseridRes,
-        // },
-        origin: config.pluginId || "genericAuthPlugin",
-      },
-    },
-    handlerFn: PutManagementUserRolesByUserid,
+    handler: PutManagementUserRolesByUserid,
   });
 
   let features: string[] = [];

@@ -4,7 +4,7 @@ import { UserLoginReq } from "../schemas/UserLoginReq";
 import { UserLoginRes } from "../schemas/UserLoginRes";
 import { JwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 
-export const userLoginHandler: Handler<
+const userLoginHandler: Handler<
   FlinkContext<genericAuthContext>,
   UserLoginReq,
   UserLoginRes
@@ -34,3 +34,5 @@ export const userLoginHandler: Handler<
     status: 200,
   };
 };
+
+export default userLoginHandler;
