@@ -159,7 +159,6 @@ export class FlinkApp<C extends FlinkContext> {
   public handlers: HandlerConfig[] = [];
   public port?: number;
   public started = false;
-  public schemas?: JSONSchema;
 
   private _ctx?: C;
   private dbOpts?: FlinkOptions["db"];
