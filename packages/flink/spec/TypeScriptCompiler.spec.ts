@@ -29,7 +29,7 @@ describe("TypeScriptCompiler", () => {
     );
     expect(generatedFile.getText()).toContain(`export const handlers =`);
     expect(generatedFile.getText()).toContain(
-      `{routeProps: GetCar_0.Route, handlerFn: GetCar_0.default, assumedHttpMethod: HttpMethod.get, reqSchema: "", resSchema: "GetCar_9_ResSchema"}`
+      `{handler: GetCar_0, assumedHttpMethod: HttpMethod.get}`
     );
     // expect(generatedFile.getText()).toContain(
     //   `{routeProps: PostCar_5.Route, handlerFn: PostCar_5.default, assumedHttpMethod: HttpMethod.post}`

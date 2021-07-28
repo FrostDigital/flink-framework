@@ -6,7 +6,6 @@ import express, { Express, Request } from "express";
 import { JSONSchema7 } from "json-schema";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
-import { join } from "path";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
@@ -20,7 +19,6 @@ import {
 import { FlinkPlugin } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
 import { FlinkResponse } from "./FlinkResponse";
-import { readJsonFile } from "./FsUtils";
 import generateMockData from "./mock-data-generator";
 import { isError } from "./utils";
 
@@ -40,11 +38,8 @@ export type JSONSchema = JSONSchema7;
  * are picked up by typescript compiler
  */
 export const autoRegisteredHandlers: {
-  routeProps: RouteProps;
-  handlerFn: any;
+  handler: HandlerFile;
   assumedHttpMethod: HttpMethod;
-  reqSchema?: string;
-  resSchema?: string;
 }[] = [];
 
 /**
@@ -192,7 +187,6 @@ export class FlinkApp<C extends FlinkContext> {
     this.plugins = opts.plugins || [];
     this.corsOpts = { ...defaultCorsOptions, ...opts.cors };
     this.auth = opts.auth;
-    // this.appRoot = opts.appRoot || "./";
   }
 
   get ctx() {
@@ -205,8 +199,6 @@ export class FlinkApp<C extends FlinkContext> {
   async start() {
     const startTime = Date.now();
     let offsetTime = 0;
-
-    await this.readSchemasAndHandlerMetadata();
 
     await this.initDb();
 
@@ -260,7 +252,7 @@ export class FlinkApp<C extends FlinkContext> {
       log.info(`Initialized plugin '${plugin.id}'`);
     }
 
-    await this.registerAppHandlers();
+    await this.registerAutoRegisterableHandlers();
 
     if (this.debug) {
       log.bgColorLog(
@@ -347,16 +339,8 @@ export class FlinkApp<C extends FlinkContext> {
         path: routeProps.path!,
       },
       schema: {
-        reqSchema: handler.__schemas?.reqSchema
-          ? ((this.schemas?.definitions || {})[
-              handler.__schemas?.reqSchema
-            ] as JSONSchema)
-          : undefined,
-        resSchema: handler.__schemas?.resSchema
-          ? ((this.schemas?.definitions || {})[
-              handler.__schemas?.resSchema
-            ] as JSONSchema)
-          : undefined,
+        reqSchema: handler.__schemas?.reqSchema,
+        resSchema: handler.__schemas?.resSchema,
       },
     };
 
@@ -503,37 +487,33 @@ export class FlinkApp<C extends FlinkContext> {
    *
    * Will not register any handlers added programmatically.
    */
-  private async registerAppHandlers() {
-    for (const handler of autoRegisteredHandlers) {
-      if (!handler.routeProps) {
-        log.error(`Missing Props in handler ${handler}`);
+  private async registerAutoRegisterableHandlers() {
+    for (const { handler, assumedHttpMethod } of autoRegisteredHandlers) {
+      if (!handler.Route) {
+        log.error(`Missing Props in handler ${handler.__file}`);
         continue;
       }
 
-      if (!handler.handlerFn) {
-        log.error(`Missing exported handler function in handler ${handler}`);
+      if (!handler.default) {
+        log.error(
+          `Missing exported handler function in handler ${handler.__file}`
+        );
         continue;
       }
-
-      const schemaDefinitions = this.schemas?.definitions || {};
 
       this.registerHandler(
         {
           routeProps: {
-            ...handler.routeProps,
-            method: handler.routeProps.method || handler.assumedHttpMethod,
+            ...handler.Route,
+            method: handler.Route.method || assumedHttpMethod,
             origin: this.name,
           },
           schema: {
-            reqSchema: handler.reqSchema
-              ? (schemaDefinitions[handler.reqSchema] as JSONSchema)
-              : undefined,
-            resSchema: handler.resSchema
-              ? (schemaDefinitions[handler.resSchema] as JSONSchema)
-              : undefined,
+            reqSchema: handler.__schemas?.reqSchema,
+            resSchema: handler.__schemas?.resSchema,
           },
         },
-        handler.handlerFn
+        handler.default
       );
     }
   }
@@ -644,11 +624,6 @@ export class FlinkApp<C extends FlinkContext> {
       );
     }
     return await this.auth.authenticateRequest(req, permissions);
-  }
-
-  private async readSchemasAndHandlerMetadata() {
-    this.schemas =
-      (await readJsonFile(join(".flink", "schemas", "schemas.json"))) || {};
   }
 
   public getRegisteredRoutes() {

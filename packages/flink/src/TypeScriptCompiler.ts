@@ -1,4 +1,5 @@
 import { promises as fsPromises } from "fs";
+import { JSONSchema7 } from "json-schema";
 import { join } from "path";
 import glob from "tiny-glob";
 import {
@@ -171,7 +172,14 @@ autoRegisteredHandlers.push(...handlers);
 
     await this.createIntermediateSchemaFile();
 
-    await this.generateAndSaveJsonSchemas(handlers.schemasToGenerate);
+    const jsonSchemas = await this.generateAndSaveJsonSchemas(
+      handlers.schemasToGenerate
+    );
+
+    this.appendSchemasToHandlerSourceFiles(
+      handlers.schemasToGenerate,
+      jsonSchemas
+    );
 
     return generatedFile;
   }
@@ -188,6 +196,7 @@ autoRegisteredHandlers.push(...handlers);
     const schemasToGenerate: {
       reqSchemaType?: string;
       resSchemaType?: string;
+      sourceFile: SourceFile;
     }[] = [];
 
     for (const sf of this.project.getSourceFiles()) {
@@ -220,12 +229,12 @@ autoRegisteredHandlers.push(...handlers);
         declarationKind: VariableDeclarationKind.Const,
         isExported: true,
         declarations: [
-          {
-            name: "__schemas",
-            initializer: `{ reqSchema: "${
-              schemaTypes?.reqSchemaType || ""
-            }", resSchema: "${schemaTypes?.resSchemaType || ""}"  }`,
-          },
+          // {
+          //   name: "__schemas",
+          //   initializer: `{ reqSchema: "${
+          //     schemaTypes?.reqSchemaType || ""
+          //   }", resSchema: "${schemaTypes?.resSchemaType || ""}"  }`,
+          // },
           {
             name: "__assumedHttpMethod",
             initializer: `"${assumedHttpMethod || ""}"`,
@@ -240,16 +249,16 @@ autoRegisteredHandlers.push(...handlers);
       if (isAutoRegister) {
         handlersArr.insertElement(
           i,
-          `{routeProps: ${namespaceImport}.Route, handlerFn: ${namespaceImport}.default, assumedHttpMethod: ${
+          `{handler: ${namespaceImport}, assumedHttpMethod: ${
             assumedHttpMethod ? "HttpMethod." + assumedHttpMethod : undefined
-          }, reqSchema: "${schemaTypes?.reqSchemaType || ""}", resSchema: "${
-            schemaTypes?.resSchemaType || ""
-          }"}`
+          }}`
         );
         i++;
       }
 
-      schemasToGenerate.push(schemaTypes || {});
+      if (schemaTypes) {
+        schemasToGenerate.push({ ...schemaTypes, sourceFile: sf });
+      }
     }
 
     return {
@@ -369,6 +378,8 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
    * // Array with inline type definition
    * Handler<Ctx, {car: Car}[]>
    * ```
+   *
+   * Return names of req and/or res schema types.
    */
   private async extractSchemasFromHandlerSourceFile(
     handlerSourceFile: SourceFile
@@ -542,6 +553,8 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
     await writeJsonFile(filePath, mergedSchemas);
 
     this.project.addSourceFileAtPath(filePath);
+
+    return mergedSchemas;
   }
 
   private generateJsonSchema(typeName: string) {
@@ -648,6 +661,58 @@ ${this.parsedTsSchemas.join("\n\n")}`
     const skipAutoRegProp = routeProps.getProperty("skipAutoRegister");
 
     return !skipAutoRegProp || skipAutoRegProp.getText().endsWith("false");
+  }
+
+  /**
+   * Appends generated json schemas to handler source files.
+   *
+   * @param handlers
+   * @param jsonSchemas
+   */
+  private appendSchemasToHandlerSourceFiles(
+    handlers: {
+      sourceFile: SourceFile;
+      reqSchemaType?: string;
+      resSchemaType?: string;
+    }[],
+    jsonSchemas: JSONSchema7
+  ) {
+    const jsonSchemaDefs = jsonSchemas.definitions || {};
+
+    for (const { sourceFile, reqSchemaType, resSchemaType } of handlers) {
+      if (reqSchemaType && !jsonSchemaDefs[reqSchemaType]) {
+        console.error(
+          `Handler ${sourceFile.getBaseName} has request schema (${reqSchemaType}) defined, but JSON schema has been generated`
+        );
+        continue;
+      }
+
+      if (resSchemaType && !jsonSchemaDefs[resSchemaType]) {
+        console.error(
+          `Handler ${sourceFile.getBaseName} has response schema (${resSchemaType}) defined, but JSON schema has been generated`
+        );
+        continue;
+      }
+
+      const reqJsonSchema = JSON.stringify(
+        reqSchemaType ? jsonSchemaDefs[reqSchemaType] : undefined
+      );
+      const resJsonSchema = JSON.stringify(
+        resSchemaType ? jsonSchemaDefs[resSchemaType] : undefined
+      );
+
+      sourceFile.addVariableStatement({
+        declarationKind: VariableDeclarationKind.Const,
+        isExported: true,
+        declarations: [
+          {
+            name: "__schemas",
+            type: "any",
+            initializer: `{ reqSchema: ${reqJsonSchema}, resSchema: ${resJsonSchema} }`,
+          },
+        ],
+      });
+    }
   }
 }
 

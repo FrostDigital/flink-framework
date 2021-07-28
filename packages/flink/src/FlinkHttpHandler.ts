@@ -1,4 +1,5 @@
 import { Request } from "express";
+import { JSONSchema } from "./FlinkApp";
 import { FlinkContext } from "./FlinkContext";
 import { FlinkError } from "./FlinkErrors";
 import { FlinkResponse } from "./FlinkResponse";
@@ -115,8 +116,8 @@ export type HandlerFile = {
    * Name of schemas, is set at compile time by Flink compiler.
    */
   __schemas?: {
-    reqSchema?: string;
-    resSchema?: string;
+    reqSchema?: JSONSchema;
+    resSchema?: JSONSchema;
   };
   /**
    * Typescript source file name, is set at compile time by Flink compiler.
