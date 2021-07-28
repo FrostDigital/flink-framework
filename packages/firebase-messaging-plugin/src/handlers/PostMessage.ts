@@ -3,7 +3,7 @@ import {
   Handler,
   HttpMethod,
   RouteProps,
-} from "../../../flink/dist/src";
+} from "@flink-app/flink";
 import { FirebaseMessagingContext } from "../FirebaseMessagingContext";
 import Message from "../schemas/Message";
 import SendResult from "../schemas/SendResult";

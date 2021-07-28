@@ -199,7 +199,7 @@ autoRegisteredHandlers.push(...handlers);
 
       console.log(
         `Detected handler ${sf.getBaseName()} ${
-          !isAutoRegister ? "(non auto registered)" : ""
+          !isAutoRegister ? "(requires manual registration)" : ""
         }`
       );
 
