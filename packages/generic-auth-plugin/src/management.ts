@@ -11,8 +11,9 @@ import * as PutManagementUserProfileByUserid from "./handlers/Management/PutUser
 import * as PutManagementUserUsernameByUserid from "./handlers/Management/PutUserUsernameByUserid";
 import * as PutManagementUserRolesByUserid from "./handlers/Management/PutUserRolesByUserid";
 import * as DeleteManagementUserByUserid from "./handlers/Management/DeleteUserByUserid";
-import GetGetSchemaHandler from "./handlers/Management/GetSchema";
+
 import * as PutUserProfileByUseridAppend from "./handlers/Management/PutUserProfileByUseridAppend";
+import * as GetSchema from "./handlers/Management/GetSchema";
 
 export interface GetManagementModuleConfig {
   pluginId?: string;
@@ -36,7 +37,7 @@ export const GetManagementModule = (
     routeProps: {
       path: "",
       method: HttpMethod.post,
-      origin: config.pluginId || "genericAuthPlugin",
+      origin: config.pluginId,
     },
     handler: userCreateHandler,
   });
@@ -45,26 +46,25 @@ export const GetManagementModule = (
     routeProps: {
       path: "",
       method: HttpMethod.get,
-      origin: config.pluginId || "genericAuthPlugin",
+      origin: config.pluginId,
     },
     handler: GetManagementUser,
   });
 
-  // TODO: This will not work :(
-  // endpoints.push({
-  //   routeProps: {
-  //     path: "/profile/schema",
-  //     method: HttpMethod.get,
-  //     origin: config.pluginId || "genericAuthPlugin",
-  //   },
-  //   handler: GetGetSchemaHandler(config.profileSchema),
-  // });
+  endpoints.push({
+    routeProps: {
+      path: "/profile/schema",
+      method: HttpMethod.get,
+      origin: config.pluginId || "genericAuthPlugin",
+    },
+    handler: GetSchema,
+  });
 
   endpoints.push({
     routeProps: {
       path: "/:userid",
       method: HttpMethod.get,
-      origin: config.pluginId || "genericAuthPlugin",
+      origin: config.pluginId,
     },
 
     handler: GetManagementUserByUserid,
@@ -74,7 +74,7 @@ export const GetManagementModule = (
     routeProps: {
       path: "/:userid",
       method: HttpMethod.delete,
-      origin: config.pluginId || "genericAuthPlugin",
+      origin: config.pluginId,
     },
     handler: DeleteManagementUserByUserid,
   });
@@ -83,7 +83,7 @@ export const GetManagementModule = (
     routeProps: {
       path: "/password/:userid",
       method: HttpMethod.put,
-      origin: config.pluginId || "genericAuthPlugin",
+      origin: config.pluginId,
     },
     handler: PutManagementUserPasswordByUserid,
   });
@@ -92,7 +92,7 @@ export const GetManagementModule = (
     routeProps: {
       path: "/username/:userid",
       method: HttpMethod.put,
-      origin: config.pluginId || "genericAuthPlugin",
+      origin: config.pluginId,
     },
     handler: PutManagementUserUsernameByUserid,
   });
@@ -101,7 +101,7 @@ export const GetManagementModule = (
     routeProps: {
       path: "/profile/:userid",
       method: HttpMethod.put,
-      origin: config.pluginId || "genericAuthPlugin",
+      origin: config.pluginId,
     },
     handler: PutManagementUserProfileByUserid,
   });
@@ -110,7 +110,7 @@ export const GetManagementModule = (
     routeProps: {
       path: "/profile/:userid/append",
       method: HttpMethod.put,
-      origin: config.pluginId || "genericAuthPlugin",
+      origin: config.pluginId,
     },
     handler: PutUserProfileByUseridAppend,
   });
@@ -119,7 +119,7 @@ export const GetManagementModule = (
     routeProps: {
       path: "/roles/:userid",
       method: HttpMethod.put,
-      origin: config.pluginId || "genericAuthPlugin",
+      origin: config.pluginId,
     },
     handler: PutManagementUserRolesByUserid,
   });
@@ -146,6 +146,9 @@ export const GetManagementModule = (
     ui: config.ui,
     type: ManagementApiType.user,
     endpoints: endpoints,
+    data : {
+      profileSchema : config.profileSchema
+    }
   };
 
   return module;

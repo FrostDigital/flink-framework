@@ -1,16 +1,19 @@
 import { FlinkContext, Handler } from "@flink-app/flink";
 
-const GetGetSchemaHandler = (schema: any): Handler<FlinkContext, any, any> => {
-  const GetSchemaHandler: Handler<FlinkContext, any, any> = async ({
+
+  const GetSchema: Handler<FlinkContext, any, any> = async ({
     ctx,
     req,
     origin,
   }) => {
+
+      const modules = ctx.plugins.managementApi.moduleList.modules as any[];
+      const module = modules.find( p => p.id == origin);
+
     return {
-      data: schema,
+      data: module?.data.profileSchema,
       status: 200,
     };
   };
-  return GetSchemaHandler;
-};
-export default GetGetSchemaHandler;
+
+export default GetSchema;

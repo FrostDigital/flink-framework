@@ -10,6 +10,8 @@ export interface ManagementApiModule {
     icon: string;
     features: string[];
   };
+  data : { [key : string] : any }
+
 }
 export interface ManagementApiOptions {
   token: string;

@@ -5,7 +5,7 @@ import {
   unauthorized,
 } from "@flink-app/flink";
 import jsonwebtoken from "jsonwebtoken";
-import * as GetManagement from "./handlers/Management/Get";
+import * as GetManagement from "./handlers/Management/GetManagement";
 import * as DeleteUserById from "./handlers/User/DeleteByUserid";
 import * as GetUserByUserid from "./handlers/User/GetByUserid";
 import * as GetUserList from "./handlers/User/GetList";
@@ -36,6 +36,7 @@ export const managementApiPlugin = (
       features: [],
     },
     endpoints: [],
+    data : {}
   };
 
   managementApiModule.endpoints.push({
@@ -116,16 +117,17 @@ export const managementApiPlugin = (
       type: m.type,
       features: m.uiSettings?.features || [],
       title: m.uiSettings?.title || "",
+      data : m.data
       //endpoints : [],
     };
-    m.endpoints.forEach((e) => {
-      let url = options.baseUrl || "/managementapi";
-      url += "/" + m.id + e.routeProps.path;
-      // module.endpoints.push({
-      //   method : e.config.routeProps.method?.toString() || "get",
-      //   url : url
-      // });
-    });
+    // m.endpoints.forEach((e) => {
+    //   let url = options.baseUrl || "/managementapi";
+    //   url += "/" + m.id + e.routeProps.path;
+    //   // module.endpoints.push({
+    //   //   method : e.config.routeProps.method?.toString() || "get",
+    //   //   url : url
+    //   // });
+    // });
     moduleList.modules.push(module);
   });
 
@@ -173,6 +175,7 @@ function init(app: FlinkApp<any>, options: ManagementApiOptions) {
 
   app.addHandler(GetManagement, {
     path: baseUrl,
+    method : HttpMethod.get, 
     docs: "Gets information about configured management api",
   });
 

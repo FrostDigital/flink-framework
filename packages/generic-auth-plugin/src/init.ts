@@ -6,7 +6,7 @@ import * as putUserProfileHandler from "./handlers/UserProfilePut";
 import * as putUserPasswordHandler from "./handlers/UserPasswordPut";
 import * as postPasswordResetStartHandler from "./handlers/UserPasswordResetStart";
 import * as postPasswordResetCompleteHandler from "./handlers/UserPasswordResetComplete";
-import { GenericAuthPluginOptions } from "./GenericAuthPluginOptions";
+import { GenericAuthPluginOptions } from "./genericAuthPluginOptions";
 import * as postUserPushRegisterTokenHandler from "./handlers/UserPushRegisterToken";
 import * as postUserRemoveTokenHandler from "./handlers/UserPushRemoveToken";
 import * as getUserTokenHandler from "./handlers/UserToken";

@@ -7,12 +7,12 @@ import {
   passwordResetStart,
 } from "./coreFunctions";
 import { init } from "./init";
-import { GenericAuthPluginOptions } from "./GenericAuthPluginOptions";
+import { GenericAuthPluginOptions } from "./genericAuthPluginOptions";
 
 export * from "./genericAuthContext";
 export * from "./coreFunctions";
 export * from "./schemas/User";
-export * from "./GenericAuthPluginOptions";
+export * from "./genericAuthPluginOptions";
 export * from "./management";
 
 export const genericAuthPlugin = (

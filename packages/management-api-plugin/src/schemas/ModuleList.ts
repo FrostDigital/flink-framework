@@ -8,6 +8,7 @@ export interface Module {
   features: string[];
   title: string;
   ui: string;
+  data : { [key : string] : any }
   //endpoints : ModuleEndpoint[]
 }
 
