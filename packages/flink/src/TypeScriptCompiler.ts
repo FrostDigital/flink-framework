@@ -1,8 +1,9 @@
 import { promises as fsPromises } from "fs";
-import { JSONSchema7 } from "json-schema";
+import { JSONSchema7, JSONSchema7Definition } from "json-schema";
 import { join } from "path";
 import glob from "tiny-glob";
 import {
+  Config,
   createFormatter,
   createParser,
   Schema,
@@ -30,6 +31,7 @@ import {
   getTypesToImport,
 } from "./TypeScriptUtils";
 import {
+  deRefSchema,
   getCollectionNameForRepo,
   getHttpMethodFromHandlerName,
   getRepoInstanceName,
@@ -508,13 +510,17 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
   }
 
   private initJsonSchemaGenerator() {
-    const formatter = createFormatter({});
-    const parser = createParser(this.project.getProgram().compilerObject, {});
+    const conf: Config = {
+      // expose: "",
+      // topRef: false,
+    };
+    const formatter = createFormatter(conf);
+    const parser = createParser(this.project.getProgram().compilerObject, conf);
     const generator = new SchemaGenerator(
       this.project.getProgram().compilerObject,
       parser,
       formatter,
-      {}
+      conf
     );
 
     return generator;
@@ -695,10 +701,14 @@ ${this.parsedTsSchemas.join("\n\n")}`
       }
 
       const reqJsonSchema = JSON.stringify(
-        reqSchemaType ? jsonSchemaDefs[reqSchemaType] : undefined
+        reqSchemaType
+          ? deRefSchema(jsonSchemaDefs[reqSchemaType], jsonSchemas)
+          : undefined
       );
       const resJsonSchema = JSON.stringify(
-        resSchemaType ? jsonSchemaDefs[resSchemaType] : undefined
+        resSchemaType
+          ? deRefSchema(jsonSchemaDefs[resSchemaType], jsonSchemas)
+          : undefined
       );
 
       sourceFile.addVariableStatement({

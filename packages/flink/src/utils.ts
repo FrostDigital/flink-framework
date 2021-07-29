@@ -1,4 +1,5 @@
 import { Request } from "express";
+import { JSONSchema7, JSONSchema7Definition } from "json-schema";
 import { join, sep } from "path";
 import tinyGlob from "tiny-glob";
 import { HttpMethod } from "./FlinkHttpHandler";
@@ -78,4 +79,42 @@ export function getHttpMethodFromHandlerName(handlerFilename: string) {
   if (handlerFilename.startsWith(HttpMethod.post)) return HttpMethod.post;
   if (handlerFilename.startsWith(HttpMethod.put)) return HttpMethod.put;
   if (handlerFilename.startsWith(HttpMethod.delete)) return HttpMethod.delete;
+}
+
+/**
+ * Recursively iterates thru json schema properties and replaces any $ref
+ * with the actual definiton if it exists withing provided `jsonSchemas`.
+ *
+ * @param schemaToDeRef
+ * @param jsonSchemas
+ * @returns
+ */
+export function deRefSchema(
+  schemaToDeRef: JSONSchema7Definition,
+  jsonSchemas: JSONSchema7
+) {
+  if (typeof schemaToDeRef === "boolean") {
+    return schemaToDeRef;
+  }
+
+  const theSchemaToDeRef = schemaToDeRef as JSONSchema7;
+
+  if (theSchemaToDeRef.properties) {
+    for (const k in theSchemaToDeRef.properties) {
+      const prop = theSchemaToDeRef.properties[k];
+
+      if (typeof prop !== "boolean" && prop.$ref) {
+        const [_0, _1, defKey] = prop.$ref.split("/");
+        const refedSchema = (jsonSchemas.definitions || {})[defKey];
+        if (refedSchema) {
+          theSchemaToDeRef.properties[k] = refedSchema;
+          deRefSchema(refedSchema, jsonSchemas);
+        } else {
+          console.warn(`Failed to find deref ${prop.$ref}`);
+        }
+      }
+    }
+  }
+
+  return theSchemaToDeRef;
 }
