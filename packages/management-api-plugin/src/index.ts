@@ -36,7 +36,7 @@ export const managementApiPlugin = (
       features: [],
     },
     endpoints: [],
-    data : {}
+    data: {},
   };
 
   managementApiModule.endpoints.push({
@@ -117,8 +117,8 @@ export const managementApiPlugin = (
       type: m.type,
       features: m.uiSettings?.features || [],
       title: m.uiSettings?.title || "",
-      data : m.data
-      //endpoints : [],
+      data: m.data,
+      endpoints: [],
     };
     // m.endpoints.forEach((e) => {
     //   let url = options.baseUrl || "/managementapi";
@@ -175,7 +175,7 @@ function init(app: FlinkApp<any>, options: ManagementApiOptions) {
 
   app.addHandler(GetManagement, {
     path: baseUrl,
-    method : HttpMethod.get, 
+    method: HttpMethod.get,
     docs: "Gets information about configured management api",
   });
 

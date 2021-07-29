@@ -103,11 +103,24 @@ export function deRefSchema(
     for (const k in theSchemaToDeRef.properties) {
       const prop = theSchemaToDeRef.properties[k];
 
-      if (typeof prop !== "boolean" && prop.$ref) {
+      if (typeof prop === "boolean") {
+        continue;
+      }
+
+      if (prop.$ref) {
         const [_0, _1, defKey] = prop.$ref.split("/");
         const refedSchema = (jsonSchemas.definitions || {})[defKey];
         if (refedSchema) {
           theSchemaToDeRef.properties[k] = refedSchema;
+          deRefSchema(refedSchema, jsonSchemas);
+        } else {
+          console.warn(`Failed to find deref ${prop.$ref}`);
+        }
+      } else if (prop.type === "array" && (prop.items as JSONSchema7).$ref) {
+        const [_0, _1, defKey] = (prop.items as JSONSchema7).$ref!.split("/");
+        const refedSchema = (jsonSchemas.definitions || {})[defKey];
+        if (refedSchema) {
+          prop.items = refedSchema;
           deRefSchema(refedSchema, jsonSchemas);
         } else {
           console.warn(`Failed to find deref ${prop.$ref}`);

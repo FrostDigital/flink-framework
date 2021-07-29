@@ -11,11 +11,15 @@ describe("Utils", () => {
 
       const schema = dereffedSchema as JSONSchema7;
 
+      console.log(JSON.stringify(schema, null, 2));
       // @ts-ignore
       expect(schema.properties.engine.type).toBe("object");
 
       // @ts-ignore
       expect(schema.properties.model.properties.engine.type).toBe("object");
+
+      // @ts-ignore
+      expect(schema.properties.tires.items.type).toBe("object");
     });
   });
 });
@@ -43,6 +47,12 @@ const jsonSchemas: JSONSchema7 = {
         engine: {
           $ref: "#/definitions/CarEngine",
         },
+        tires: {
+          type: "array",
+          items: {
+            $ref: "#/definitions/Tire",
+          },
+        },
       },
       required: ["model", "engine"],
       additionalProperties: false,
@@ -61,6 +71,16 @@ const jsonSchemas: JSONSchema7 = {
       additionalProperties: false,
     },
     CarEngine: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+        },
+      },
+      required: ["name"],
+      additionalProperties: false,
+    },
+    Tire: {
       type: "object",
       properties: {
         name: {
