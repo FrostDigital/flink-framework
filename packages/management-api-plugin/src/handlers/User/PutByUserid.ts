@@ -26,7 +26,7 @@ const PutUserByUserid: Handler<Ctx, PutUserByUseridReq, PutUserByUseridRes> =
     var model: Partial<ManagementUser> = req.body;
 
     if (model.username != null) {
-      const existingUser = await ctx.repos.managementUserRepo.getOne({
+      const existingUser = await ctx.repos.managementuserRepo.getOne({
         username: model.username,
       });
       if (existingUser != null) {
@@ -44,7 +44,7 @@ const PutUserByUserid: Handler<Ctx, PutUserByUseridReq, PutUserByUseridRes> =
       model.salt = salt;
     }
 
-    const updated = await ctx.repos.managementUserRepo.updateOne(
+    const updated = await ctx.repos.managementuserRepo.updateOne(
       req.params.userid,
       model
     );

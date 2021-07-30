@@ -14,7 +14,7 @@ export const Route: RouteProps = {
 
 const GetUserByUserid: Handler<Ctx, GetUserByUseridReq, GetUserByUseridRes> = async ({ ctx, req }) => {
 
-    const user = await ctx.repos.managementUserRepo.getBydId(req.params.userid)
+    const user = await ctx.repos.managementuserRepo.getBydId(req.params.userid)
     if(user == null){
       return notFound();
     }

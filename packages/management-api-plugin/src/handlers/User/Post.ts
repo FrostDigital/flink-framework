@@ -19,7 +19,7 @@ const PostUser: Handler<Ctx, PostUserReq, PostUserRes, Params> = async ({ ctx, r
     if(req.body.username.length == 0 || req.body.password.length == 0){
       return badRequest("Username and password must be specified");
     }
-    const existingUser = await ctx.repos.managementUserRepo.getOne({ username : req.body.username});
+    const existingUser = await ctx.repos.managementuserRepo.getOne({ username : req.body.username});
     if(existingUser!=null){
       return conflict("Username already taken");
     }
@@ -33,7 +33,7 @@ const PostUser: Handler<Ctx, PostUserReq, PostUserRes, Params> = async ({ ctx, r
       salt : salt
     }
 
-    const user = await ctx.repos.managementUserRepo.create(obj);
+    const user = await ctx.repos.managementuserRepo.create(obj);
 
     return {
       data: GetManagementUserViewModel(user),

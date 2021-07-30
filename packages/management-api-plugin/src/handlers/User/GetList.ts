@@ -9,7 +9,7 @@ type Params = {
 
 const GetUserList: Handler<Ctx, GetUserListReq, GetUserListRes, Params> = async ({ ctx, req }) => {
    
-   const repo = ctx.repos.managementUserRepo;
+   const repo = ctx.repos.managementuserRepo;
    const users =  await repo.findAll();
  
    

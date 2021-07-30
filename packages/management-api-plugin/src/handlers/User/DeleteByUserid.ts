@@ -17,7 +17,7 @@ const DeleteUserByUserid: Handler<
   DeleteUserByUseridReq,
   DeleteUserByUseridRes
 > = async ({ ctx, req }) => {
-  const count = await ctx.repos.managementUserRepo.deleteById(
+  const count = await ctx.repos.managementuserRepo.deleteById(
     req.params.userid
   );
   if (count == 0) {

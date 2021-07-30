@@ -20,7 +20,8 @@ type Params = {};
 
 const PostUserLogin: Handler<Ctx, PostUserLoginReq, PostUserLoginRes, Params> =
   async ({ ctx, req }) => {
-    const user = await ctx.repos.managementUserRepo.getOne({
+  
+    const user = await ctx.repos.managementuserRepo.getOne({
       username: req.body.username,
     });
     if (user == null) {
