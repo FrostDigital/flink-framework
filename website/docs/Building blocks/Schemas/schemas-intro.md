@@ -4,13 +4,21 @@ sidebar_position: 1
 
 # API schemas
 
-Schemas are TypeScript interfaces that declare the shape of requests and responses.
+Schemas are TypeScript interfaces or types that declare the shape of requests and responses.
 
 It is optional to declare schemas but highly recommended as it improves the developer experience and also makes the API self documenting 🎉.
 
-It is recommended that schemas are placed in `/src/schemas`.
+Schemas should be placed in `/src/schemas`.
 
-Handlers sets schemas as generic argument in the `Handler<...>` function. By doing that Flink will make the connection and use that to validate the request and response.
+Handlers declares which schema(s) to use by simply setting type arguments in the `Handler<...>` function. By doing that Flink will make the connection and use that to validate the request and response.
+
+This handler will for example tell Flink that the `Car` schema is used.
+
+```typescript
+const GetCar: GetHandler<Ctx, Car> = async () => {
+  // ...
+};
+```
 
 ## Examples
 

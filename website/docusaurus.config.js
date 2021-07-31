@@ -24,7 +24,7 @@ module.exports = {
           label: "Docs",
         },
         {
-          href: "https://github.com/facebook/docusaurus",
+          href: "https://github.com/FrostDigital/flink-framework",
           label: "GitHub",
           position: "right",
         },
@@ -42,29 +42,29 @@ module.exports = {
             },
           ],
         },
-        {
-          title: "Community",
-          items: [
-            {
-              label: "Stack Overflow",
-              href: "https://stackoverflow.com/questions/tagged/docusaurus",
-            },
-            {
-              label: "Discord",
-              href: "https://discordapp.com/invite/docusaurus",
-            },
-            {
-              label: "Twitter",
-              href: "https://twitter.com/docusaurus",
-            },
-          ],
-        },
+        // {
+        //   title: "Community",
+        //   items: [
+        //     {
+        //       label: "Stack Overflow",
+        //       href: "https://stackoverflow.com/questions/tagged/docusaurus",
+        //     },
+        //     {
+        //       label: "Discord",
+        //       href: "https://discordapp.com/invite/docusaurus",
+        //     },
+        //     {
+        //       label: "Twitter",
+        //       href: "https://twitter.com/docusaurus",
+        //     },
+        //   ],
+        // },
         {
           title: "More",
           items: [
             {
               label: "GitHub",
-              href: "https://github.com/FrostDigital/flink",
+              href: "https://github.com/FrostDigital/flink-framework",
             },
           ],
         },
@@ -79,7 +79,8 @@ module.exports = {
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
           // Please change this to your repo.
-          editUrl: "https://github.com/FrostDigital/flink/edit/master/website/",
+          editUrl:
+            "https://github.com/FrostDigital/flink-framework/edit/main/website/",
           routeBasePath: "/",
         },
         theme: {

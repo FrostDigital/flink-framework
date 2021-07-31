@@ -5,7 +5,7 @@ slug: /
 
 # Introduction
 
-Flink makes it easy to develop simple, yet robust, apps that exposes JSON based HTTP API (REST if you will).
+Flink is a framework to rapidly develop small headless services that exposes JSON based HTTP API (REST if you will).
 
 It is built on top of the following proven technologies:
 

@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # The building blocks of Flink
 
-A Flink app contains these "building blocks":
+A Flink app contains these building blocks:
 
 - [Context](./Context/context-intro) - shared context
 - [Handlers](./Handlers/handlers-intro) - handle HTTP requests
