@@ -228,7 +228,7 @@ export function getTypeMetadata(type: Type<ts.Type>) {
   }
 
   return declaration
-    .getChildrenOfKind(SyntaxKind.PropertySignature)
+    .getDescendantsOfKind(SyntaxKind.PropertySignature)
     .map((prop) => {
       const description = getJsDocComment(
         prop.getLeadingCommentRanges()[0]?.getText() || ""

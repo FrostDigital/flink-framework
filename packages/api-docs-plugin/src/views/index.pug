@@ -14,3 +14,9 @@ html
           h3 Response schema
           pre
             code #{handler.schema.resSchema ? JSON.stringify(handler.schema.resSchema || {}, null, 2) : "n/a"}
+          h3 Query
+          pre
+            code #{handler.queryMetadata ? JSON.stringify(handler.queryMetadata || {}, null, 2) : "n/a"}
+          h3 Params
+          pre
+            code #{handler.paramsMetadata ? JSON.stringify(handler.paramsMetadata || {}, null, 2) : "n/a"}

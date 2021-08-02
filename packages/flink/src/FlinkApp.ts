@@ -14,6 +14,7 @@ import {
   Handler,
   HandlerFile,
   HttpMethod,
+  QueryParamMetadata,
   RouteProps,
 } from "./FlinkHttpHandler";
 import { FlinkPlugin } from "./FlinkPlugin";
@@ -135,10 +136,8 @@ export interface HandlerConfig {
     resSchema?: JSONSchema;
   };
   routeProps: RouteProps;
-  /**
-   * I.e. filename or plugin name that describes where handler origins from
-   */
-  // origin?: string;
+  queryMetadata: QueryParamMetadata[];
+  paramsMetadata: QueryParamMetadata[];
 }
 
 export interface HandlerConfigWithMethod extends HandlerConfig {
@@ -341,6 +340,8 @@ export class FlinkApp<C extends FlinkContext> {
         reqSchema: handler.__schemas?.reqSchema,
         resSchema: handler.__schemas?.resSchema,
       },
+      queryMetadata: handler.__query || [],
+      paramsMetadata: handler.__params || [],
     };
 
     if (handler.__schemas?.reqSchema && !handlerConfig.schema?.reqSchema) {
@@ -511,6 +512,8 @@ export class FlinkApp<C extends FlinkContext> {
             reqSchema: handler.__schemas?.reqSchema,
             resSchema: handler.__schemas?.resSchema,
           },
+          queryMetadata: handler.__query || [],
+          paramsMetadata: handler.__params || [],
         },
         handler.default
       );
