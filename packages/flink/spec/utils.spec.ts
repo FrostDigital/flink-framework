@@ -11,7 +11,6 @@ describe("Utils", () => {
 
       const schema = dereffedSchema as JSONSchema7;
 
-      console.log(JSON.stringify(schema, null, 2));
       // @ts-ignore
       expect(schema.properties.engine.type).toBe("object");
 
@@ -20,6 +19,37 @@ describe("Utils", () => {
 
       // @ts-ignore
       expect(schema.properties.tires.items.type).toBe("object");
+    });
+
+    it("should de-ref json schema which is an array", () => {
+      const dereffedSchema = deRefSchema(
+        jsonSchemas.definitions!.Cars,
+        jsonSchemas
+      );
+
+      const schema = dereffedSchema as JSONSchema7;
+
+      expect(schema.type).toBe("array");
+
+      // @ts-ignore
+      expect(schema.items.type).toBe("object");
+    });
+
+    it("should de-ref json schema which is an array 2", () => {
+      const dereffedSchema = deRefSchema(
+        jsonSchemas.definitions!.Cars2,
+        jsonSchemas
+      );
+
+      const schema = dereffedSchema as JSONSchema7;
+
+      expect(schema.type).toBe("array");
+
+      // @ts-ignore
+      expect(schema.items.type).toBe("object");
+
+      // @ts-ignore
+      expect(schema.items.properties.model.type).toBe("object");
     });
   });
 
@@ -106,179 +136,22 @@ const jsonSchemas: JSONSchema7 = {
       required: ["name"],
       additionalProperties: false,
     },
-    GetCarWithArraySchema_8_ResSchema: {
+    Cars: {
+      type: "array",
+      items: {
+        $ref: "#/definitions/CarModel",
+      },
+    },
+    Cars2: {
       type: "array",
       items: {
         type: "object",
         properties: {
           model: {
-            type: "string",
+            $ref: "#/definitions/CarModel",
           },
         },
-        required: ["model"],
-        additionalProperties: false,
       },
-    },
-    GetCarWithArraySchema2_8_ResSchema: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          car: {
-            type: "object",
-            properties: {
-              model: {
-                type: "string",
-              },
-            },
-            required: ["model"],
-            additionalProperties: false,
-          },
-        },
-        required: ["car"],
-        additionalProperties: false,
-      },
-    },
-    GetCarWithArraySchema3_8_ResSchema: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          car: {
-            type: "object",
-            properties: {
-              model: {
-                type: "string",
-              },
-            },
-            required: ["model"],
-            additionalProperties: false,
-          },
-          year: {
-            type: "number",
-          },
-        },
-        required: ["car", "year"],
-        additionalProperties: false,
-      },
-    },
-    GetCarWithLiteralSchema_8_ResSchema: {
-      type: "object",
-      properties: {
-        car: {
-          type: "object",
-          properties: {
-            model: {
-              type: "string",
-            },
-          },
-          required: ["model"],
-          additionalProperties: false,
-        },
-      },
-      required: ["car"],
-      additionalProperties: false,
-    },
-    GetCarWithLiteralSchema2_8_ResSchema: {
-      type: "object",
-      properties: {
-        car: {
-          type: "object",
-          properties: {
-            nestedCar: {
-              type: "object",
-              properties: {
-                model: {
-                  type: "string",
-                },
-              },
-              required: ["model"],
-              additionalProperties: false,
-            },
-          },
-          required: ["nestedCar"],
-          additionalProperties: false,
-        },
-      },
-      required: ["car"],
-      additionalProperties: false,
-    },
-    GetCarWithSchemaInFile_9_ResSchema: {
-      type: "object",
-      properties: {
-        model: {
-          type: "string",
-        },
-      },
-      required: ["model"],
-      additionalProperties: false,
-    },
-    GetCarWithSchemaInFile2_10_ResSchema: {
-      type: "object",
-      properties: {
-        car: {
-          type: "object",
-          properties: {
-            model: {
-              type: "string",
-            },
-          },
-          required: ["model"],
-          additionalProperties: false,
-        },
-      },
-      required: ["car"],
-      additionalProperties: false,
-    },
-    ManuallyAddedHandler_7_ReqSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        model: {
-          type: "string",
-        },
-      },
-      required: ["model"],
-    },
-    ManuallyAddedHandler2_9_ReqSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        model: {
-          type: "string",
-        },
-      },
-      required: ["model"],
-    },
-    PostCar_8_ReqSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        model: {
-          type: "string",
-        },
-      },
-      required: ["model"],
-    },
-    PostCar_8_ResSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        model: {
-          type: "string",
-        },
-      },
-      required: ["model"],
-    },
-    PutCar_8_ReqSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        model: {
-          type: "string",
-        },
-      },
-      required: ["model"],
     },
   },
 };
