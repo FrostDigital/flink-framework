@@ -123,4 +123,20 @@ export type HandlerFile = {
    * Typescript source file name, is set at compile time by Flink compiler.
    */
   __file?: string;
+
+  /**
+   * Description of query params, is set at compile time by Flink compiler.
+   */
+  __query?: {
+    name: string;
+    description: string;
+  }[];
+
+  /**
+   * Description of path params, is set at compile time by Flink compiler.
+   */
+  __params?: {
+    name: string;
+    description: string;
+  }[];
 };

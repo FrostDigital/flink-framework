@@ -1,5 +1,5 @@
 import { promises as fsPromises } from "fs";
-import { JSONSchema7, JSONSchema7Definition } from "json-schema";
+import { JSONSchema7 } from "json-schema";
 import { join } from "path";
 import glob from "tiny-glob";
 import {
@@ -28,6 +28,7 @@ import {
   addImports,
   getDefaultExport,
   getInterfaceName,
+  getTypeMetadata,
   getTypesToImport,
 } from "./TypeScriptUtils";
 import {
@@ -231,12 +232,6 @@ autoRegisteredHandlers.push(...handlers);
         declarationKind: VariableDeclarationKind.Const,
         isExported: true,
         declarations: [
-          // {
-          //   name: "__schemas",
-          //   initializer: `{ reqSchema: "${
-          //     schemaTypes?.reqSchemaType || ""
-          //   }", resSchema: "${schemaTypes?.resSchemaType || ""}"  }`,
-          // },
           {
             name: "__assumedHttpMethod",
             initializer: `"${assumedHttpMethod || ""}"`,
@@ -244,6 +239,24 @@ autoRegisteredHandlers.push(...handlers);
           {
             name: "__file",
             initializer: `"${sf.getBaseName()}"`,
+          },
+          {
+            name: "__query",
+            initializer: `[${(schemaTypes?.queryMetadata || [])
+              .map(
+                ({ description, name }) =>
+                  `{description: "${description}", name: "${name}"}`
+              )
+              .join(",")}]`,
+          },
+          {
+            name: "__params",
+            initializer: `[${(schemaTypes?.paramsMetadata || [])
+              .map(
+                ({ description, name }) =>
+                  `{description: "${description}", name: "${name}"}`
+              )
+              .join(",")}]`,
           },
         ],
       });
@@ -583,16 +596,22 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
 
     let reqSchema: Type<ts.Type> | undefined;
     let resSchema: Type<ts.Type> | undefined;
+    let params: Type<ts.Type> | undefined;
+    let query: Type<ts.Type> | undefined;
 
     if (handlerType === "Handler") {
-      // `Handler<Ctx, ReqSchema, ResSchema>`
-      // 0 = Ctx, 1 = Req schema, 2 = Res schema
+      // `Handler<Ctx, ReqSchema, ResSchema, Params, Query>`
+      // 0 = Ctx, 1 = Req schema, 2 = Res schema, 3 = Params, 4 = Query
       reqSchema = handlerTypeArgs[1];
       resSchema = handlerTypeArgs[2];
+      params = handlerTypeArgs[3];
+      query = handlerTypeArgs[4];
     } else if (handlerType === "GetHandler") {
-      // `GetHandler<Ctx, ResSchema>`
-      // 0 = Ctx, 1 = Res schema
+      // `GetHandler<Ctx, ResSchema, Params, Query>`
+      // 0 = Ctx, 1 = Res schema, 2 = Params, 3 = Query
       resSchema = handlerTypeArgs[1];
+      params = handlerTypeArgs[2];
+      query = handlerTypeArgs[3];
     } else {
       throw new Error(
         `Unknown handler type ${handlerType} in ${handlerTypeReference
@@ -601,7 +620,6 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
       );
     }
 
-    // TODO: Which source file?
     const sf = handlerTypeReference.getSourceFile();
 
     const createReqSchemaPromise = reqSchema
@@ -611,6 +629,7 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
           `${handlerTypeReference.getStartLineNumber()}_ReqSchema`
         )
       : Promise.resolve("");
+
     const createResSchemaPromise = resSchema
       ? this.saveIntermediateTsSchema(
           resSchema,
@@ -627,6 +646,8 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
     return {
       reqSchemaType,
       resSchemaType,
+      queryMetadata: getTypeMetadata(query),
+      paramsMetadata: getTypeMetadata(params),
     };
   }
 

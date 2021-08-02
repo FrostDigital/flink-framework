@@ -131,3 +131,15 @@ export function deRefSchema(
 
   return theSchemaToDeRef;
 }
+
+export function getJsDocComment(comment: string) {
+  const rows = comment.split("\n").map((line) => {
+    line = line.trim();
+    if (line.startsWith("//")) {
+      return line.replace("//", line).trim();
+    }
+    return line.replace(/\/\*\*|\*\/|\*/, "").trim();
+  });
+
+  return rows.join("\n").trim();
+}
