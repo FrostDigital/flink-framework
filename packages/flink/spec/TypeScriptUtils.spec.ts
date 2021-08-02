@@ -1,5 +1,9 @@
 import { Project, SyntaxKind } from "ts-morph";
-import { addImport, getTypesToImport } from "../src/TypeScriptUtils";
+import {
+  addImport,
+  getTypeMetadata,
+  getTypesToImport,
+} from "../src/TypeScriptUtils";
 
 describe("TypeScriptUtils", () => {
   let project: Project;
@@ -76,6 +80,34 @@ describe("TypeScriptUtils", () => {
 
       expect(typesToImport.length).toBe(1);
       expect(typesToImport[0].getText()).toBe(`import("/Baz").default`);
+    });
+  });
+
+  describe("getTypeMetadata", () => {
+    it("should get type metadata", () => {
+      const sf = project.createSourceFile(
+        "Foo.ts",
+        `
+      interface Foo {
+        /**
+         * This is a comment
+         */
+        name: string;
+
+        propWithoutComment: string;
+      }
+      `
+      );
+
+      const metadata = getTypeMetadata(
+        sf.getFirstChildByKind(SyntaxKind.InterfaceDeclaration)!.getType()
+      );
+
+      expect(metadata.length).toBe(2);
+      expect(metadata[0].name).toBe("name");
+      expect(metadata[0].description).toBe("This is a comment");
+      expect(metadata[1].name).toBe("propWithoutComment");
+      expect(metadata[1].description).toBeFalsy();
     });
   });
 });

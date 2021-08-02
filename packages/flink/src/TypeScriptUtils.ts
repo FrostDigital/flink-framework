@@ -8,6 +8,7 @@ import {
   ts,
   Type,
 } from "ts-morph";
+import { getJsDocComment } from "./utils";
 
 /**
  * Recursively iterates node children to return list of types that is
@@ -203,4 +204,39 @@ export function getInterfaceName(symbol: Symbol) {
   return declaration
     .getFirstChildByKindOrThrow(SyntaxKind.Identifier)
     .getText();
+}
+
+export function getSymbolOrAlias(type: Type<ts.Type>) {
+  return type.getAliasSymbol() || type.getSymbol();
+}
+
+export function getTypeMetadata(type: Type<ts.Type>) {
+  if (["void", "any"].includes(type.getText())) {
+    return [];
+  }
+
+  const symbol = getSymbolOrAlias(type);
+
+  if (!symbol) {
+    throw new Error("Could not get type symbol for type: " + type.getText());
+  }
+
+  const [declaration] = symbol.getDeclarations();
+
+  if (!declaration) {
+    throw new Error("Could not get declaration for type: " + type.getText());
+  }
+
+  return declaration
+    .getDescendantsOfKind(SyntaxKind.PropertySignature)
+    .map((prop) => {
+      const description = getJsDocComment(
+        prop.getLeadingCommentRanges()[0]?.getText() || ""
+      );
+
+      return {
+        description,
+        name: prop.getName(),
+      };
+    });
 }

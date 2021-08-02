@@ -1,5 +1,5 @@
 import { JSONSchema7 } from "json-schema";
-import { deRefSchema } from "../src/utils";
+import { deRefSchema, getJsDocComment } from "../src/utils";
 
 describe("Utils", () => {
   describe("deref", () => {
@@ -20,6 +20,22 @@ describe("Utils", () => {
 
       // @ts-ignore
       expect(schema.properties.tires.items.type).toBe("object");
+    });
+  });
+
+  describe("getJsDocComment", () => {
+    it("should strip comment chars and return string", () => {
+      const comment = `
+/**
+ * Hello world
+ * This is another line
+ * This line contains a * (asterisk)
+ */
+      `;
+
+      expect(getJsDocComment(comment)).toBe(
+        "Hello world\nThis is another line\nThis line contains a * (asterisk)"
+      );
     });
   });
 });

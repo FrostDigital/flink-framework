@@ -2,11 +2,21 @@ import { GetHandler, HttpMethod, RouteProps } from "@flink-app/flink";
 import Car from "../schemas/Car";
 
 export const Route: RouteProps = {
-  path: "/car",
+  path: "/car/:id",
   method: HttpMethod.get,
 };
 
-const GetCar: GetHandler<any, Car> = async ({ ctx, req }) => {
+type Query = {
+  /**
+   * For pagination
+   */
+  page: string;
+};
+
+const GetCar: GetHandler<any, Car, { id: string }, Query> = async ({
+  ctx,
+  req,
+}) => {
   return {
     data: {
       model: "Volvo",

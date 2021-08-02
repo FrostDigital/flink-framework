@@ -34,9 +34,9 @@ module.exports = async function run(args: string[]) {
     entry = entry.startsWith("/") ? entry : "/" + entry;
   }
 
-  const compiler = new TypeScriptCompiler(dir);
-
   await TypeScriptCompiler.clean(dir);
+
+  const compiler = new TypeScriptCompiler(dir);
 
   if (!compiler.getPreEmitDiagnostics()) {
     process.exit(1);

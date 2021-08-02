@@ -82,8 +82,8 @@ export type Handler<
   Ctx extends FlinkContext,
   ReqSchema = any,
   ResSchema = any,
-  P = Params,
-  Q = Query
+  P extends Params = Params,
+  Q extends Query = Query
 > = (props: {
   req: FlinkRequest<ReqSchema, P, Q>;
   ctx: Ctx;
@@ -99,8 +99,8 @@ export type Handler<
 export type GetHandler<
   Ctx extends FlinkContext,
   ResSchema = any,
-  P = Params,
-  Q = Query
+  P extends Params = Params,
+  Q extends Query = Query
 > = Handler<Ctx, any, ResSchema, P, Q>;
 
 /**
@@ -123,4 +123,19 @@ export type HandlerFile = {
    * Typescript source file name, is set at compile time by Flink compiler.
    */
   __file?: string;
+
+  /**
+   * Description of query params, is set at compile time by Flink compiler.
+   */
+  __query?: QueryParamMetadata[];
+
+  /**
+   * Description of path params, is set at compile time by Flink compiler.
+   */
+  __params?: QueryParamMetadata[];
+};
+
+export type QueryParamMetadata = {
+  name: string;
+  description: string;
 };
