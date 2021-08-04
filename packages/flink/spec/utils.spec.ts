@@ -21,6 +21,18 @@ describe("Utils", () => {
       expect(schema.properties.tires.items.type).toBe("object");
     });
 
+    it("should de-ref json schema (nested prop)", () => {
+      const dereffedSchema = deRefSchema(
+        jsonSchemas.definitions!.Login,
+        jsonSchemas
+      );
+
+      const schema = dereffedSchema as JSONSchema7;
+
+      // @ts-ignore
+      expect(schema.properties.user.properties.profile.type).toBe("object");
+    });
+
     it("should de-ref json schema which is an array", () => {
       const dereffedSchema = deRefSchema(
         jsonSchemas.definitions!.Cars,
@@ -152,6 +164,44 @@ const jsonSchemas: JSONSchema7 = {
           },
         },
       },
+    },
+
+    Login: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        status: {
+          type: "string",
+          enum: ["success", "failed", "requiresValidation"],
+        },
+        user: {
+          type: "object",
+          properties: {
+            _id: {
+              type: "string",
+            },
+            username: {
+              type: "string",
+            },
+            token: {
+              type: "string",
+            },
+            profile: {
+              $ref: "#/definitions/UserProfile",
+            },
+          },
+          required: ["_id", "username", "token", "profile"],
+          additionalProperties: false,
+        },
+        validationToken: {
+          type: "string",
+        },
+      },
+      required: ["status"],
+    },
+
+    UserProfile: {
+      type: "object",
     },
   },
 };

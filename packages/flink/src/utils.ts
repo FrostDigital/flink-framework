@@ -141,6 +141,8 @@ export function deRefSchema(
         } else {
           console.warn(`Failed to find deref ${prop.$ref}`);
         }
+      } else if (prop.type === "object") {
+        deRefSchema(prop, jsonSchemas);
       }
     }
   }
