@@ -14,6 +14,9 @@ export enum HttpMethod {
 type Params = Request["params"];
 type Query = Request["query"];
 
+/**
+ * Flink request extends express Request but adds reqId and user object.
+ */
 export type FlinkRequest<T = any, P = Params, Q = Query> = Request<
   P,
   any,
@@ -110,7 +113,7 @@ export type GetHandler<
  * `import * as FooHandler from "./src/handlers/FooHandler"
  */
 export type HandlerFile = {
-  default: Handler<any>;
+  default: Handler<any, any, any, any, any>;
   Route?: RouteProps;
   /**
    * Name of schemas, is set at compile time by Flink compiler.
