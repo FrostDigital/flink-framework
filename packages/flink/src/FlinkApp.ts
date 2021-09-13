@@ -288,7 +288,6 @@ export class FlinkApp<C extends FlinkContext> {
    * Typescript compiler will scan handler function and set schemas
    * which are derived from handler function type arguments.
    */
-  // TODO: Rename to addHandler
   public addHandler(
     handler: HandlerFile,
     routePropsOverride?: Partial<HandlerConfig["routeProps"]>

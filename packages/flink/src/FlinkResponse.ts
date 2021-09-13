@@ -1,4 +1,4 @@
-import express from "express";
+import { Response, Request } from "express";
 
 export interface FlinkResponse<T = any> {
   /**
@@ -43,3 +43,6 @@ export interface FlinkResponse<T = any> {
     [x: string]: string;
   };
 }
+
+export type ExpressResponse = Response;
+export type ExpressRequest = Request;

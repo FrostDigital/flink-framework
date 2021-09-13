@@ -1,4 +1,3 @@
-import { emailPlugin, emailPluginContext } from "@flink-app/email-plugin";
 import {
   badRequest,
   FlinkContext,
@@ -12,19 +11,12 @@ import { UserPasswordResetCompleteReq } from "../schemas/UserPasswordResetComple
 import { UserPasswordResetCompleteRes } from "../schemas/UserPasswordResetCompleteRes";
 
 const postPasswordResetCompleteHandler: Handler<
-  FlinkContext<genericAuthContext & emailPluginContext>,
+  FlinkContext<genericAuthContext>,
   UserPasswordResetCompleteReq,
   UserPasswordResetCompleteRes
 > = async ({ ctx, req, origin }) => {
   let pluginName = origin || "genericAuthPlugin";
   let repo = ctx.repos[(<any>ctx.plugins)[pluginName].repoName];
-
-  const emailPlguin = ctx.plugins.emailPlugin;
-  if (emailPlugin == null) {
-    return internalServerError(
-      "Email plugin have to be initialized to use password-reset"
-    );
-  }
 
   if (ctx.plugins.genericAuthPlugin.passwordResetSettings == null) {
     return internalServerError(
@@ -32,7 +24,7 @@ const postPasswordResetCompleteHandler: Handler<
     );
   }
 
-  const { jwtSecret, numberOfDigits, lifeTime } =
+  const { jwtSecret /*, numberOfDigits, lifeTime*/ } =
     ctx.plugins.genericAuthPlugin.passwordResetSettings.code;
 
   const resp = await ctx.plugins.genericAuthPlugin.passwordResetComplete(

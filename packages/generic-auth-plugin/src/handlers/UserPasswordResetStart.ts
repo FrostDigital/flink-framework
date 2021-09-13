@@ -47,6 +47,7 @@ const postPasswordResetStartHandler: Handler<
 
   const emailCtx = {
     code: resp.code,
+    passwordResetToken: resp.passwordResetToken,
     username: req.body.username,
     profile: resp.profile,
   };
