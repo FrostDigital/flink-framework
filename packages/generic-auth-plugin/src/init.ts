@@ -10,6 +10,7 @@ import { GenericAuthPluginOptions } from "./genericAuthPluginOptions";
 import * as postUserPushRegisterTokenHandler from "./handlers/UserPushRegisterToken";
 import * as postUserRemoveTokenHandler from "./handlers/UserPushRemoveToken";
 import * as getUserTokenHandler from "./handlers/UserToken";
+import { handleUserPasswordResetForm } from "./handlers/UserPasswordResetForm";
 
 export function init(app: FlinkApp<any>, options: GenericAuthPluginOptions) {
   if (options.enableUserCreation == null) options.enableUserCreation = true;
@@ -83,6 +84,17 @@ export function init(app: FlinkApp<any>, options: GenericAuthPluginOptions) {
         docs: "Completes a password reset for a user",
         origin: options.pluginId,
       });
+
+      if (options.passwordResetSettings?.enablePasswordResetForm) {
+        app.expressApp?.get(
+          options.baseUrl + "/password/reset/form",
+          (req, res) =>
+            handleUserPasswordResetForm(req, res, {
+              templateFile: options.passwordResetSettings?.passwordResetForm,
+              completeUrl: options.baseUrl + "/password/reset/complete",
+            })
+        );
+      }
     }
 
     if (options.enablePushNotificationTokens) {
