@@ -432,7 +432,7 @@ export class FlinkApp<C extends FlinkContext> {
           log.warn(
             `Handler '${methodAndRoute}' threw unhandled exception ${err}`
           );
-          return res.status(500).json(internalServerError(err));
+          return res.status(500).json(internalServerError(err as any));
         }
 
         if (schema.resSchema && !isError(handlerRes)) {
