@@ -63,6 +63,25 @@ describe("Utils", () => {
       // @ts-ignore
       expect(schema.items.properties.model.type).toBe("object");
     });
+
+    it("should de-ref complex json schema", () => {
+      const dereffedSchema = deRefSchema(
+        jsonSchemasSet2.definitions!.GetStorages_9_ResSchema,
+        jsonSchemasSet2
+      );
+
+      const schema = dereffedSchema as JSONSchema7;
+
+      expect(schema.type).toBe("object");
+
+      // @ts-ignore
+      expect(schema.properties.storages.type).toBe("array");
+
+      // @ts-ignore
+      expect(schema.properties.storages.items.properties.metadata.type).toBe(
+        "object"
+      );
+    });
   });
 
   describe("getJsDocComment", () => {
@@ -203,5 +222,44 @@ const jsonSchemas: JSONSchema7 = {
     UserProfile: {
       type: "object",
     },
+  },
+};
+
+const jsonSchemasSet2: JSONSchema7 = {
+  // $schema: "http://json-schema.org/draft-07/schema#",
+  // $ref: "#/definitions/Schemas",
+  definitions: {
+    Metadata: {
+      type: "object",
+      properties: {
+        created: { type: "string", format: "date-time" },
+        updated: { type: "string", format: "date-time" },
+      },
+      required: ["created"],
+      additionalProperties: false,
+    },
+
+    GetStorages_9_ResSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        storages: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              _id: { type: "string" },
+              name: { type: "string" },
+              metadata: { $ref: "#/definitions/Metadata" },
+            },
+            required: ["_id", "name", "metadata"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["storages"],
+    },
+
+    UserRole: { type: "string", enum: ["user", "admin", "teamLeader"] },
   },
 };
