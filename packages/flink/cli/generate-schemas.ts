@@ -110,7 +110,7 @@ module.exports = async function run(args: string[]) {
       console.error(
         "Failed to generate schema in file",
         sf.getBaseName() + ":",
-        err.message
+        err
       );
     }
   }

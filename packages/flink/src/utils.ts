@@ -97,27 +97,27 @@ export function deRefSchema(
     return schemaToDeRef;
   }
 
-  const theSchemaToDeRef = schemaToDeRef as JSONSchema7;
-
-  if (theSchemaToDeRef.type === "array") {
-    const items = theSchemaToDeRef.items as JSONSchema7;
+  if (schemaToDeRef.type === "array") {
+    const items = schemaToDeRef.items as JSONSchema7;
 
     if (items.$ref) {
       const [_0, _1, defKey] = items.$ref.split("/");
       const refedSchema = (jsonSchemas.definitions || {})[defKey];
 
       if (refedSchema) {
-        theSchemaToDeRef.items = refedSchema as JSONSchema7;
-        deRefSchema(refedSchema, jsonSchemas);
+        schemaToDeRef.items = deRefSchema(refedSchema, jsonSchemas);
       } else {
         console.warn(`Failed to find deref ${schemaToDeRef.$ref}`);
       }
     } else {
-      deRefSchema(items, jsonSchemas);
+      schemaToDeRef.items = deRefSchema(
+        schemaToDeRef.items as JSONSchema7,
+        jsonSchemas
+      );
     }
-  } else if (theSchemaToDeRef.properties) {
-    for (const k in theSchemaToDeRef.properties) {
-      const prop = theSchemaToDeRef.properties[k];
+  } else if (schemaToDeRef.properties) {
+    for (const k in schemaToDeRef.properties) {
+      let prop = schemaToDeRef.properties[k];
 
       if (typeof prop === "boolean") {
         continue;
@@ -127,8 +127,7 @@ export function deRefSchema(
         const [_0, _1, defKey] = prop.$ref.split("/");
         const refedSchema = (jsonSchemas.definitions || {})[defKey];
         if (refedSchema) {
-          theSchemaToDeRef.properties[k] = refedSchema;
-          deRefSchema(refedSchema, jsonSchemas);
+          schemaToDeRef.properties[k] = deRefSchema(refedSchema, jsonSchemas);
         } else {
           console.warn(`Failed to find deref ${prop.$ref}`);
         }
@@ -136,18 +135,19 @@ export function deRefSchema(
         const [_0, _1, defKey] = (prop.items as JSONSchema7).$ref!.split("/");
         const refedSchema = (jsonSchemas.definitions || {})[defKey];
         if (refedSchema) {
-          prop.items = refedSchema;
-          deRefSchema(refedSchema, jsonSchemas);
+          (schemaToDeRef.properties[k] as JSONSchema7).items = deRefSchema(
+            refedSchema,
+            jsonSchemas
+          );
         } else {
           console.warn(`Failed to find deref ${prop.$ref}`);
         }
-      } else if (prop.type === "object") {
-        deRefSchema(prop, jsonSchemas);
+      } else if (prop.type === "object" || prop.type === "array") {
+        schemaToDeRef.properties[k] = deRefSchema(prop, jsonSchemas);
       }
     }
   }
-
-  return theSchemaToDeRef;
+  return schemaToDeRef;
 }
 
 export function getJsDocComment(comment: string) {
