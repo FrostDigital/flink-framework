@@ -11,12 +11,12 @@ It is built on top of the following proven technologies:
 
 - Express
 - MongoDB
-- TypeScript (yes, you must use [TypeScript](./typescript))
+- TypeScript
 - JSON schemas
 
 Compared to a vanilla Express app the main difference is that Flink is much more opinionated in terms of conventions and tech stack.
 
-In fact, Flink will even dictate where in folder structure you must put your source files. It will also analyse source files during build/compile time to derive metadata which otherwise is not possible.
+In fact, Flink will even dictate where in folder structure you must put your source files. It will also analyse source files during build/compile time to derive metadata which otherwise is [lost](https://stackoverflow.com/questions/44078205/how-to-check-the-object-type-on-runtime-in-typescript) during the TypeScript build process.
 
 All with the goal to make the developer experience as smooth as possible.
 

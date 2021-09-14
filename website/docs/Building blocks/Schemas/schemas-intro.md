@@ -10,7 +10,7 @@ It is optional to declare schemas but highly recommended as it improves the deve
 
 Schemas should be placed in `/src/schemas`.
 
-Handlers declares which schema(s) to use by simply setting type arguments in the `Handler<...>` function. By doing that Flink will make the connection and use that to validate the request and response.
+Handlers declares which schema(s) to use by simply setting type arguments in the `Handler<...>` function. By doing so Flink compiler will make the connection and use that to validate the request and response.
 
 This handler will for example tell Flink that the `Car` schema is used.
 
@@ -36,4 +36,4 @@ Note that any comments on interface or field level will be used as `description`
 
 ## What about JSON schemas?
 
-Flink will during build compile schemas and convert them from TypeScript interfaces into JSON schemas. For that we are using the awesome [ts-json-schema-generator](https://github.com/vega/ts-json-schema-generator) library.
+Flink will during build compile schemas and convert them from TypeScript types and interfaces into JSON schemas. For that we are using the awesome [ts-json-schema-generator](https://github.com/vega/ts-json-schema-generator) library to do the heavy lifting.
