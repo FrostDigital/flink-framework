@@ -23,4 +23,25 @@ export type email = {
    * Subject of email
    */
   subject: string;
+
+  /**
+   * attached file object
+   */
+  attachments?: AttachmentObject[];
+
 } & ({ text: string } | { html: string });
+
+
+interface AttachmentObject {
+
+  /**
+   * base64 encoded string
+   */
+  content: string,
+
+  filename: string,
+
+  type: string,
+
+  disposition: string
+}
