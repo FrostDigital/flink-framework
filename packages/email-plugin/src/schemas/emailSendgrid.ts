@@ -41,8 +41,8 @@ interface Attachment {
 
   filename: string,
 
-  type: string,
+  type?: string,
 
-  disposition: string,
+  disposition?: string,
 
 } 
