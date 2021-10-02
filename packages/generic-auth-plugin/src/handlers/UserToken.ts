@@ -14,7 +14,7 @@ const getUserTokenHandler: Handler<
   let pluginName = origin || "genericAuthPlugin";
   let repo = ctx.repos[(<any>ctx.plugins)[pluginName].repoName];
 
-  const user = await repo.getBydId(req.user._id);
+  const user = await repo.getById(req.user._id);
   if (user == null) {
     return notFound("User not found");
   }

@@ -11,7 +11,7 @@ const putUserProfileHandler: Handler<
   let repo = ctx.repos[(<any>ctx.plugins)[pluginName].repoName];
 
   let userId = req.user._id;
-  let user = await repo.getBydId(userId);
+  let user = await repo.getById(userId);
   if (user == null) {
     return notFound();
   }
@@ -19,7 +19,7 @@ const putUserProfileHandler: Handler<
   user.profile = req.body;
   await repo.updateOne(userId, { profile: req.body });
 
-  user = await repo.getBydId(userId);
+  user = await repo.getById(userId);
 
   return {
     data: user.profile,
