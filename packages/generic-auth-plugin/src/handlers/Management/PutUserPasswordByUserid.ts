@@ -11,7 +11,7 @@ const PutManagementUserPasswordByUserid: Handler<
   let pluginName = origin || "genericAuthPlugin";
   let repo = ctx.repos[(<any>ctx.plugins)[pluginName].repoName];
 
-  const user = await repo.getBydId(req.params.userid);
+  const user = await repo.getById(req.params.userid);
   if (user == null) {
     return notFound();
   }

@@ -10,7 +10,7 @@ const getProfileHandler: Handler<
   let repo = ctx.repos[(<any>ctx.plugins)[pluginName].repoName];
 
   let userId = req.user._id;
-  let user = await repo.getBydId(userId);
+  let user = await repo.getById(userId);
   if (user == null) {
     return notFound();
   }

@@ -23,14 +23,13 @@ export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
     return this.collection.find(query).toArray();
   }
 
-  async getBydId(id: string): Promise<Model | null> {
+  async getById(id: string): Promise<Model | null> {
     return this.collection.findOne({ _id: new ObjectID(id) });
   }
 
-
   async getOne(query = {}): Promise<Model | null> {
     return this.collection.findOne(query);
-  }  
+  }
 
   async create<C = Omit<Model, "_id">>(model: C): Promise<C & { _id: string }> {
     const { ops } = await this.collection.insertOne(model);
