@@ -1,0 +1,7 @@
+{
+  "watch": ["src", "spec"],
+  "ext": "ts,json",
+  "watchOptions": {
+    "followSymlinks": false
+  }
+}
