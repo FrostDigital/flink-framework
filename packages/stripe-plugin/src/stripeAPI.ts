@@ -8,9 +8,12 @@ import { confirmPayment, createPaymentIntent } from "./lib/payment";
 import { confirmPaymentOptions } from "./schemas/payment/confirmPaymentOptions";
 import { confirmPaymentResponse } from "./schemas/payment/confirmPaymentResponse";
 import { createPaymentResponse } from "./schemas/payment/createPaymentResponse";
+import ConnectSessionRepo from "./reposx/ConnectSessionRepo";
+import { connectToStripeConnectOptions } from "./schemas/customer/connectToStripeConnectOptions";
 export class StripeAPI {
     stripe: Stripe;
     pluginOptions: stripePluginOptions;
+    repo?: ConnectSessionRepo;
     constructor(options: stripePluginOptions) {
         const stripe = new Stripe(options.stripeSecreteKey, {
             apiVersion: "2020-08-27",
@@ -19,6 +22,12 @@ export class StripeAPI {
         this.stripe = stripe;
         this.pluginOptions = options;
     }
+    config = {
+        setRepo: (repo: ConnectSessionRepo): void => {
+            this.repo = repo;
+        },
+    };
+
     payment = {
         create: async (options: Stripe.PaymentIntentCreateParams): Promise<createPaymentResponse> => {
             let resp = await createPaymentIntent(this.stripe, this.pluginOptions.JTW_TOKEN, options);
@@ -54,6 +63,14 @@ export class StripeAPI {
                 token,
                 redirectUrl: `${this.pluginOptions.baseUrl || "/stripe"}/customer/setup-card/${token}`,
             };
+        },
+        connectToStripeConnect: async (options: connectToStripeConnectOptions): Promise<string> => {
+            if (this.repo == null) {
+                throw "Repo not set, cannot use connectToStripeConnect()";
+            }
+            const session = await this.repo!.create(options);
+            const url = "https://connect.stripe.com/express/oauth/authorize?client_id=" + this.pluginOptions.stripeConnectClientID + "&state=" + session._id;
+            return url;
         },
     };
 }

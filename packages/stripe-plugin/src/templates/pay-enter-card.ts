@@ -1,4 +1,4 @@
-export const paySelectCardTemplate = `
+export const payEnterCardTemplate = `
 
 {{#if logo}}
     <div id="logo-image-holder">
@@ -7,29 +7,23 @@ export const paySelectCardTemplate = `
 {{/if}}
 
 
-<div id="payment-price">
-    {{price}}
-</div>
-{{#if description}}
-    <div id="payment-description">
-        {{description}}
-    </div>
-{{/if}}
-
 
 <div id="card-container">
-    <div id="existing-card">
-        <div id="existing-card-brand"><i class="fab fa-cc-{{card.brand}}"></i></div>
-        <div id="existing-card-number">XXXX-XXXX-XXXX-{{card.last4}}</div>
+
+    <div id="card-element">
+    <!-- Elements will create input elements here -->
     </div>
+
     <div id="card-errors" role="alert"></div>
+
     <div id="card-submit">
-        {{paymentSelectCardPayButtonText}}
+        {{paymentEnterCardPayButtonText}}
     </div>
-    <div id="card-change">
-        {{paymentSelectCardChangeCardButtonText}}
-    </div>         
+
+
+
 </div>
+
 
 <div id="loading_container">
     <div id="loading">
@@ -39,20 +33,42 @@ export const paySelectCardTemplate = `
 
 
 <script>
-$("#loading_container").hide();
-
 var stripe = Stripe('{{publishableKey}}');
+var elements = stripe.elements();
 
-$("#card-change").click(function(){
-    document.location='{{baseUrl}}/payment/enter-card/{{token}}'
+var style = {
+    base: {
+        color: "#32325d",
+    }
+};
+
+var card = elements.create("card", { style: style });
+card.mount("#card-element");      
+card.on('ready',function(){
+    $("#loading_container").hide();
 })
+
+
+
+card.addEventListener('change', function(event) {
+    if (event.error) {
+        $("#card-errors").text(event.error.message)
+        $("#card-errors").show();
+    } else {
+        $("#card-errors").text('')
+        $("#card-errors").hide();
+        
+    }
+});
+
 
 
 $("#card-submit").click(function(){
     $("#card-errors").hide();
     $("#loading_container").show();
     stripe.confirmCardPayment('{{client_secrect}}', {
-        payment_method: '{{paymentMethodId}}',
+        payment_method: { card: card  },
+        setup_future_usage: 'off_session'
     }).then(function(result) {
         if(result.error!=null){
             $("#card-errors").text(result.error.message)
@@ -60,10 +76,10 @@ $("#card-submit").click(function(){
             $("#loading_container").hide();
             return;
         }
+
         if(result.paymentIntent != null){
-            document.location = "{{baseUrl}}/payment/done/{{token}}"
+            document.location = "{{baseUrl}}/payment/done/{{token}}";
         }
-        console.log(result)
     });
 })
 

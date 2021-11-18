@@ -1,12 +1,12 @@
 export const styleTemplate = `
     body{
         font-family: 'Open Sans';
-        background-color:{{Colors.background}};
-        color:##Colors.text##;
+        background-color:#fff;
+        color:#000
     }
     #loading_container{
         background-color:rgba(255,255,255,0.6);
-        color:{{Colors.info}};
+        color:#000;
         position: fixed;
         left:0px;
         right:0px;
@@ -49,7 +49,7 @@ export const styleTemplate = `
         text-align: center;
         padding: 20px;
         color: #fff;
-        background-color: #044f26;
+        background-color: #000;
         box-shadow: 0px 5px 16px -2px rgba(0,0,0,0.25);
         border-radius: 5px;
     }            
@@ -65,7 +65,7 @@ export const styleTemplate = `
         font-size : 48px,
         text-align : center,
         margin-bottom : 20px,
-        color : #054f26
+        color : #000
 
     }
     #payment-amount-description-container{
@@ -88,9 +88,48 @@ export const styleTemplate = `
         
     }
     #sucess_message{
-        color:##Colors.text##;
+        color:#000;
         font-size:20px;
         margin-top:10px;
     }
+
+    #existing-card{
+        background-color: #fff;
+        border-radius: 10px;
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    #existing-card-brand{
+        font-size: 46px;
+        color : #171531;
+        flex:1
+    }
+    #existing-card-number{
+        color: #171531;
+    }            
+    
+    #card-change{
+        margin-top: 20px;
+        text-align: center;
+        padding: 20px;
+        color: #fff;
+        background-color: #000;
+        box-shadow: 0px 5px 16px -2px rgba(0,0,0,0.25);
+        border-radius: 5px;
+    }
+
+
+    #payment-price{
+        text-align: center;
+        font-size: 32px;
+    }
+
+    #payment-description{
+        text-align: center;
+        font-style: italic;
+    }
+  
+
 
 `;
