@@ -5,7 +5,7 @@ import ManagementUserRepo from "./repos/ManagementUserRepo";
 
 export interface Ctx extends FlinkContext<managementApiContext>{
     repos : {
-        managementUserRepo : ManagementUserRepo;
+        managementuserRepo : ManagementUserRepo;
     };
 
 

@@ -1,14 +1,13 @@
 {
   "name": "@flink-app/management-api-plugin",
-  "version": "0.2.0-alpha.36",
+  "version": "0.2.0-beta.15",
   "description": "Flink plugin that makes it possible to expose management api:s for other plugins",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
-    "prepublish": "npm run flink:generate && tsc",
-    "watch": "npm run flink:generate && tsc-watch",
-    "prestart": "npm run flink:generate",
-    "pretest": "npm run flink:generate",
-    "flink:generate": "flink generate-schema"
+    "build": "flink build",
+    "prepublish": "npm run build",
+    "watch": "nodemon --exec \"flink build\"",
+    "postinstall": "flink generate-schemas"
   },
   "author": "johan@frost.se",
   "publishConfig": {
@@ -24,7 +23,7 @@
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.2.0-alpha.36",
+    "@flink-app/flink": "^0.2.0-beta.15",
     "@types/bcrypt": "^5.0.0",
     "@types/express": "4.17.11",
     "@types/express-fileupload": "^1.1.7",
@@ -33,5 +32,5 @@
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4"
   },
-  "gitHead": "30288a4d5210ff164a418a016715750daca16b5c"
+  "gitHead": "c8fde9f75a276c70273cb76fbf1ae6cac5c9c77f"
 }

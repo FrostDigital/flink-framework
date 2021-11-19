@@ -49,14 +49,12 @@ export async function createApp({
     version: "0.1.0",
     private: true,
     scripts: {
-      dev: "nodemon",
-      test: "jasmine-ts --preserve-symlinks",
-      "test:watch": "nodemon --exec jasmine-ts",
-      start:
-        "node --preserve-symlinks -r ts-node/register -- src/index.ts --project tsconfig.json",
-      prestart: "npm run flink:generate",
-      pretest: "npm run flink:generate",
-      "flink:generate": "flink generate",
+      dev: 'nodemon --exec "flink run"',
+      test: "flink run --entry spec/support/runner.ts",
+      "test:watch": 'nodemon --exec "flink run --entry spec/support/runner.ts"',
+      start: "flink run",
+      build: "flink build",
+      clean: "flink clean && rimraf dist",
     },
   };
   fs.writeFileSync(
@@ -67,18 +65,16 @@ export async function createApp({
   console.log(`Installing dependencies using npm...`);
   console.log();
 
-  await install(["@flink-app/flink", "mongodb"]);
+  await install(["@flink-app/flink"]);
   await install(
     [
       "typescript@4.2.3",
-      "ts-node",
       "nodemon",
       "jasmine",
-      "jasmine-ts",
       "@types/jasmine",
       "jasmine-spec-reporter",
       "@flink-app/test-utils",
-      "@types/mongodb",
+      "rimraf",
     ],
     true
   );

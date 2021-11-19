@@ -1,14 +1,12 @@
 {
   "name": "@flink-app/generic-auth-plugin",
-  "version": "0.2.0-alpha.37",
+  "version": "0.2.0-beta.15",
   "description": "Flink plugin that provides a generic user authentification solution.",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
-    "prepublish": "npm run flink:generate && tsc",
-    "watch": "npm run flink:generate && tsc-watch",
-    "prestart": "npm run flink:generate",
-    "pretest": "npm run flink:generate",
-    "flink:generate": "flink generate-schema"
+    "build": "flink build",
+    "prepublish": "npm run build",
+    "watch": "nodemon --exec \"flink build\""
   },
   "author": "johan@frost.se",
   "publishConfig": {
@@ -18,17 +16,18 @@
   "types": "dist/src/index.d.ts",
   "main": "dist/src/index.js",
   "dependencies": {
-    "@flink-app/email-plugin": "^0.2.0-alpha.36",
-    "@flink-app/jwt-auth-plugin": "^0.2.0-alpha.36",
-    "@flink-app/management-api-plugin": "^0.2.0-alpha.36",
+    "@flink-app/email-plugin": "^0.2.0-beta.15",
+    "@flink-app/jwt-auth-plugin": "^0.2.0-beta.15",
+    "@flink-app/management-api-plugin": "^0.2.0-beta.15",
     "handlebars": "^4.7.7",
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.2.0-alpha.36",
+    "@flink-app/flink": "^0.2.0-beta.15",
     "@types/jsonwebtoken": "^8.5.2",
     "@types/node": "^15.6.2",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4"
-  }
+  },
+  "gitHead": "c8fde9f75a276c70273cb76fbf1ae6cac5c9c77f"
 }

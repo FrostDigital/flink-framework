@@ -1,15 +1,19 @@
 #!/usr/bin/env node
 
-import { log } from "../src";
-
-const commands = ["generate", "generate-schema"];
-log.setLevel("debug");
+const commands = [
+  "build",
+  "generate" /* 'generate' is alias for 'build'   */,
+  "run",
+  "clean",
+  "generate-schemas",
+  "help",
+];
 
 const argv = process.argv.slice(2);
-const argCommand = argv[0];
+let argCommand = argv[0];
 
-if (!argCommand) {
-  console.log(`flink [${commands.join("|")}]`);
+if (!argCommand || argv[0] === "help") {
+  console.log(`Usage: flink [${commands.join("|")}]`);
   process.exit();
 }
 
@@ -18,10 +22,12 @@ if (!commands.includes(argv[0])) {
   process.exit(1);
 }
 
-import("../cli/" + argCommand)
-  .then((i) => i.run())
-  .catch((err) => {
-    console.log(err);
-  });
+if (argCommand === "generate") {
+  argCommand = "build";
+}
+
+const cmd = require("../cli/" + argCommand);
+
+cmd(argv.slice(1));
 
 export default () => {};

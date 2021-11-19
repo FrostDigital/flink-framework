@@ -1,3 +1,1 @@
-export interface GetManagementReq{
-
-}
+export interface GetManagementReq {}

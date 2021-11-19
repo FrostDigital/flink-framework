@@ -1,16 +1,17 @@
-import { FlinkApp } from "@flink-app/flink";
+import { FlinkApp, HttpMethod } from "@flink-app/flink";
 import { jwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 import * as testUtils from "@flink-app/test-utils";
-import { join } from "path";
+import * as NonAutoRegisteredHandler from "../src/handlers/NonAutoRegisteredHandler";
 import CarListRes from "../src/schemas/CarListRes";
 
 describe("Integration tests", () => {
+  let flinkApp: FlinkApp<any>;
+
   beforeAll(async () => {
-    const flinkApp = new FlinkApp<any>({
+    flinkApp = await new FlinkApp<any>({
       port: 3335,
       name: "Test app",
       debug: true,
-      loader: (file: any) => import(join("..", "src", file)),
       auth: jwtAuthPlugin({
         secret: "123",
         getUser: async (id) => {
@@ -22,11 +23,15 @@ describe("Integration tests", () => {
           admin: ["*"],
         },
       }),
-    });
+    }).start();
 
-    await flinkApp.start();
+    flinkApp.addHandler(NonAutoRegisteredHandler, { method: HttpMethod.get });
 
     testUtils.init(flinkApp);
+  });
+
+  it("should register routes", () => {
+    expect(flinkApp.getRegisteredRoutes().length).toBe(12);
   });
 
   it("should get 404", async () => {
@@ -135,7 +140,5 @@ describe("Integration tests", () => {
 
       expect(res.status).toBe(401);
     });
-
-    it("should allow access when user has correct permissions", () => {});
   });
 });

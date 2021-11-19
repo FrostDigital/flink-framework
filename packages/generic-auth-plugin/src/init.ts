@@ -1,206 +1,120 @@
 import { FlinkApp, HttpMethod } from "@flink-app/flink";
-import schemas from "../.flink/schemas.json";
-import { userLoginHandler } from "./handlers/UserLogin";
-import { userCreateHandler } from "./handlers/UserCreate";
-import { getProfileHandler } from "./handlers/UserProfileGet";
-import { putUserProfileHandler } from "./handlers/UserProfilePut"; 
-import { putUserPasswordHandler } from "./handlers/UserPasswordPut"
-import { postPasswordResetStartHandler} from "./handlers/UserPasswordResetStart"
-import { postPasswordResetCompleteHandler } from "./handlers/UserPasswordResetComplete";
-import { genericAuthPluginOptions } from "./genericAuthPluginOptions";
-import { postUserPushRegisterTokenHandler} from "./handlers/UserPushRegisterToken"
-import { postUserRemoveTokenHandler } from "./handlers/UserPushRemoveToken"
-import { getUserTokenHandler } from "./handlers/UserToken"
+import * as userLoginHandler from "./handlers/UserLogin";
+import * as userCreateHandler from "./handlers/UserCreate";
+import * as getProfileHandler from "./handlers/UserProfileGet";
+import * as putUserProfileHandler from "./handlers/UserProfilePut";
+import * as putUserPasswordHandler from "./handlers/UserPasswordPut";
+import * as postPasswordResetStartHandler from "./handlers/UserPasswordResetStart";
+import * as postPasswordResetCompleteHandler from "./handlers/UserPasswordResetComplete";
+import { GenericAuthPluginOptions } from "./genericAuthPluginOptions";
+import * as postUserPushRegisterTokenHandler from "./handlers/UserPushRegisterToken";
+import * as postUserRemoveTokenHandler from "./handlers/UserPushRemoveToken";
+import * as getUserTokenHandler from "./handlers/UserToken";
+import { handleUserPasswordResetForm } from "./handlers/UserPasswordResetForm";
 
-export function init(app: FlinkApp<any>, options: genericAuthPluginOptions) {
+export function init(app: FlinkApp<any>, options: GenericAuthPluginOptions) {
+  if (options.enableUserCreation == null) options.enableUserCreation = true;
+  if (options.enableProfileUpdate == null) options.enableProfileUpdate = true;
+  if (options.enablePasswordUpdate == null) options.enablePasswordUpdate = true;
+  if (options.baseUrl == null) options.baseUrl = "/user";
 
-
-    if(options.enableUserCreation == null) options.enableUserCreation = true; 
-    if(options.enableProfileUpdate == null) options.enableProfileUpdate = true;
-    if(options.enablePasswordUpdate == null) options.enablePasswordUpdate = true;
-    if(options.baseUrl == null) options.baseUrl = "/user"
-    if(options.enableRoutes){
-
-        app.addHandler({
-                routeProps: {
-                method: HttpMethod.post,
-                path: options.baseUrl  + "/login",
-                docs: "Authenticates a user",
-                },
-                schema: {
-                reqSchema: schemas.UserLoginReq,
-                resSchema: schemas.UserLoginRes,
-                },
-                origin : options.pluginId,
-            },
-            userLoginHandler
-        );
-        if(options.enableUserCreation){
-            app.addHandler({
-                    routeProps: {
-                    method: HttpMethod.post,
-                    path: options.baseUrl  + "/create",
-                    docs: "Creates a new user",
-                    },
-                    schema: {
-                    reqSchema: schemas.UserCreateReq,
-                    resSchema: schemas.UserCreateRes,
-                    },
-                    origin : options.pluginId,
-                },
-                userCreateHandler
-            );
-        }
-
-        app.addHandler({
-                routeProps: {
-                    method: HttpMethod.get,
-                    path: options.baseUrl  + "/profile",
-                    docs: "Gets the user profile",
-                    permissions : "authenticated"
-                },
-                schema: {
-                    resSchema: schemas.UserProfile,
-                },
-                origin : options.pluginId
-            },
-            getProfileHandler
-
-        );
-
-
-        app.addHandler({
-            routeProps: {
-                method: HttpMethod.get,
-                path: options.baseUrl  + "/token",
-                docs: "Gets a refreshed token for the user",
-                permissions : "authenticated"
-            },
-            schema: {
-                resSchema: schemas.UserTokenRes
-            },
-            origin : options.pluginId
-        },
-        getUserTokenHandler
-
-    );        
-
-        if(options.enableProfileUpdate){
-            app.addHandler({
-                    routeProps: {
-                        method: HttpMethod.put,
-                        path: options.baseUrl  + "/profile",
-                        docs: "Updates the user profile",
-                        permissions : "authenticated"
-                    },
-                    schema: {
-                        reqSchema: schemas.UserProfile,
-                        resSchema: schemas.UserProfile,
-                    },
-                    origin : options.pluginId
-                },
-                putUserProfileHandler
-            ); 
-        }  
-
-
-        
-        if(options.enablePasswordUpdate){
-            app.addHandler({
-                    routeProps: {
-                        method: HttpMethod.put,
-                        path: options.baseUrl  + "/password",
-                        docs: "Updates the user password",
-                        permissions : "authenticated"
-                    },
-                    schema: {
-                        reqSchema: schemas.UserPasswordChangeReq,
-                        resSchema: schemas.UserPasswordChangeRes,
-                    },
-                    origin : options.pluginId
-                },
-                putUserPasswordHandler
-            );   
-        }
-
-
-        if(options.enablePasswordReset){
-
-            app.addHandler({
-                    routeProps: {
-                    method: HttpMethod.post,
-                    path: options.baseUrl  + "/password/reset",
-                    docs: "Start the password reset process for a user",
-                    },
-                    schema: {
-                    reqSchema: schemas.UserPasswordResetStartReq,
-                    resSchema: schemas.UserPasswordResetStartRes,
-                    },
-                    origin : options.pluginId
-                },
-                postPasswordResetStartHandler
-            );
-            
-
-            app.addHandler({
-                    routeProps: {
-                    method: HttpMethod.post,
-                    path: options.baseUrl  + "/password/reset/complete",
-                    docs: "Completes a password reset for a user",
-                    },
-                    schema: {
-                    reqSchema: schemas.UserPasswordResetCompleteReq,
-                    resSchema: schemas.UserPasswordResetCompleteRes,
-                    },
-                    origin : options.pluginId
-                },
-                postPasswordResetCompleteHandler
-            );
-            
-        }
-
-
-        if(options.enablePushNotificationTokens){
-
-            app.addHandler({
-                    routeProps: {
-                        method: HttpMethod.post,
-                        path: options.baseUrl  + "/push",
-                        docs: "Register a push notification on current user",
-                        permissions : "authenticated"
-                    },
-                    schema: {
-                        reqSchema: schemas.PushNotificationToken,
-                        resSchema: schemas.PushNotificatioNTokenRes,
-                    },
-                    origin : options.pluginId
-                },
-                postUserPushRegisterTokenHandler
-            );   
-
-
-            app.addHandler({
-                routeProps: {
-                    method: HttpMethod.delete,
-                    path: options.baseUrl  + "/push",
-                    docs: "Removes a push notification token from current user",
-                    permissions : "authenticated"
-                },
-                schema: {
-                    reqSchema: schemas.PushNotificationToken,
-                    resSchema: schemas.PushNotificatioNTokenRes,
-                },
-                origin : options.pluginId
-            },
-            postUserRemoveTokenHandler
-        );  
-
-        }
+  if (options.enableRoutes) {
+    app.addHandler(userLoginHandler, {
+      method: HttpMethod.post,
+      path: options.baseUrl + "/login",
+      docs: "Authenticates a user",
+      origin: options.pluginId,
+    });
+    if (options.enableUserCreation) {
+      app.addHandler(userCreateHandler, {
+        method: HttpMethod.post,
+        path: options.baseUrl + "/create",
+        docs: "Creates a new user",
+        origin: options.pluginId,
+      });
     }
 
+    app.addHandler(getProfileHandler, {
+      method: HttpMethod.get,
+      path: options.baseUrl + "/profile",
+      docs: "Gets the user profile",
+      permissions: "authenticated",
+      origin: options.pluginId,
+    });
 
+    app.addHandler(getUserTokenHandler, {
+      method: HttpMethod.get,
+      path: options.baseUrl + "/token",
+      docs: "Gets a refreshed token for the user",
+      permissions: "authenticated",
+      origin: options.pluginId,
+    });
 
+    if (options.enableProfileUpdate) {
+      app.addHandler(putUserProfileHandler, {
+        method: HttpMethod.put,
+        path: options.baseUrl + "/profile",
+        docs: "Updates the user profile",
+        permissions: "authenticated",
+        origin: options.pluginId,
+      });
+    }
 
-}  
+    if (options.enablePasswordUpdate) {
+      app.addHandler(putUserPasswordHandler, {
+        method: HttpMethod.put,
+        path: options.baseUrl + "/password",
+        docs: "Updates the user password",
+        permissions: "authenticated",
+        origin: options.pluginId,
+      });
+    }
+
+    if (options.enablePasswordReset) {
+      app.addHandler(postPasswordResetStartHandler, {
+        method: HttpMethod.post,
+        path: options.baseUrl + "/password/reset",
+        docs: "Start the password reset process for a user",
+        origin: options.pluginId,
+      });
+
+      app.addHandler(postPasswordResetCompleteHandler, {
+        method: HttpMethod.post,
+        path: options.baseUrl + "/password/reset/complete",
+        docs: "Completes a password reset for a user",
+        origin: options.pluginId,
+      });
+
+      if (options.passwordResetSettings?.enablePasswordResetForm) {
+        app.expressApp?.get(
+          options.baseUrl + "/password/reset/form",
+          (req, res) =>
+            handleUserPasswordResetForm(req, res, {
+              templateFile: options.passwordResetSettings?.passwordResetForm,
+              completeUrl: options.baseUrl + "/password/reset/complete",
+            })
+        );
+      }
+    }
+
+    if (options.enablePushNotificationTokens) {
+      app.addHandler(postUserPushRegisterTokenHandler, {
+        method: HttpMethod.post,
+        path: options.baseUrl + "/push",
+        docs: "Register a push notification on current user",
+        permissions: "authenticated",
+        origin: options.pluginId,
+      });
+
+      app.addHandler(postUserRemoveTokenHandler, {
+        method: HttpMethod.delete,
+        path: options.baseUrl + "/push",
+        docs: "Removes a push notification token from current user",
+        permissions: "authenticated",
+        origin: options.pluginId,
+      });
+    }
+  }
+}
 
 export {};

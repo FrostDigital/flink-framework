@@ -1,0 +1,10 @@
+{
+  "name": "flink-test-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {},
+  "dependencies": {
+    "@flink-app/flink": "../../"
+  },
+  "devDependencies": {}
+}

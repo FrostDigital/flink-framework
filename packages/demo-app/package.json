@@ -1,25 +1,25 @@
 {
   "name": "@flink/demo-app",
-  "version": "0.2.0-alpha.36",
+  "version": "0.2.0-beta.15",
   "description": "Demo app used as documentation and to run integration tests",
   "private": true,
   "scripts": {
-    "test": "node --preserve-symlinks -r jasmine-ts",
-    "start": "node --preserve-symlinks -r ts-node/register -- src/index.ts --project tsconfig.json",
-    "dev": "npm run flink:generate && nodemon",
-    "prestart": "npm run flink:generate",
-    "pretest": "npm run flink:generate",
-    "flink:generate": "flink generate"
+    "build": "flink build",
+    "dev": "nodemon --exec \"flink run\"",
+    "test": "flink run --entry spec/support/runner.ts",
+    "test:watch": "nodemon --exec \"flink run --entry spec/support/runner.ts\"",
+    "start": "flink run",
+    "clean": "flink clean && rimraf dist"
   },
   "dependencies": {
-    "@flink-app/api-docs-plugin": "^0.2.0-alpha.36",
-    "@flink-app/firebase-messaging-plugin": "^0.2.0-alpha.36",
-    "@flink-app/flink": "^0.2.0-alpha.36",
-    "@flink-app/jwt-auth-plugin": "^0.2.0-alpha.36",
+    "@flink-app/api-docs-plugin": "^0.2.0-beta.15",
+    "@flink-app/firebase-messaging-plugin": "^0.2.0-beta.15",
+    "@flink-app/flink": "^0.2.0-beta.15",
+    "@flink-app/jwt-auth-plugin": "^0.2.0-beta.15",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@flink-app/test-utils": "^0.2.0-alpha.36",
+    "@flink-app/test-utils": "^0.2.0-beta.15",
     "@types/jasmine": "^3.7.1",
     "@types/node": "^15.0.1",
     "@types/uuid": "^8.3.0",

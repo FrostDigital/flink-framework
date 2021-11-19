@@ -34,7 +34,7 @@ The base class `FlinkRepo` provides a bunch of useful methods. You could for exa
 
 ```typescript
 // Get single user or return null if it does not exist
-await userRepo.getBydId("useridhere");
+await userRepo.getById("useridhere");
 
 // Create user, will by default require input of User minus the _id
 await userRepo.create({ email: "alice@frost.se", name: "Alice" });

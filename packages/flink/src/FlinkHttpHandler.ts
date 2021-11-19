@@ -1,4 +1,5 @@
 import { Request } from "express";
+import { JSONSchema } from "./FlinkApp";
 import { FlinkContext } from "./FlinkContext";
 import { FlinkError } from "./FlinkErrors";
 import { FlinkResponse } from "./FlinkResponse";
@@ -13,6 +14,9 @@ export enum HttpMethod {
 type Params = Request["params"];
 type Query = Request["query"];
 
+/**
+ * Flink request extends express Request but adds reqId and user object.
+ */
 export type FlinkRequest<T = any, P = Params, Q = Query> = Request<
   P,
   any,
@@ -61,6 +65,16 @@ export interface RouteProps {
    * Supports markdown strings.
    */
   docs?: string; // TODO
+
+  /**
+   * If handler should not be auto registered
+   */
+  skipAutoRegister?: boolean;
+
+  /**
+   * I.e. filename or plugin name that describes where handler origins from
+   */
+  origin?: string;
 }
 
 /**
@@ -71,12 +85,12 @@ export type Handler<
   Ctx extends FlinkContext,
   ReqSchema = any,
   ResSchema = any,
-  P = Params,
-  Q = Query
+  P extends Params = Params,
+  Q extends Query = Query
 > = (props: {
   req: FlinkRequest<ReqSchema, P, Q>;
   ctx: Ctx;
-  origin? : string;
+  origin?: string;
 }) => Promise<FlinkResponse<ResSchema | FlinkError>>;
 
 /**
@@ -88,6 +102,43 @@ export type Handler<
 export type GetHandler<
   Ctx extends FlinkContext,
   ResSchema = any,
-  P = Params,
-  Q = Query
+  P extends Params = Params,
+  Q extends Query = Query
 > = Handler<Ctx, any, ResSchema, P, Q>;
+
+/**
+ * Type for Handler file. Describes shape of exports when using
+ * syntax like:
+ *
+ * `import * as FooHandler from "./src/handlers/FooHandler"
+ */
+export type HandlerFile = {
+  default: Handler<any, any, any, any, any>;
+  Route?: RouteProps;
+  /**
+   * Name of schemas, is set at compile time by Flink compiler.
+   */
+  __schemas?: {
+    reqSchema?: JSONSchema;
+    resSchema?: JSONSchema;
+  };
+  /**
+   * Typescript source file name, is set at compile time by Flink compiler.
+   */
+  __file?: string;
+
+  /**
+   * Description of query params, is set at compile time by Flink compiler.
+   */
+  __query?: QueryParamMetadata[];
+
+  /**
+   * Description of path params, is set at compile time by Flink compiler.
+   */
+  __params?: QueryParamMetadata[];
+};
+
+export type QueryParamMetadata = {
+  name: string;
+  description: string;
+};

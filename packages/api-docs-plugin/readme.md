@@ -21,7 +21,6 @@ import { apiDocPlugin } from "@flink-app/api-docs-plugin";
 function start() {
   new FlinkApp<AppContext>({
     name: "My app",
-    loader: (file: any) => import(file),
     plugins: [
         // Register plugin, customize options if needed to
         apiDocPlugin({

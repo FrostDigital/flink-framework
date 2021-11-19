@@ -31,7 +31,7 @@ describe("FlinkRepo", () => {
   it("should get document by id", async () => {
     const { insertedId } = await collection.insertOne({ name: "foo" });
 
-    const doc = await repo.getBydId(insertedId + "");
+    const doc = await repo.getById(insertedId + "");
 
     expect(doc).toBeDefined();
     expect(doc?.name).toBe("foo");

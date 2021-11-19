@@ -3,22 +3,25 @@ import addFormats from "ajv-formats";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Express, Request } from "express";
-import { promises as fsPromises } from "fs";
+import { JSONSchema7 } from "json-schema";
 import mongodb, { Db } from "mongodb";
 import log from "node-color-log";
-import { join } from "path";
-import * as TJS from "typescript-json-schema";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
 import { internalServerError, notFound, unauthorized } from "./FlinkErrors";
-import { Handler, RouteProps } from "./FlinkHttpHandler";
+import {
+  Handler,
+  HandlerFile,
+  HttpMethod,
+  QueryParamMetadata,
+  RouteProps,
+} from "./FlinkHttpHandler";
 import { FlinkPlugin } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
 import { FlinkResponse } from "./FlinkResponse";
-import { readJsonFile } from "./FsUtils";
 import generateMockData from "./mock-data-generator";
-import { getCollectionNameForRepo, isError } from "./utils";
+import { isError } from "./utils";
 
 const ajv = new Ajv();
 addFormats(ajv);
@@ -28,6 +31,27 @@ const defaultCorsOptions: FlinkOptions["cors"] = {
   credentials: true,
   origin: [/.*/],
 };
+
+export type JSONSchema = JSONSchema7;
+
+/**
+ * This will be populated at compile time when the apps handlers
+ * are picked up by typescript compiler
+ */
+export const autoRegisteredHandlers: {
+  handler: HandlerFile;
+  assumedHttpMethod: HttpMethod;
+}[] = [];
+
+/**
+ * This will be populated at compile time when the apps repos
+ * are picked up by typescript compiler
+ */
+export const autoRegisteredRepos: {
+  collectionName: string;
+  repoInstanceName: string;
+  Repo: any;
+}[] = [];
 
 export interface FlinkOptions {
   /**
@@ -68,8 +92,9 @@ export interface FlinkOptions {
 
   /**
    * Callback invoked so Flink can load files from host project.
+   * @deprecated not needed anymore since new `flink run`
    */
-  loader: (file: string) => Promise<any>;
+  loader?: (file: string) => Promise<any>;
 
   /**
    * Optional list of plugins that should be configured and used.
@@ -106,12 +131,17 @@ export interface FlinkOptions {
 }
 
 export interface HandlerConfig {
-  schema?: { reqSchema?: TJS.Definition; resSchema?: TJS.Definition };
+  schema?: {
+    reqSchema?: JSONSchema;
+    resSchema?: JSONSchema;
+  };
   routeProps: RouteProps;
-  /**
-   * I.e. filename or plugin name that describes where handler origins from
-   */
-  origin?: string;
+  queryMetadata: QueryParamMetadata[];
+  paramsMetadata: QueryParamMetadata[];
+}
+
+export interface HandlerConfigWithMethod extends HandlerConfig {
+  routeProps: RouteProps & { method: HttpMethod };
 }
 export interface HandlerConfigWithSchemaRefs
   extends Omit<HandlerConfig, "schema" | "origin"> {
@@ -128,18 +158,16 @@ export class FlinkApp<C extends FlinkContext> {
   public handlers: HandlerConfig[] = [];
   public port?: number;
   public started = false;
-  // public schemas: { [x: string]: TJS.Definition } = {};
 
   private _ctx?: C;
   private dbOpts?: FlinkOptions["db"];
   private debug = false;
   private onDbConnection?: FlinkOptions["onDbConnection"];
 
-  private loader: FlinkOptions["loader"];
   private plugins: FlinkPlugin[] = [];
   private auth?: FlinkAuthPlugin;
   private corsOpts: FlinkOptions["cors"];
-  private appRoot: string;
+  private routingConfigured = false;
 
   private repos: { [x: string]: FlinkRepo<C> } = {};
 
@@ -154,11 +182,9 @@ export class FlinkApp<C extends FlinkContext> {
     this.dbOpts = opts.db;
     this.debug = !!opts.debug;
     this.onDbConnection = opts.onDbConnection;
-    this.loader = opts.loader;
     this.plugins = opts.plugins || [];
     this.corsOpts = { ...defaultCorsOptions, ...opts.cors };
     this.auth = opts.auth;
-    this.appRoot = opts.appRoot || "./";
   }
 
   get ctx() {
@@ -171,8 +197,6 @@ export class FlinkApp<C extends FlinkContext> {
   async start() {
     const startTime = Date.now();
     let offsetTime = 0;
-
-    await this.readSchemasAndHandlerMetadata();
 
     await this.initDb();
 
@@ -226,7 +250,7 @@ export class FlinkApp<C extends FlinkContext> {
       log.info(`Initialized plugin '${plugin.id}'`);
     }
 
-    await this.registerAppHandlers();
+    await this.registerAutoRegisterableHandlers();
 
     if (this.debug) {
       log.bgColorLog(
@@ -236,11 +260,17 @@ export class FlinkApp<C extends FlinkContext> {
       offsetTime = Date.now();
     }
 
-    this.expressApp.use((req, res, next) => {
-      res.status(404).json(notFound());
+    // Register 404 with slight delay to allow all manually added routes to be added
+    // TODO: Is there a better solution to force this handler to always run last?
+    setTimeout(() => {
+      this.expressApp!.use((req, res, next) => {
+        res.status(404).json(notFound());
+      });
+
+      this.routingConfigured = true;
     });
 
-    this.expressApp.listen(this.port, () => {
+    this.expressApp?.listen(this.port, () => {
       log.fontColorLog(
         "magenta",
         `⚡️ HTTP server '${this.name}' is running and waiting for connections on ${this.port}`
@@ -252,29 +282,92 @@ export class FlinkApp<C extends FlinkContext> {
     return this;
   }
 
-  public addHandler(config: HandlerConfig, handlerFn: Handler<any>) {
-    const dup = this.handlers.find(
-      (h) =>
-        h.routeProps.path === config.routeProps.path &&
-        h.routeProps.method === config.routeProps.method
-    );
-
-    if (dup) {
-      // TODO: Not sure if there is a case where you'd want to overwrite a route?
-      log.warn(
-        `${config.routeProps.method} ${config.routeProps.path} overlaps existing route`
+  /**
+   * Manually registers a handler.
+   *
+   * Typescript compiler will scan handler function and set schemas
+   * which are derived from handler function type arguments.
+   */
+  public addHandler(
+    handler: HandlerFile,
+    routePropsOverride?: Partial<HandlerConfig["routeProps"]>
+  ) {
+    if (this.routingConfigured) {
+      throw new Error(
+        "Cannot add handler after routes has been registered, make sure to invoke earlier"
       );
     }
 
-    this.handlers.push(config);
+    const routeProps = { ...(handler.Route || {}), ...routePropsOverride };
 
-    this.registerHandler(config, handlerFn);
+    if (!routeProps.method) {
+      log.error(
+        `Failed to register handler '${handler.__file}': Missing 'method' in route props, either set it or name handler file with HTTP method as prefix`
+      );
+      return;
+    }
+
+    if (!routeProps.path) {
+      log.error(
+        `Failed to register handler '${handler.__file}': Missing 'path' in route props`
+      );
+      return;
+    }
+
+    const dup = this.handlers.find(
+      (h) =>
+        h.routeProps.path === routeProps.path &&
+        h.routeProps.method === routeProps.method
+    );
+
+    const methodAndPath = `${routeProps.method.toUpperCase()} ${
+      routeProps.path
+    }`;
+
+    if (dup) {
+      // TODO: Not sure if there is a case where you'd want to overwrite a route?
+      log.warn(`${methodAndPath} overlaps existing route`);
+    }
+
+    const handlerConfig: HandlerConfigWithMethod = {
+      routeProps: {
+        ...routeProps,
+        method: routeProps.method!,
+        path: routeProps.path!,
+      },
+      schema: {
+        reqSchema: handler.__schemas?.reqSchema,
+        resSchema: handler.__schemas?.resSchema,
+      },
+      queryMetadata: handler.__query || [],
+      paramsMetadata: handler.__params || [],
+    };
+
+    if (handler.__schemas?.reqSchema && !handlerConfig.schema?.reqSchema) {
+      log.warn(
+        `Expected request schema ${handler.__schemas.reqSchema} for handler ${methodAndPath} but no such schema was found`
+      );
+    }
+
+    if (handler.__schemas?.resSchema && !handlerConfig.schema?.resSchema) {
+      log.warn(
+        `Expected response schema ${handler.__schemas.resSchema} for handler ${methodAndPath} but no such schema was found`
+      );
+    }
+
+    this.registerHandler(handlerConfig, handler.default);
   }
 
   private registerHandler(handlerConfig: HandlerConfig, handler: Handler<any>) {
-    const { routeProps, schema = {}, origin } = handlerConfig;
+    this.handlers.push(handlerConfig);
+
+    const { routeProps, schema = {} } = handlerConfig;
     const { method } = routeProps;
     const app = this.expressApp!;
+
+    if (!method) {
+      log.error(`Route ${routeProps.path} is missing http method`);
+    }
 
     if (method) {
       const methodAndRoute = `${method.toUpperCase()} ${routeProps.path}`;
@@ -330,12 +423,16 @@ export class FlinkApp<C extends FlinkContext> {
 
         try {
           // 👇 This is where the actual handler gets invoked
-          handlerRes = await handler({ req, ctx: this.ctx, origin });
+          handlerRes = await handler({
+            req,
+            ctx: this.ctx,
+            origin: routeProps.origin,
+          });
         } catch (err) {
           log.warn(
             `Handler '${methodAndRoute}' threw unhandled exception ${err}`
           );
-          return res.status(500).json(internalServerError(err));
+          return res.status(500).json(internalServerError(err as any));
         }
 
         if (schema.resSchema && !isError(handlerRes)) {
@@ -377,10 +474,7 @@ export class FlinkApp<C extends FlinkContext> {
         );
         return process.exit(1); // TODO: Do we need to exit?
       } else {
-        this.handlerRouteCache.set(
-          methodAndRoute,
-          JSON.stringify(routeProps) // TODO
-        );
+        this.handlerRouteCache.set(methodAndRoute, JSON.stringify(routeProps));
         log.info(`Registered route ${methodAndRoute}`);
       }
     }
@@ -392,76 +486,62 @@ export class FlinkApp<C extends FlinkContext> {
    *
    * Will not register any handlers added programmatically.
    */
-  private async registerAppHandlers() {
-    for (const handler of this.handlers) {
-      const { origin = "" } = handler;
-
-      if (origin.endsWith(".ts")) {
-        const { default: oHandlerFn } = await this.loader(
-          "./handlers/" + origin
-        );
-
-        const handlerFn: Handler<C> = oHandlerFn;
-        const { routeProps } = handler;
-
-        if (!routeProps) {
-          log.error(`Missing Props in handler ${handler}`);
-          continue;
-        }
-
-        if (!handlerFn) {
-          log.error(`Missing exported handler function in handler ${handler}`);
-          continue;
-        }
-
-        this.registerHandler(handler, handlerFn);
+  private async registerAutoRegisterableHandlers() {
+    for (const { handler, assumedHttpMethod } of autoRegisteredHandlers) {
+      if (!handler.Route) {
+        log.error(`Missing Props in handler ${handler.__file}`);
+        continue;
       }
+
+      if (!handler.default) {
+        log.error(
+          `Missing exported handler function in handler ${handler.__file}`
+        );
+        continue;
+      }
+
+      this.registerHandler(
+        {
+          routeProps: {
+            ...handler.Route,
+            method: handler.Route.method || assumedHttpMethod,
+            origin: this.name,
+          },
+          schema: {
+            reqSchema: handler.__schemas?.reqSchema,
+            resSchema: handler.__schemas?.resSchema,
+          },
+          queryMetadata: handler.__query || [],
+          paramsMetadata: handler.__params || [],
+        },
+        handler.default
+      );
     }
   }
 
-  public addRepo(instanceName : string, repoInstance: FlinkRepo<C>   ){
+  public addRepo(instanceName: string, repoInstance: FlinkRepo<C>) {
     this.repos[instanceName] = repoInstance;
-  }  
+  }
 
   /**
    * Constructs the app context. Will inject context in all components
    * except for handlers which are handled in later stage.
    */
   private async buildContext() {
-    const reposRoot = join(this.appRoot, "src", "repos");
+    if (this.dbOpts) {
+      for (const {
+        collectionName,
+        repoInstanceName,
+        Repo,
+      } of autoRegisteredRepos) {
+        const repoInstance: FlinkRepo<C> = new Repo(collectionName, this.db);
 
-    let repoFilenames: string[] = [];
+        this.repos[repoInstanceName] = repoInstance;
 
-    try {
-      repoFilenames = await fsPromises.readdir(reposRoot);
-    } catch (err) {}
-
-
-
-    if (repoFilenames.length > 0) {
-      const repoFilenames = await fsPromises.readdir(reposRoot);
-
-      if (this.dbOpts) {
-        for (const fn of repoFilenames) {
-          const repoInstanceName = this.getRepoInstanceName(fn);
-          const { default: Repo } = await this.loader("./repos/" + fn);
-          const repoInstance: FlinkRepo<C> = new Repo(
-            getCollectionNameForRepo(fn),
-            this.db
-          );
-
-          this.repos[repoInstanceName] = repoInstance;
-          log.info(`Registered repo ${repoInstanceName}`);
-        }
-      } else if (repoFilenames.length > 0) {
-        log.warn(
-          `No db configured but found repo(s) in ${reposRoot}: ${repoFilenames.join(
-            ", "
-          )}`
-        );
+        log.info(`Registered repo ${repoInstanceName}`);
       }
-    } else {
-      log.debug(`Skipping repos - no repos in ${reposRoot} found`);
+    } else if (autoRegisteredRepos.length > 0) {
+      log.warn(`No db configured but found repo(s)`);
     }
 
     const pluginCtx = this.plugins.reduce<{ [x: string]: any }>(
@@ -476,7 +556,7 @@ export class FlinkApp<C extends FlinkContext> {
     );
 
     this._ctx = {
-      repos : this.repos,
+      repos: this.repos,
       plugins: pluginCtx,
       auth: this.auth,
     } as C;
@@ -491,6 +571,7 @@ export class FlinkApp<C extends FlinkContext> {
         log.debug("Connecting to db");
         const client = await mongodb.connect(this.dbOpts.uri, {
           useUnifiedTopology: true,
+          connectTimeoutMS: 4000,
         });
         this.db = client.db();
       } catch (err) {
@@ -537,17 +618,6 @@ export class FlinkApp<C extends FlinkContext> {
     }
   }
 
-  /**
-   * Constructs repo instance name based on
-   * filename.
-   *
-   * For example `FooRepo.ts` will become `fooRepo`.
-   */
-  private getRepoInstanceName(fn: string) {
-    const [name] = fn.split(".ts");
-    return name.charAt(0).toLowerCase() + name.substr(1);
-  }
-
   private async authenticate(req: Request, permissions: string | string[]) {
     if (!this.auth) {
       throw new Error(
@@ -557,7 +627,7 @@ export class FlinkApp<C extends FlinkContext> {
     return await this.auth.authenticateRequest(req, permissions);
   }
 
-  private async readSchemasAndHandlerMetadata() {
-    this.handlers = await readJsonFile(".flink/handlers.json");
+  public getRegisteredRoutes() {
+    return Array.from(this.handlerRouteCache.values());
   }
 }

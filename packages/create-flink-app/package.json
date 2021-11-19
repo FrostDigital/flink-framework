@@ -1,6 +1,6 @@
 {
   "name": "create-flink-app",
-  "version": "0.2.0-alpha.36",
+  "version": "0.2.0-beta.15",
   "keywords": [
     "flinkapp",
     "flink"
@@ -20,11 +20,12 @@
   ],
   "scripts": {
     "dev": "ncc build ./index.ts -w -o dist/",
-    "prepublish": "rimraf ./dist/ && ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register"
+    "build": "rimraf ./dist/ && ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register",
+    "prepublish": "npm run build"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.2.0-alpha.36",
-    "@flink-app/test-utils": "^0.2.0-alpha.36",
+    "@flink-app/flink": "^0.2.0-beta.15",
+    "@flink-app/test-utils": "^0.2.0-beta.15",
     "@types/async-retry": "1.4.2",
     "@types/cross-spawn": "^6.0.2",
     "@types/jasmine": "3.8.1",
@@ -51,5 +52,5 @@
   "engines": {
     "node": ">=10.13.0"
   },
-  "gitHead": "3d0141c01022b554c90391f6911845c26081853e"
+  "gitHead": "c8fde9f75a276c70273cb76fbf1ae6cac5c9c77f"
 }

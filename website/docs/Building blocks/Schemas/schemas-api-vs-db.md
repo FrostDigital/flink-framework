@@ -4,9 +4,9 @@ sidebar_position: 2
 
 # Schemas are not db schemas
 
-The concept of schemas in Flink only applies to API schemas. This means that what you put in `/src/schemas` only describes what goes in and out to/from the API.
+The concept of schemas in Flink only applies to API schemas. This means that what you put in `/src/schemas` describes what goes in and out to/from the API (requests and responses).
 
-However these schemas is ever so often not 100% match of what you save in the database. Or even in some cases you would want to transform the object into an internal structure (like [DTO's](https://en.wikipedia.org/wiki/Data_transfer_object)).
+These schemas is ever so often not 100% match of what you save in the database. In some cases you would want to transform the object into an internal structure (like [DTO's](https://en.wikipedia.org/wiki/Data_transfer_object)).
 
 The most common example of such diffs is that database sets `id` (or `_id`) of a document. When you expose the API you do not want the user to be able to such id.
 

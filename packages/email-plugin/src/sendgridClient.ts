@@ -1,5 +1,5 @@
 import { MailService } from "@sendgrid/mail";
-import { email } from "./schemas/email";
+import { emailSendgrid as email } from "./schemas/emailSendgrid";
 import { client } from "./schemas/client";
 
 export interface sendgridClientOptions {

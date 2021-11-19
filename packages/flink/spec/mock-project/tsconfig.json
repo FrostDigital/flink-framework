@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["esnext", "es2016"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "experimentalDecorators": true,
+    "checkJs": true,
+    "typeRoots": ["node_modules/@types", "node_modules/@flink-app"]
+  },
+  "include": ["./src/**/*.ts", "./.flink/**/*.ts"],
+  "exclude": ["./node_modules/*"]
+}

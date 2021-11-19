@@ -9,7 +9,7 @@ This guide describes how you add and configure jasmine to your project.
 Our goto test engine is jasmine. Unless you do not already have it, install it and related deps:
 
 ```
-npm i -D jasmine jasmine-ts @types/jasmine jasmine-spec-reporter nodemon
+npm i -D jasmine @types/jasmine jasmine-spec-reporter nodemon
 ```
 
 ## 2. Configure jasmine runner and spec reporter
@@ -24,9 +24,10 @@ node_modules/.bin/jasmine-ts init
 
 This will create a `/spec` folder with a `/spec/support/jasmine.json` config file.
 
-Create file `/spec/helpers/reporter.ts`:
+Create file `/spec/support/runner.ts`:
 
 ```typescript
+import Jasmine from "jasmine";
 import {
   DisplayProcessor,
   SpecReporter,
@@ -34,14 +35,21 @@ import {
 } from "jasmine-spec-reporter";
 import SuiteInfo = jasmine.SuiteInfo;
 
+const jasmine = new Jasmine({});
+
+jasmine.loadConfigFile("spec/support/jasmine.json");
+jasmine.configureDefaultReporter({
+  showColors: false,
+});
+
 class CustomProcessor extends DisplayProcessor {
-  public displayJasmineStarted(_info: SuiteInfo, log: string): string {
+  public displayJasmineStarted(info: SuiteInfo, log: string): string {
     return `TypeScript ${log}`;
   }
 }
 
-jasmine.getEnv().clearReporters();
-jasmine.getEnv().addReporter(
+jasmine.clearReporters();
+jasmine.addReporter(
   new SpecReporter({
     spec: {
       displayStacktrace: StacktraceOption.NONE,
@@ -49,6 +57,8 @@ jasmine.getEnv().addReporter(
     customProcessors: [CustomProcessor],
   })
 );
+
+jasmine.execute();
 ```
 
 ## 3. Add `scripts` to `package.json`
@@ -60,8 +70,8 @@ Now add `scripts` to run tests in your `package.json`:
   //...
   "scripts": {
     // ...
-    "test": "jasmine-ts --preserve-symlinks",
-    "test:watch": "nodemon --exec jasmine-ts"
+    "test": "flink run --entry spec/support/runner.ts",
+    "test:watch": "nodemon --exec \"flink run --entry spec/support/runner.ts\""
   }
 }
 ```

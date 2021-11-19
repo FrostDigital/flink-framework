@@ -18,6 +18,6 @@
     "declaration": true,
     "outDir": "dist"
   },
-  "include": ["./src/*", "./bin/*", "./cli/*", "./spec/*"],
-  "exclude": ["./node_modules/*"]
+  "include": ["./src/**/*.ts", "./bin/*", "./cli/*", "./spec/**/*.ts"],
+  "exclude": ["./node_modules/*", "./spec/mock-project/*"]
 }

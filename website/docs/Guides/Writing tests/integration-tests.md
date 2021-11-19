@@ -52,7 +52,6 @@ describe("CarIntegrationTests", () => {
     const flinkApp = new FlinkApp<any>({
       port: 3335, // Any available port
       name: "Test app",
-      loader: (file: any) => import(join(process.cwd(), "src", file)), // Note process.cwd()
       // Add any more additional config, such as db config if needed to
     });
 

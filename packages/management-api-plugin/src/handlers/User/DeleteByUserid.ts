@@ -5,23 +5,27 @@ import { DeleteUserByUseridRes } from "../../schemas/User/DeleteByUseridRes";
 
 export const Route: RouteProps = {
   path: "/user/:userid",
-  method : HttpMethod.delete,
+  method: HttpMethod.delete,
 };
 
 // type Params = {
 //    userid: string;
 // };
 
-const DeleteUserByUserid: Handler<Ctx, DeleteUserByUseridReq, DeleteUserByUseridRes> = async ({ ctx, req }) => {
-
-    const count = await ctx.repos.managementUserRepo.deleteById(req.params.userid);
-    if(count == 0){
-      return notFound();
-    }
-    return {
-      data: {},
-      status : 200
-    };
-
-}
+const DeleteUserByUserid: Handler<
+  Ctx,
+  DeleteUserByUseridReq,
+  DeleteUserByUseridRes
+> = async ({ ctx, req }) => {
+  const count = await ctx.repos.managementuserRepo.deleteById(
+    req.params.userid
+  );
+  if (count == 0) {
+    return notFound();
+  }
+  return {
+    data: {},
+    status: 200,
+  };
+};
 export default DeleteUserByUserid;

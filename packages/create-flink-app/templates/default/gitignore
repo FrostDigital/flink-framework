@@ -31,4 +31,7 @@ yarn-error.log*
 .vscode
 
 # Generated schemas etc
-.flink/
+/.flink
+
+# Generated bundle
+/dist

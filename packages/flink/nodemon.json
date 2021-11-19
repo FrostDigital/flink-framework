@@ -1,0 +1,7 @@
+{
+  "watch": ["src", "spec", "cli", "bin"],
+  "ext": "ts,json",
+  "watchOptions": {
+    "followSymlinks": false
+  }
+}

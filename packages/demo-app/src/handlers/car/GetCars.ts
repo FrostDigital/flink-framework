@@ -5,7 +5,17 @@ export const Route: RouteProps = {
   path: "/car",
 };
 
-const GetCars: GetHandler<any, CarListRes> = async ({ ctx, req }) => {
+type Query = {
+  /**
+   * Max cars to retrieve
+   */
+  limit: string;
+};
+
+const GetCars: GetHandler<any, CarListRes, any, Query> = async ({
+  ctx,
+  req,
+}) => {
   return {
     data: {
       cars: [
