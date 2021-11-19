@@ -10,6 +10,7 @@ import { confirmPaymentResponse } from "./schemas/payment/confirmPaymentResponse
 import { createPaymentResponse } from "./schemas/payment/createPaymentResponse";
 import ConnectSessionRepo from "./reposx/ConnectSessionRepo";
 import { connectToStripeConnectOptions } from "./schemas/customer/connectToStripeConnectOptions";
+import { capturePaymentOptions } from "./schemas/payment/capturePaymentOptions";
 export class StripeAPI {
     stripe: Stripe;
     pluginOptions: stripePluginOptions;
@@ -48,6 +49,10 @@ export class StripeAPI {
                 resp.redirectUrl = `${this.pluginOptions.baseUrl || "/stripe"}/payment/confirm/${resp.token}`;
             }
             return resp;
+        },
+        capture: async (options: capturePaymentOptions): Promise<boolean> => {
+            const captureResponse = await this.stripe.paymentIntents.capture(options.paymentIntentId, { amount_to_capture: options.amount });
+            return captureResponse.status == "succeeded";
         },
     };
     customer = {
