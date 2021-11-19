@@ -4,7 +4,7 @@ import FormData from 'form-data';
 import fs from 'fs';
 
 let baseUrl = "https://cdb.aquro.com";
-let managementBaseUrl = "https://api.contentone.io";
+let managementBaseUrl = "https://api-cm.aquro.com";
 export type ContentOneCollectionOptions = {
     id : string;
     client : ContentOneClient;
