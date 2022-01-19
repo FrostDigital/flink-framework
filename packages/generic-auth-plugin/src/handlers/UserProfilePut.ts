@@ -16,8 +16,14 @@ const putUserProfileHandler: Handler<
     return notFound();
   }
 
-  user.profile = req.body;
-  await repo.updateOne(userId, { profile: req.body });
+
+  const updatedProfile = {
+    ...user.profile,
+    ...req.body,
+}
+
+
+  await repo.updateOne(userId, { profile: updatedProfile });
 
   user = await repo.getById(userId);
 

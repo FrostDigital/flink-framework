@@ -578,6 +578,7 @@ const genericAuthManagementModule =  GetManagementModule(
        enableUserEdit, : true //Make it possible to edit the user
        enableUserCreate, : true //Make it possible to create new users
        enableUserDelete, : true //Make it possible to delete the user
+       enableUserView, : true //Make it possible to view a user
     }
   }
 )
@@ -611,6 +612,60 @@ function start() {
   }).start();
 }
 ```
+
+### Enable user viewing
+
+To make it possible to view data for a user, you will need to first enable the `enableUserView` flag. 
+
+You can also provide a function that returns the data that should be shown of the user. 
+This function can also be extended to return a list of buttons that will be added to the toolbar. 
+
+
+```
+import { GetManagementModule  } from "@flink-app/generic-auth-plugin"
+
+const genericAuthManagementModule =  GetManagementModule(
+  {
+    ui : true, //Enable UI for this module in flink-admin-portal
+    uiSettings : {
+       title : "App users", //Title of this module
+       enableUserEdit, : true //Make it possible to edit the user
+       enableUserCreate, : true //Make it possible to create new users
+       enableUserDelete, : true //Make it possible to delete the user
+       enableUserView, : true //Make it possible to view a user
+    },
+    userView: {
+        getData(user: User) {
+     
+            let data: {
+                [key: string]: string
+            } = {
+                'E-mail': user.username,
+                'Profile property' : user.profile.Property.toString()
+            }
+
+            let buttons: {
+                text: string
+                url: string
+            }[] = []
+
+            buttons.push({
+                    text: 'Visit google',
+                    url: 'https://www.google.com',
+              })
+
+
+            return {
+                buttons,
+                data,
+            }
+        },
+    },    
+  }
+)
+```
+
+
 
 ### Make it possible to edit profile properites
 
