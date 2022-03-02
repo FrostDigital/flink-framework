@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/management-actions-plugin",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "description": "Flink plugin that makes it possible create actions that can be run trought the management-api",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
@@ -15,7 +15,7 @@
     "types": "dist/src/index.d.ts",
     "main": "dist/src/index.js",
     "dependencies": {
-        "@flink-app/management-api-plugin": "^0.3.2",
+        "@flink-app/management-api-plugin": "^0.3.3",
         "express": "^4.17.1",
         "node-color-log": "^5.3.1"
     },
