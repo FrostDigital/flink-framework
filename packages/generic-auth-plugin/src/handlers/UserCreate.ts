@@ -30,7 +30,7 @@ const userCreateHandler: Handler<FlinkContext<genericAuthContext>, UserCreateReq
     const createUserResponse = await ctx.plugins.genericAuthPlugin.createUser(
         repo,
         <JwtAuthPlugin>ctx.auth,
-        username,
+        username.toLocaleLowerCase(),
         password,
         authentificationMethod,
         roles,
