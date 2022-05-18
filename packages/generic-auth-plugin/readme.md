@@ -91,7 +91,7 @@ Se details and configuration for getJtwTokenPlugin() below.
 
 ### Step 3 - Initiate the plugin
 
-```
+```typescript
 import { FlinkApp } from "@flink-app/flink";
 import { Ctx } from "./Ctx";
 

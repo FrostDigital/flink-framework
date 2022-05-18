@@ -1,33 +1,26 @@
-# Flink API Docs
+# Flink JWT Auth Plugin
 
-**WORK IN PROGRESS 👷‍♀️👷🏻‍♂️**
-
-A FLINK plugin that generates a VERY simple documentation based on the apps
-registered routes and schemas.
+A FLINK auth plugin that handles authentication and permission checks.
 
 ## Usage
 
 Install plugin to your flink app project:
 
 ```
-npm i -S @flink-app/api-docs-plugin
+npm i -S @flink-app/jwt-auth-plugin
 ```
 
-Add and configure plugin in your app startup (probable the `index.ts` in root project):
+Add and configure plugin in your app startup (probably `index.ts` in root project):
 
-```
-import { apiDocPlugin } from "@flink-app/api-docs-plugin";
+```typescript
+import { jwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 
 function start() {
-  new FlinkApp<AppContext>({
-    name: "My app",
-    plugins: [
-        // Register plugin, customize options if needed to
-        apiDocPlugin({
-            title: "API Docs: My app"
-        })
-    ],
-  }).start();
+    new FlinkApp<AppContext>({
+        name: "My app",
+        auth: jwtAuthPlugin({
+            // config...
+        }),
+    }).start();
 }
-
 ```

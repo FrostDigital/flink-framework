@@ -8,9 +8,9 @@ slug: /plugin-intro
 
 Plugins are extensions of Flink. Plugins can add functionality in the following ways:
 
-- Extending application context. Adds a programmatic plugin API on context.
-- Registering handlers/routes. Extends exposed HTTP API that your flink app exposes
-- Modifying the express app, for example adding a middleware.
+-   Extending application context. Adds a programmatic plugin API on context.
+-   Registering handlers/routes. Extends the HTTP API that your flink app exposes.
+-   Modifying the express app, for example adding a middleware.
 
 ## Official plugins
 
