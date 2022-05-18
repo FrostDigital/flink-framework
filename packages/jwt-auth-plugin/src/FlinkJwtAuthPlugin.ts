@@ -17,6 +17,10 @@ const defaultPasswordPolicy = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 export interface JwtAuthPluginOptions {
   secret: string;
   algo?: jwtSimple.TAlgorithm;
+  /**
+   * Map decoded JWT token to a user object.
+   * Perform any lookup in database/cache here if needed to.
+   */
   getUser: (tokenData: any) => Promise<FlinkAuthUser>;
   passwordPolicy?: RegExp;
   rolePermissions: {
