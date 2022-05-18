@@ -157,7 +157,7 @@ async function auth(authOptions: BankIdAuthOptions, pluginOptions: BankIdPluginO
     const client = getBankIdClient(pluginOptions);
 
     const authRes = await client.authenticate({
-        personalNumber: authOptions.personalNumber,
+        personalNumber: alignAndValidatePersonalNumber(authOptions.personalNumber),
         endUserIp: authOptions.endUserIp,
         requirement: authOptions.requirement,
     });
