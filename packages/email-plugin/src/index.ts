@@ -2,6 +2,7 @@ import { FlinkApp, FlinkPlugin } from "@flink-app/flink";
 import { client } from "./schemas/client";
 export { sendgridClient } from "./sendgridClient";
 export { smtpClient } from "./smtpClient";
+export { flowMailerClient } from "./flowmailerClient"
 export type { email } from "./schemas/email";
 
 export type emailPluginOptions = {

@@ -16,7 +16,9 @@
   "dependencies": {
     "@sendgrid/mail": "^7.4.5",
     "@types/nodemailer": "^6.4.4",
-    "nodemailer": "^6.6.2"
+    "axios": "^0.27.2",
+    "nodemailer": "^6.6.2",
+    "querystring": "^0.2.1"
   },
   "devDependencies": {
     "@flink-app/flink": "^0.3.0",
