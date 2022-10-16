@@ -19,11 +19,12 @@
     "@flink-app/email-plugin": "^0.3.8",
     "@flink-app/jwt-auth-plugin": "^0.3.8",
     "@flink-app/management-api-plugin": "^0.3.8",
+    "@flink-app/sms-plugin": "file:../sms-plugin",
     "handlebars": "^4.7.7",
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.3.8",
+    "@flink-app/flink": "0.3.8",
     "@types/jsonwebtoken": "^8.5.2",
     "@types/node": "^15.6.2",
     "ts-node": "^9.1.1",

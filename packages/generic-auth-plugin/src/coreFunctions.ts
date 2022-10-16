@@ -10,6 +10,7 @@ import { UserPasswordResetStartRes } from "./schemas/UserPasswordResetStartRes";
 import { UserPasswordResetCompleteRes } from "./schemas/UserPasswordResetCompleteRes";
 
 import jsonwebtoken from "jsonwebtoken";
+import { GenericAuthsmsOptions } from "./genericAuthPluginOptions";
 
 export function getJtwTokenPlugin(secret: string, rolePermissions?: { [role: string]: string[] }, passwordPolicy?: RegExp) {
     if (passwordPolicy == undefined) {
@@ -87,6 +88,12 @@ export async function createUser(
 
     const token = await auth.createToken({ username: username.toLowerCase(), _id: user._id }, roles);
 
+    if (user.authentificationMethod == "sms") {
+        return {
+            status: "success",
+        };
+    }
+
     return {
         status: "success",
         user: {
@@ -97,6 +104,51 @@ export async function createUser(
     };
 }
 
+export async function loginByToken(
+    repo: FlinkRepo<any, User>,
+    auth: JwtAuthPlugin,
+    token : string,
+    code : string,
+    jwtSecret : string
+
+): Promise<UserLoginRes> {
+
+
+    let payload : { type : string, userId : string};
+    try{
+        payload = jsonwebtoken.verify(token, jwtSecret + ":" + code) as { type : string, userId : string};
+    }catch(ex){
+        return { status: "failed" };
+    }
+     
+
+    if(payload.type != "smsLogin"){
+        return { status: "failed" };
+    }
+
+    
+
+    const user = await repo.getById(payload.userId)
+    if (user == null) {
+        return { status: "failed" };
+    }
+
+
+    const authToken = await auth.createToken({ username: user.username.toLowerCase(), _id: user._id }, user.roles);
+
+    return {
+        status: "success",
+        user: {
+            _id: user._id,
+            username: user.username,
+            token : authToken,
+            profile: user.profile,
+        },
+    };    
+
+}
+
+
 export async function loginUser(
     repo: FlinkRepo<any, User>,
     auth: JwtAuthPlugin,
@@ -104,7 +156,8 @@ export async function loginUser(
     password: string | undefined,
     validatePasswordMethod?: {
         (password: string, hash: string, salt: string): Promise<boolean>;
-    }
+    },
+    smsOptions? : GenericAuthsmsOptions
 ): Promise<UserLoginRes> {
     const user = await repo.getOne({ username: username.toLowerCase() });
     if (user == null) {
@@ -130,8 +183,35 @@ export async function loginUser(
         }
     }
     if (user.authentificationMethod == "sms") {
-        log.error("SMS login is not yet impleted.");
-        return { status: "failed" };
+        if(!smsOptions) throw "SMS options must be specified to use SMS login"
+        let code = smsOptions.codeType == "numeric" ? generate(smsOptions.codeLength) : generateString(smsOptions.codeLength);
+        smsOptions.smsClient.send({
+            to : [user.username],
+            from : smsOptions.smsFrom,
+            message : smsOptions.smsMessage.replace("{{code}}", code)
+        })
+
+        const payload = {
+            type: "smsLogin",
+            userId: user._id,
+        };
+    
+        const secret = smsOptions.jwtToken + ":" + code;
+    
+        const options: jsonwebtoken.SignOptions = {
+            expiresIn: "1h",
+        };
+    
+        const token = jsonwebtoken.sign(payload, secret, options);
+
+
+        return {
+            status: "success",
+            validationToken : token
+        };
+
+
+
     }
 
     if (valid) {
@@ -296,4 +376,18 @@ function generate(n: number): string {
     var number = Math.floor(Math.random() * (max - min + 1)) + min;
 
     return ("" + number).substring(add);
+}
+
+
+
+
+function generateString(length : number) {
+    const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = ' ';
+    const charactersLength = characters.length;
+    for ( let i = 0; i < length; i++ ) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+
+    return result;
 }

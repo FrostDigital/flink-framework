@@ -1,5 +1,6 @@
 import { FlinkApp, HttpMethod } from "@flink-app/flink";
 import * as userLoginHandler from "./handlers/UserLogin";
+import * as userLoginByTokenHandler from "./handlers/UserLoginByToken";
 import * as userCreateHandler from "./handlers/UserCreate";
 import * as getProfileHandler from "./handlers/UserProfileGet";
 import * as putUserProfileHandler from "./handlers/UserProfilePut";
@@ -25,6 +26,14 @@ export function init(app: FlinkApp<any>, options: GenericAuthPluginOptions) {
       docs: "Authenticates a user",
       origin: options.pluginId,
     });
+    if(options.sms){
+      app.addHandler(userLoginByTokenHandler, {
+        method: HttpMethod.post,
+        path: options.baseUrl + "/login-by-token",
+        docs: "Authenticates a user by token",
+        origin: options.pluginId,
+      });
+    }
     if (options.enableUserCreation) {
       app.addHandler(userCreateHandler, {
         method: HttpMethod.post,

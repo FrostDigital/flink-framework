@@ -5,6 +5,7 @@ import {
   changePassword,
   passwordResetComplete,
   passwordResetStart,
+  loginByToken
 } from "./coreFunctions";
 import { init } from "./init";
 import { GenericAuthPluginOptions } from "./genericAuthPluginOptions";
@@ -24,6 +25,7 @@ export const genericAuthPlugin = (
     init: (app) => init(app, options),
     ctx: {
       loginUser,
+      loginByToken,
       createUser,
       changePassword,
       passwordResetStart,
@@ -33,6 +35,7 @@ export const genericAuthPlugin = (
       createPasswordHashAndSaltMethod: options.createPasswordHashAndSaltMethod,
       validatePasswordMethod: options.validatePasswordMethod,
       usernameFormat: options.usernameFormat || /.{1,}$/,
+      smsOptions : options.sms
     },
   };
 };

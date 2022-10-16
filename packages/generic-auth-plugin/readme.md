@@ -742,3 +742,150 @@ export interface Profile{
     type : myType
 }
 ```
+
+
+
+## Using SMS login
+
+
+### prerequisites
+- A SMS client must be setup using the [sms-plugin](https://github.com/FrostDigital/flink-framework/tree/main/packages/sms-plugin)
+
+
+### Setup
+- Configure this plugin by setting the sms option:
+
+
+```
+import { FlinkApp } from "@flink-app/flink";
+import { Ctx } from "./Ctx";
+
+import { getJtwTokenPlugin, genericAuthPlugin } from "@flink-app/generic-auth-plugin"
+
+const authPlugin = getJtwTokenPlugin("secret");
+
+function start() {
+  var app = new FlinkApp<Ctx>({
+    name: "My flink app",
+    debug: true,
+    auth : authPlugin,
+    db: {
+      uri: "mongodb://localhost:27017/my-flink-app",
+    },
+    plugins: [
+      genericAuthPlugin({
+        ...
+
+
+          sms : {
+            smsClient: new sms46elksClient({
+              username: "XXX",
+              password: "YYY",
+            }),
+            smsFrom: "AUTHMSG",
+            smsMessage: "Your code is {{code}}",
+            jwtToken: "secret-to-sign-jwt-tokens",
+            codeType: "numeric",
+            codeLength: 6
+          }
+
+
+        ...
+
+        }
+      }),
+    ],
+  })
+  app.start();
+}
+start();
+```
+
+
+
+### Register users with SMS-login
+To use SMS-login on a user, the user must be created with the `authentificationMethod` option set to sms.
+Username also have to be the users phone number in the "+4671234567" format.
+
+### POST /user/create
+
+Create a user that can login via SMS
+
+#### Request data:
+
+```
+{
+  "username" : "+4671234567",
+ "authentificationMethod" : "sms" 
+}
+```
+
+#### Response example
+
+```
+{
+  "data": {
+    "status": "success",
+  },
+```
+
+
+
+### Initiate login
+Initiate a user login by sending a SMS with the code to the user.
+Please note that the user HAVE to be created with the  `authentificationMethod` option set to sms.
+
+### POST /user/login
+
+
+#### Request data:
+
+```
+{
+  "username" : "+4671234567",
+}
+```
+
+#### Response example
+
+```
+{
+  "data": {
+    "status": "success",
+    "validationToken": "TOKEN"
+  },
+}
+
+```
+
+### Login
+Finalize the login by sending the token received above, and the code received via SMS.
+
+### POST /user/login-by-token
+
+
+#### Request data:
+
+```
+{
+  "token" : "TOKEN",
+  "code" : "code"
+ }
+```
+
+#### Response example
+
+```
+{
+  "data": {
+    "status": "success",
+    "user": {
+      "_id": "1234...",
+      "username": "+4671234567",
+      "token": "Token",
+      "profile": {}
+    }
+  },
+  "status": 200
+}
+```

@@ -2,6 +2,7 @@ import { FlinkApp, FlinkPlugin } from "@flink-app/flink";
 import { client } from "./schemas/client";
 export type { sms } from "./schemas/sms";
 export { sms46elksClient } from "./sms46elksClient";
+export * from "./schemas/client";
 
 export type smsPluginOptions = {
     /**
