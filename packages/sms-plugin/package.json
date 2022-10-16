@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/sms-plugin",
-    "version": "0.3.8",
+    "version": "0.3.9",
     "description": "Flink plugin that makes it possible to send sms",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
