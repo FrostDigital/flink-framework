@@ -17,18 +17,19 @@ npm i -S @flink-app/sms-plugin
 Add and configure plugin in your app startup (probable the `index.ts` in root project):
 
 ```
-import { emailPlugin, sendgridClient } from "@flink-app/email-plugin";
+import { smsPlugin, sms46elksClient } from "@flink-app/sms-plugin";
 
 function start() {
   new FlinkApp<AppContext>({
     name: "My app",
     plugins: [
         // Register plugin
-        emailPlugin({
-          client : new sendgridClient({
-            apiKey : process.env.SENDGRID_API_KEY
-          })
-        })
+        smsPlugin({
+          client: new sms46elksClient({
+            username: "XX",
+            password: "YY",
+          }),
+        }),
     ],
   }).start();
 }
