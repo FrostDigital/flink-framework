@@ -22,7 +22,7 @@ import { FlinkRepo } from "./FlinkRepo";
 import { FlinkResponse } from "./FlinkResponse";
 import generateMockData from "./mock-data-generator";
 import { isError } from "./utils";
-
+import { createServer, Server } from "http"
 const ajv = new Ajv();
 addFormats(ajv);
 
@@ -154,6 +154,7 @@ export interface HandlerConfigWithSchemaRefs
 export class FlinkApp<C extends FlinkContext> {
   public name: string;
   public expressApp?: Express;
+  public httpServer?: Server;
   public db?: Db;
   public handlers: HandlerConfig[] = [];
   public port?: number;
@@ -224,6 +225,7 @@ export class FlinkApp<C extends FlinkContext> {
     }
 
     this.expressApp = express();
+    this.httpServer = createServer(this.expressApp);
 
     this.expressApp.use(cors(this.corsOpts));
 
@@ -270,7 +272,7 @@ export class FlinkApp<C extends FlinkContext> {
       this.routingConfigured = true;
     });
 
-    this.expressApp?.listen(this.port, () => {
+    this.httpServer.listen(this.port, () => {
       log.fontColorLog(
         "magenta",
         `⚡️ HTTP server '${this.name}' is running and waiting for connections on ${this.port}`
