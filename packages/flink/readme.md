@@ -107,12 +107,12 @@ export default () => {};
 
 The following building blocks exists in Flink:
 
-- Handler - a handler is responsible for handling API requests and return a response. Normally a handler has some type of logic and invokes a _repo_ to CRUD data from database.
-- Repo - a repository is used to abstract data access to database. A repo is used to access a mongo db and a repo is used per collection.
-- App Context - the app context is the glue that ties parts of the app together. By defining and creating an app context you make sure that i.e. handlers can get access to repositories.
-- Schemas - models that defines API requests and responses. These are typescript interfaces which will during compile time be converted into JSON schemas used to validate requests and responses and also used to generate API documentation.
-- Flink app - is the entry
-- Plugins - plugability is built into core of Flink. These can be external npm modules, or plugins inside your project. Plugins can for example extend the `request` object and add additional information such as auth user which can be used in handlers. Similar to how middleware works in express although a bit more constrained.
+-   Handler - a handler is responsible for handling API requests and return a response. Normally a handler has some type of logic and invokes a _repo_ to CRUD data from database.
+-   Repo - a repository is used to abstract data access to database. A repo is used to access a mongo db and a repo is used per collection.
+-   App Context - the app context is the glue that ties parts of the app together. By defining and creating an app context you make sure that i.e. handlers can get access to repositories.
+-   Schemas - models that defines API requests and responses. These are typescript interfaces which will during compile time be converted into JSON schemas used to validate requests and responses and also used to generate API documentation.
+-   Flink app - is the entry
+-   Plugins - plugability is built into core of Flink. These can be external npm modules, or plugins inside your project. Plugins can for example extend the `request` object and add additional information such as auth user which can be used in handlers. Similar to how middleware works in express although a bit more constrained.
 
 ### Handlers
 
@@ -164,10 +164,10 @@ Then handler method must be of type `Handler` or `GetHandler`.
 
 The handler function has generic type arguments which defines:
 
-- Application context
-- Request schema (optional)
-- Response schema (optional)
-- Params (optional)
+-   Application context
+-   Request schema (optional)
+-   Response schema (optional)
+-   Params (optional)
 
 > Note: `GetHandler<Ctx, ResSchema>` is just syntactic sugar since get handlers does not have request schemas so that type argument does not exist. Otherwise it is the same as `Handler<Ctx, ReqSchema, ResSchema>`
 
@@ -217,3 +217,7 @@ export const Props: RouteProps {
     method: HttpMethod.get
 }
 ```
+
+## 🤕 Known issues
+
+-   Current TypeScript compiler is slow when project gets larger
