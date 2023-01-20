@@ -1,6 +1,6 @@
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
-import bodyParser from "body-parser";
+import bodyParser, { OptionsJson } from "body-parser";
 import cors from "cors";
 import express, { Express, Request } from "express";
 import { JSONSchema7 } from "json-schema";
@@ -122,6 +122,14 @@ export interface FlinkOptions {
      * Optional root folder of app. Defaults to `./`
      */
     appRoot?: string;
+
+
+    /**
+     * Options for json body parser
+     */
+    jsonOptions?: OptionsJson;
+    
+    
 }
 
 export interface HandlerConfig {
@@ -161,6 +169,7 @@ export class FlinkApp<C extends FlinkContext> {
     private auth?: FlinkAuthPlugin;
     private corsOpts: FlinkOptions["cors"];
     private routingConfigured = false;
+    private jsonOptions? : OptionsJson;
 
     private repos: { [x: string]: FlinkRepo<C> } = {};
 
@@ -178,6 +187,7 @@ export class FlinkApp<C extends FlinkContext> {
         this.plugins = opts.plugins || [];
         this.corsOpts = { ...defaultCorsOptions, ...opts.cors };
         this.auth = opts.auth;
+        this.jsonOptions = opts.jsonOptions || { limit : "1mb"}
     }
 
     get ctx() {
@@ -214,7 +224,7 @@ export class FlinkApp<C extends FlinkContext> {
 
         this.expressApp.use(cors(this.corsOpts));
 
-        this.expressApp.use(bodyParser.json());
+        this.expressApp.use(bodyParser.json(this.jsonOptions));
 
         this.expressApp.use((req, res, next) => {
             req.reqId = v4();
