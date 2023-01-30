@@ -1,14 +1,16 @@
-import { debug, info, warn, error, setLevel } from "node-color-log";
+import Logger from "node-color-log";
 
 export const log = {
-  debug: (...args: any[]) => debug(args),
-  info: (...args: any[]) => info(args),
-  warn: (...args: any[]) => warn(args),
-  error: (...args: any[]) => error(args),
-  json: (...args: any) => {
-    for (const o of args) {
-      console.log(JSON.stringify(o, null, 2));
-    }
-  },
-  setLevel: (level: "debug" | "info" | "warn" | "error") => setLevel(level),
+    debug: Logger.debug.bind(Logger),
+    info: Logger.info.bind(Logger),
+    warn: Logger.warn.bind(Logger),
+    error: Logger.error.bind(Logger),
+    json: (...args: any) => {
+        for (const o of args) {
+            console.log(JSON.stringify(o, null, 2));
+        }
+    },
+    bgColorLog: Logger.bgColorLog.bind(Logger),
+    fontColorLog: Logger.fontColorLog.bind(Logger),
+    setLevel: (level: "debug" | "info" | "warn" | "error") => Logger.setLevel.bind(Logger)(level),
 };
