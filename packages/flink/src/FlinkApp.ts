@@ -144,22 +144,23 @@ export interface FlinkOptions {
          */
         enabled?: boolean;
 
-        /**
-         * If true, the master (the instance if flink app that will run jobs) will be
-         * automatically assigned to the first node that starts.
-         *
-         * Is persisted in database.
-         *
-         * Will throw and exception if true but no database is configured.
-         */
-        autoAssignMaster?: boolean;
+        // TODO: Implement master auto assignment
+        //     /**
+        //      * If true, the master (the instance if flink app that will run jobs) will be
+        //      * automatically assigned to the first node that starts.
+        //      *
+        //      * Is persisted in database.
+        //      *
+        //      * Will throw and exception if true but no database is configured.
+        //      */
+        //     autoAssignMaster?: boolean;
 
-        /**
-         * Name of collection to be used for storing master assignment.
-         *
-         * Defaults to `flink-scheduling`
-         */
-        autoAssignCollection?: string;
+        //     /**
+        //      * Name of collection to be used for storing master assignment.
+        //      *
+        //      * Defaults to `flink-scheduling`
+        //      */
+        //     autoAssignCollection?: string;
     };
 }
 
