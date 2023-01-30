@@ -6,5 +6,6 @@ export * from "./FlinkResponse";
 export * from "./FlinkLog";
 export * from "./FlinkErrors";
 export * from "./FlinkPlugin";
+export * from "./FlinkJob";
 export * from "./auth/FlinkAuthUser";
 export * from "./auth/FlinkAuthPlugin";
