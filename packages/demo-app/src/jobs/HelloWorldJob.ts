@@ -1,6 +1,8 @@
+import { log } from "@flink-app/flink";
+
 const jobProps: JobProps = {
     id: "hello-world",
-    cron: "0 0 0 * * *",
+    cron: "* * * * *",
     description: "Hello world job",
 };
 

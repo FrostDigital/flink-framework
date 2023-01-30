@@ -4,7 +4,8 @@ export type JobProps = {
      */
     id: string;
     /**
-     * Cron expression for scheduling job
+     * Cron expression for scheduling job with minute precision
+     * Example: * * * * *
      */
     cron?: string;
     /**
@@ -13,3 +14,5 @@ export type JobProps = {
      */
     interval?: string;
 };
+
+export type FlinkJob = {};
