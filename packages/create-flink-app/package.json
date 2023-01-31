@@ -1,6 +1,6 @@
 {
   "name": "create-flink-app",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "keywords": [
     "flinkapp",
     "flink"
@@ -24,8 +24,8 @@
     "prepublish": "npm run build"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.4.0",
-    "@flink-app/test-utils": "^0.4.0",
+    "@flink-app/flink": "^0.4.1",
+    "@flink-app/test-utils": "^0.4.1",
     "@types/async-retry": "1.4.2",
     "@types/cross-spawn": "^6.0.2",
     "@types/jasmine": "3.8.1",
