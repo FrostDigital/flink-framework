@@ -2,10 +2,10 @@
 import TypeScriptCompiler from "../src/TypeScriptCompiler";
 
 module.exports = async function run(args: string[]) {
-  const startTime = Date.now();
+    const startTime = Date.now();
 
-  if (args.includes("--help")) {
-    console.log(`
+    if (args.includes("--help")) {
+        console.log(`
     Description
       Compiles and starts the application.
 
@@ -20,37 +20,33 @@ module.exports = async function run(args: string[]) {
       --help    Displays this message
       `);
 
-    process.exit(0);
-  }
+        process.exit(0);
+    }
 
-  let dir = "./";
-  if (args[0] && !args[0].startsWith("--")) {
-    dir = args[0];
-  }
+    let dir = "./";
+    if (args[0] && !args[0].startsWith("--")) {
+        dir = args[0];
+    }
 
-  let entry = "/src/index.ts";
-  if (args.includes("--entry")) {
-    entry = args[args.indexOf("--entry") + 1];
-    entry = entry.startsWith("/") ? entry : "/" + entry;
-  }
+    let entry = "/src/index.ts";
+    if (args.includes("--entry")) {
+        entry = args[args.indexOf("--entry") + 1];
+        entry = entry.startsWith("/") ? entry : "/" + entry;
+    }
 
-  await TypeScriptCompiler.clean(dir);
+    await TypeScriptCompiler.clean(dir);
 
-  const compiler = new TypeScriptCompiler(dir);
+    const compiler = new TypeScriptCompiler(dir);
 
-  if (!compiler.getPreEmitDiagnostics()) {
-    process.exit(1);
-  }
+    if (!compiler.getPreEmitDiagnostics()) {
+        process.exit(1);
+    }
 
-  await Promise.all([
-    compiler.parseRepos(),
-    compiler.parseHandlers(),
-    compiler.generateStartScript(entry),
-  ]);
+    await Promise.all([compiler.parseRepos(), compiler.parseHandlers(), compiler.parseJobs(), compiler.generateStartScript(entry)]);
 
-  console.log(`Compilation done, took ${Date.now() - startTime}ms`);
+    console.log(`Compilation done, took ${Date.now() - startTime}ms`);
 
-  compiler.emit();
+    compiler.emit();
 
-  require("child_process").fork(dir + "/dist/.flink/start.js");
+    require("child_process").fork(dir + "/dist/.flink/start.js");
 };

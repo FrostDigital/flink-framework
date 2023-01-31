@@ -5,12 +5,15 @@ import cors from "cors";
 import express, { Express, Request } from "express";
 import { JSONSchema7 } from "json-schema";
 import mongodb, { Db } from "mongodb";
-import log from "node-color-log";
+import ms from "ms";
+import { AsyncTask, CronJob, SimpleIntervalJob, ToadScheduler } from "toad-scheduler";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
 import { internalServerError, notFound, unauthorized } from "./FlinkErrors";
 import { Handler, HandlerFile, HttpMethod, QueryParamMetadata, RouteProps } from "./FlinkHttpHandler";
+import { FlinkJobFile } from "./FlinkJob";
+import { log } from "./FlinkLog";
 import { FlinkPlugin } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
 import { FlinkResponse } from "./FlinkResponse";
@@ -30,7 +33,7 @@ export type JSONSchema = JSONSchema7;
 
 /**
  * This will be populated at compile time when the apps handlers
- * are picked up by typescript compiler
+ * are picked up by TypeScript compiler
  */
 export const autoRegisteredHandlers: {
     handler: HandlerFile;
@@ -39,13 +42,19 @@ export const autoRegisteredHandlers: {
 
 /**
  * This will be populated at compile time when the apps repos
- * are picked up by typescript compiler
+ * are picked up by TypeScript compiler
  */
 export const autoRegisteredRepos: {
     collectionName: string;
     repoInstanceName: string;
     Repo: any;
 }[] = [];
+
+/**
+ * This will be populated at compile time when the apps jobs
+ * are picked up by TypeScript compiler
+ */
+export const autoRegisteredJobs: FlinkJobFile[] = [];
 
 export interface FlinkOptions {
     /**
@@ -123,13 +132,36 @@ export interface FlinkOptions {
      */
     appRoot?: string;
 
-
     /**
      * Options for json body parser
      */
     jsonOptions?: OptionsJson;
-    
-    
+
+    scheduling?: {
+        /**
+         * If true, the scheduler will be enabled.
+         * Defaults to true.
+         */
+        enabled?: boolean;
+
+        // TODO: Implement master auto assignment
+        //     /**
+        //      * If true, the master (the instance if flink app that will run jobs) will be
+        //      * automatically assigned to the first node that starts.
+        //      *
+        //      * Is persisted in database.
+        //      *
+        //      * Will throw and exception if true but no database is configured.
+        //      */
+        //     autoAssignMaster?: boolean;
+
+        //     /**
+        //      * Name of collection to be used for storing master assignment.
+        //      *
+        //      * Defaults to `flink-scheduling`
+        //      */
+        //     autoAssignCollection?: string;
+    };
 }
 
 export interface HandlerConfig {
@@ -169,7 +201,8 @@ export class FlinkApp<C extends FlinkContext> {
     private auth?: FlinkAuthPlugin;
     private corsOpts: FlinkOptions["cors"];
     private routingConfigured = false;
-    private jsonOptions? : OptionsJson;
+    private jsonOptions?: OptionsJson;
+    private schedulingOptions?: FlinkOptions["scheduling"];
 
     private repos: { [x: string]: FlinkRepo<C> } = {};
 
@@ -177,6 +210,8 @@ export class FlinkApp<C extends FlinkContext> {
      * Internal cache used to track registered handlers and potentially any overlapping routes
      */
     private handlerRouteCache = new Map<string, string>();
+
+    public scheduler?: ToadScheduler;
 
     constructor(opts: FlinkOptions) {
         this.name = opts.name;
@@ -187,7 +222,8 @@ export class FlinkApp<C extends FlinkContext> {
         this.plugins = opts.plugins || [];
         this.corsOpts = { ...defaultCorsOptions, ...opts.cors };
         this.auth = opts.auth;
-        this.jsonOptions = opts.jsonOptions || { limit : "1mb"}
+        this.jsonOptions = opts.jsonOptions || { limit: "1mb" };
+        this.schedulingOptions = opts.scheduling;
     }
 
     get ctx() {
@@ -215,9 +251,8 @@ export class FlinkApp<C extends FlinkContext> {
             offsetTime = Date.now();
         }
 
-        if (this.debug) {
-            log.bgColorLog("cyan", `Registered JSON schemas took ${Date.now() - offsetTime} ms`);
-            offsetTime = Date.now();
+        if (this.isSchedulingEnabled) {
+            this.scheduler = new ToadScheduler();
         }
 
         this.expressApp = express();
@@ -252,6 +287,15 @@ export class FlinkApp<C extends FlinkContext> {
         if (this.debug) {
             log.bgColorLog("cyan", `Register handlers took ${Date.now() - offsetTime} ms`);
             offsetTime = Date.now();
+        }
+
+        if (this.isSchedulingEnabled) {
+            await this.registerAutoRegisterableJobs();
+
+            if (this.debug) {
+                log.bgColorLog("cyan", `Register jobs took ${Date.now() - offsetTime} ms`);
+                offsetTime = Date.now();
+            }
         }
 
         // Register 404 with slight delay to allow all manually added routes to be added
@@ -472,6 +516,93 @@ export class FlinkApp<C extends FlinkContext> {
         }
     }
 
+    private async registerAutoRegisterableJobs() {
+        if (!this.scheduler) {
+            throw new Error("Scheduler not initialized"); // should never happen
+        }
+
+        for (const { Job: jobProps, default: jobFn, __file } of autoRegisteredJobs) {
+            if (jobProps.cron && jobProps.interval) {
+                log.error(`Cannot register job ${jobProps.id} - both cron and interval are set in ${__file}`);
+                continue;
+            }
+
+            if (jobProps.cron && jobProps.afterDelay) {
+                log.error(`Cannot register job ${jobProps.id} - both cron and afterDelay are set in ${__file}`);
+                continue;
+            }
+
+            if (jobProps.interval && jobProps.afterDelay) {
+                log.error(`Cannot register job ${jobProps.id} - both interval and afterDelay are set in ${__file}`);
+                continue;
+            }
+
+            if (this.scheduler.existsById(jobProps.id)) {
+                log.error(`Job with id ${jobProps.id} is already registered, found duplicate in ${__file}`);
+                continue;
+            }
+
+            log.debug(`Registering job ${jobProps.id}: ${JSON.stringify(jobProps)} from ${__file}`);
+
+            const task = new AsyncTask(
+                jobProps.id,
+                async () => {
+                    await jobFn({ ctx: this.ctx });
+
+                    log.debug(`Job ${jobProps.id} completed`);
+
+                    if (jobProps.afterDelay) {
+                        // afterDelay runs only once, so we remove the job
+                        this.scheduler!.removeById(jobProps.id);
+                    }
+                },
+                (err) => {
+                    log.error(`Job ${jobProps.id} threw unhandled exception ${err}`);
+                    console.error(err);
+                }
+            );
+
+            if (jobProps.cron) {
+                const job = new CronJob({ timezone: jobProps.timezone, cronExpression: jobProps.cron }, task, {
+                    id: jobProps.id,
+                    preventOverrun: jobProps.singleton,
+                });
+
+                this.scheduler.addCronJob(job);
+            } else if (jobProps.interval) {
+                const job = new SimpleIntervalJob(
+                    {
+                        milliseconds: ms(jobProps.interval),
+                        runImmediately: false, // TODO: Expose to props?
+                    },
+                    task,
+                    {
+                        id: jobProps.id,
+                        preventOverrun: jobProps.singleton,
+                    }
+                );
+
+                this.scheduler.addSimpleIntervalJob(job);
+            } else if (jobProps.afterDelay !== undefined) {
+                const job = new SimpleIntervalJob(
+                    {
+                        milliseconds: ms(jobProps.afterDelay),
+                        runImmediately: false,
+                    },
+                    task,
+                    {
+                        id: jobProps.id,
+                        preventOverrun: jobProps.singleton,
+                    }
+                );
+                this.scheduler.addSimpleIntervalJob(job);
+            } else {
+                log.error(`Cannot register job ${jobProps.id} - no cron, interval or once set in ${__file}`);
+                continue;
+            }
+        }
+    }
+
     public addRepo(instanceName: string, repoInstance: FlinkRepo<C>) {
         this.repos[instanceName] = repoInstance;
         // TODO: Find out if we need to set ctx here or wanted not to if plugin has its own context
@@ -575,5 +706,9 @@ export class FlinkApp<C extends FlinkContext> {
 
     public getRegisteredRoutes() {
         return Array.from(this.handlerRouteCache.values());
+    }
+
+    private get isSchedulingEnabled() {
+        return this.schedulingOptions?.enabled !== false;
     }
 }
