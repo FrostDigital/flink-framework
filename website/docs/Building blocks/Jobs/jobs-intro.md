@@ -30,10 +30,12 @@ Job props define how the job should be scheduled with the following properties:
 
 > Important: Either `cron`, `interval` or `afterDelay` must be defined.
 
+Note that the exported variables name must be `Job`. 
+
 ### Example: Run job every 5 minutes, but delay it 30 seconds after app start
 
 ```typescript
-export const jobProps: JobProps = {
+export const Job: JobProps = {
     id: "my-job",
     interval: "5m",
     delay: "30s",
@@ -43,7 +45,7 @@ export const jobProps: JobProps = {
 ### Example: Run job 2am every day
 
 ```typescript
-export const jobProps: JobProps = {
+export const Job: JobProps = {
     id: "my-job",
     cron: "0 2 * * *",
 };
