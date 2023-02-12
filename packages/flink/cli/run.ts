@@ -16,8 +16,9 @@ module.exports = async function run(args: string[]) {
     If no directory is provided, the current directory will be used.
       
     Options      
-      --entry   Entry script for app, default "/src/index.ts"
-      --help    Displays this message
+      --entry         Entry script for app, default "/src/index.ts"
+      --help          Displays this message
+      --precompiled   Will run a precompiled app, default false
       `);
 
         process.exit(0);
@@ -32,6 +33,15 @@ module.exports = async function run(args: string[]) {
     if (args.includes("--entry")) {
         entry = args[args.indexOf("--entry") + 1];
         entry = entry.startsWith("/") ? entry : "/" + entry;
+    }
+
+    if (args.includes("--precompiled")) {
+        if (args.includes("--entry")) {
+            console.warn("WARNING: --entry is ignored when using --precompiled");
+        }
+
+        require("child_process").fork(dir + "/dist/.flink/start.js");
+        return;
     }
 
     await TypeScriptCompiler.clean(dir);
