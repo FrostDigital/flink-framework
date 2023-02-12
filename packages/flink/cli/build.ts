@@ -3,10 +3,10 @@ import TypeScriptCompiler from "../src/TypeScriptCompiler";
 import { getOption } from "./cli-utils";
 
 module.exports = async function run(args: string[]) {
-  const startTime = Date.now();
+    const startTime = Date.now();
 
-  if (args.includes("--help")) {
-    console.log(`
+    if (args.includes("--help")) {
+        console.log(`
     Description
       Builds the application.
       Will generate intermediates files in .flink and compile/transpile
@@ -22,31 +22,27 @@ module.exports = async function run(args: string[]) {
       --help    Displays this message
       `);
 
-    process.exit(0);
-  }
+        process.exit(0);
+    }
 
-  let dir = "./";
-  if (args[0] && !args[0].startsWith("--")) {
-    dir = args[0];
-  }
+    let dir = "./";
+    if (args[0] && !args[0].startsWith("--")) {
+        dir = args[0];
+    }
 
-  const exclude = getOption(args, "exclude", "/spec") as string;
+    const exclude = getOption(args, "exclude", "/spec") as string;
 
-  await TypeScriptCompiler.clean(dir);
+    await TypeScriptCompiler.clean(dir);
 
-  const compiler = new TypeScriptCompiler(dir);
+    const compiler = new TypeScriptCompiler(dir);
 
-  if (!compiler.getPreEmitDiagnostics()) {
-    process.exit(1);
-  }
+    if (!compiler.getPreEmitDiagnostics()) {
+        process.exit(1);
+    }
 
-  await Promise.all([
-    compiler.parseRepos(),
-    compiler.parseHandlers(exclude.split(",")),
-    compiler.generateStartScript(),
-  ]);
+    await Promise.all([compiler.parseRepos(), compiler.parseHandlers(exclude.split(",")), compiler.parseJobs(), compiler.generateStartScript()]);
 
-  console.log(`Compilation done, took ${Date.now() - startTime}ms`);
+    console.log(`Compilation done, took ${Date.now() - startTime}ms`);
 
-  compiler.emit();
+    compiler.emit();
 };
