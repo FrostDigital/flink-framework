@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/static-files-plugin",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Flink plugin that make flink serve static files",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
@@ -18,7 +18,7 @@
     "node-color-log": "^5.3.1"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.4.4",
+    "@flink-app/flink": "^0.4.5",
     "@types/express": "4.17.13",
     "@types/node": "^15.6.2",
     "ts-node": "^9.1.1",
