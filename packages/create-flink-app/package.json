@@ -1,56 +1,56 @@
 {
-  "name": "create-flink-app",
-  "version": "0.4.4",
-  "keywords": [
-    "flinkapp",
-    "flink"
-  ],
-  "description": "Create a Flink app with one command",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/FrostDigital/flink",
-    "directory": "packages/create-flink-app"
-  },
-  "license": "MIT",
-  "bin": {
-    "create-flink-app": "./dist/index.js"
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "dev": "ncc build ./index.ts -w -o dist/",
-    "build": "rimraf ./dist/ && ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register",
-    "prepublish": "npm run build"
-  },
-  "devDependencies": {
-    "@flink-app/flink": "^0.4.4",
-    "@flink-app/test-utils": "^0.4.4",
-    "@types/async-retry": "1.4.2",
-    "@types/cross-spawn": "^6.0.2",
-    "@types/jasmine": "3.8.1",
-    "@types/node": "^12.6.8",
-    "@types/prompts": "2.0.1",
-    "@types/rimraf": "3.0.0",
-    "@types/tar": "4.0.3",
-    "@types/validate-npm-package-name": "3.0.0",
-    "@vercel/ncc": "0.25.1",
-    "async-retry": "1.3.1",
-    "chalk": "2.4.2",
-    "commander": "2.20.0",
-    "cpy": "7.3.0",
-    "cross-spawn": "6.0.5",
-    "got": "10.7.0",
-    "jasmine-spec-reporter": "^7.0.0",
-    "prompts": "2.1.0",
-    "rimraf": "3.0.0",
-    "tar": "4.4.10",
-    "typescript": "3.8.3",
-    "update-check": "1.5.4",
-    "validate-npm-package-name": "3.0.0"
-  },
-  "engines": {
-    "node": ">=10.13.0"
-  },
-  "gitHead": "167e0b1d9dc3d4d14610633bbbda93fde1ea30f5"
+    "name": "create-flink-app",
+    "version": "0.4.4",
+    "keywords": [
+        "flinkapp",
+        "flink"
+    ],
+    "description": "Create a Flink app with one command",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/FrostDigital/flink",
+        "directory": "packages/create-flink-app"
+    },
+    "license": "MIT",
+    "bin": {
+        "create-flink-app": "./dist/index.js"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "dev": "ncc build ./index.ts -w -o dist/",
+        "build": "rimraf ./dist/ && ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register",
+        "prepublish": "npm run build"
+    },
+    "devDependencies": {
+        "@flink-app/flink": "^0.4.4",
+        "@flink-app/test-utils": "^0.4.4",
+        "@types/async-retry": "1.4.2",
+        "@types/cross-spawn": "^6.0.2",
+        "@types/jasmine": "3.8.1",
+        "@types/node": "^12.6.8",
+        "@types/prompts": "2.0.1",
+        "@types/rimraf": "3.0.0",
+        "@types/tar": "4.0.3",
+        "@types/validate-npm-package-name": "3.0.0",
+        "@vercel/ncc": "0.36.1",
+        "async-retry": "1.3.1",
+        "chalk": "2.4.2",
+        "commander": "2.20.0",
+        "cpy": "7.3.0",
+        "cross-spawn": "6.0.5",
+        "got": "10.7.0",
+        "jasmine-spec-reporter": "^7.0.0",
+        "prompts": "2.1.0",
+        "rimraf": "3.0.0",
+        "tar": "4.4.10",
+        "typescript": "3.8.3",
+        "update-check": "1.5.4",
+        "validate-npm-package-name": "3.0.0"
+    },
+    "engines": {
+        "node": ">=10.13.0"
+    },
+    "gitHead": "167e0b1d9dc3d4d14610633bbbda93fde1ea30f5"
 }

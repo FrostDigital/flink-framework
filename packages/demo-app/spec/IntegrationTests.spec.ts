@@ -64,17 +64,17 @@ describe("Integration tests", () => {
     });
 
     it("should login and get authenticated route", async () => {
-        const res = await testUtils.post(`/login`, {
+        const res = await testUtils.post<{ username: string; password: string }, { token: string }>(`/login`, {
             username: "bob@frost.se",
             password: "password",
         });
 
         expect(res.status).toBe(200);
-        expect(res.data.token).toBeDefined();
+        expect(res.data!.token).toBeDefined();
 
         const secretRes = await testUtils.get(`/car-secret`, {
             headers: {
-                authorization: `Bearer ${res.data.token}`,
+                authorization: `Bearer ${res.data!.token}`,
             },
         });
 
