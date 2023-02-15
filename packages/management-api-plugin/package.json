@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/management-api-plugin",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "Flink plugin that makes it possible to expose management api:s for other plugins",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
@@ -23,7 +23,7 @@
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.4.5",
+    "@flink-app/flink": "^0.4.6",
     "@types/bcrypt": "^5.0.0",
     "@types/express": "4.17.11",
     "@types/express-fileupload": "^1.1.7",

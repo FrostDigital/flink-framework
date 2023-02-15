@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/test-utils",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "Test utils for Flink",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
@@ -19,7 +19,7 @@
     "qs": "^6.7.0"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.4.5",
+    "@flink-app/flink": "^0.4.6",
     "@types/express": "^4.17.12",
     "@types/got": "^9.6.12",
     "@types/node": "^15.6.2",
