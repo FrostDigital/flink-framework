@@ -1,5 +1,4 @@
 import { Request } from "express";
-import { JSONSchema7, JSONSchema7Definition } from "json-schema";
 import { join, sep } from "path";
 import tinyGlob from "tiny-glob";
 import { HttpMethod } from "./FlinkHttpHandler";
@@ -76,84 +75,6 @@ export function getHttpMethodFromHandlerName(handlerFilename: string) {
     if (handlerFilename.startsWith(HttpMethod.post)) return HttpMethod.post;
     if (handlerFilename.startsWith(HttpMethod.put)) return HttpMethod.put;
     if (handlerFilename.startsWith(HttpMethod.delete)) return HttpMethod.delete;
-}
-
-/**
- * Recursively iterates thru json schema properties and replaces any $ref
- * with the actual definiton if it exists withing provided `jsonSchemas`.
- *
- * @param schemaToDeRef
- * @param jsonSchemas
- * @returns
- */
-export function deRefSchema(schemaToDeRef: JSONSchema7Definition, jsonSchemas: JSONSchema7) {
-    if (typeof schemaToDeRef === "boolean") {
-        return schemaToDeRef;
-    }
-
-    if (schemaToDeRef.type === "array") {
-        const items = schemaToDeRef.items as JSONSchema7;
-
-        if (items.$ref) {
-            const [_0, _1, defKey] = items.$ref.split("/");
-            const refedSchema = (jsonSchemas.definitions || {})[defKey];
-
-            if (refedSchema) {
-                schemaToDeRef.items = deRefSchema(refedSchema, jsonSchemas);
-            } else {
-                console.warn(`Failed to find deref ${schemaToDeRef.$ref}`);
-            }
-        } else {
-            schemaToDeRef.items = deRefSchema(schemaToDeRef.items as JSONSchema7, jsonSchemas);
-        }
-    } else if (schemaToDeRef.properties) {
-        for (const k in schemaToDeRef.properties) {
-            let prop = schemaToDeRef.properties[k];
-
-            if (typeof prop === "boolean") {
-                continue;
-            }
-
-            if (prop.$ref) {
-                const [_0, _1, defKey] = prop.$ref.split("/");
-                const refedSchema = (jsonSchemas.definitions || {})[defKey];
-                if (refedSchema) {
-                    schemaToDeRef.properties[k] = deRefSchema(refedSchema, jsonSchemas);
-                } else {
-                    console.warn(`Failed to find deref ${prop.$ref}`);
-                }
-            } else if (prop.type === "array" && (prop.items as JSONSchema7).$ref) {
-                const [_0, _1, defKey] = (prop.items as JSONSchema7).$ref!.split("/");
-                const refedSchema = (jsonSchemas.definitions || {})[defKey];
-                if (refedSchema) {
-                    (schemaToDeRef.properties[k] as JSONSchema7).items = deRefSchema(refedSchema, jsonSchemas);
-                } else {
-                    console.warn(`Failed to find deref ${prop.$ref}`);
-                }
-            } else if (prop.type === "object" || prop.type === "array") {
-                schemaToDeRef.properties[k] = deRefSchema(prop, jsonSchemas);
-            }
-        }
-    } else if (schemaToDeRef.anyOf) {
-        let i = 0;
-        for (const anyOf of schemaToDeRef.anyOf) {
-            const anyOfSchema = anyOf as JSONSchema7;
-
-            if (anyOfSchema.$ref) {
-                const [_0, _1, defKey] = anyOfSchema.$ref.split("/");
-                const refedSchema = (jsonSchemas.definitions || {})[defKey];
-                if (refedSchema) {
-                    schemaToDeRef.anyOf[i] = deRefSchema(refedSchema, jsonSchemas);
-                } else {
-                    console.warn(`Failed to find deref ${anyOfSchema.$ref}`);
-                }
-            }
-
-            i++;
-        }
-    }
-
-    return schemaToDeRef;
 }
 
 export function getJsDocComment(comment: string) {

@@ -19,7 +19,7 @@ import {
 } from "ts-morph";
 import { writeJsonFile } from "./FsUtils";
 import { addImports, getDefaultExport, getInterfaceName, getTypeMetadata, getTypesToImport } from "./TypeScriptUtils";
-import { deRefSchema, getCollectionNameForRepo, getHttpMethodFromHandlerName, getRepoInstanceName } from "./utils";
+import { getCollectionNameForRepo, getHttpMethodFromHandlerName, getRepoInstanceName } from "./utils";
 
 class TypeScriptCompiler {
     private project: Project;
@@ -438,8 +438,8 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
 
     private initJsonSchemaGenerator() {
         const conf: Config = {
-            // expose: "",
-            // topRef: false,
+            expose: "none", // Do not create shared $ref definitions.
+            topRef: false, // Removes the wrapper object around the schema.
         };
         const formatter = createFormatter(conf);
         const parser = createParser(this.project.getProgram().compilerObject, conf);
@@ -453,10 +453,10 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
 
         for (const { reqSchemaType, resSchemaType } of schemas) {
             if (reqSchemaType) {
-                jsonSchemas.push(this.generateJsonSchema(reqSchemaType));
+                jsonSchemas.push({ definitions: { [reqSchemaType]: this.generateJsonSchema(reqSchemaType) } });
             }
             if (resSchemaType) {
-                jsonSchemas.push(this.generateJsonSchema(resSchemaType));
+                jsonSchemas.push({ definitions: { [resSchemaType]: this.generateJsonSchema(resSchemaType) } });
             }
         }
 
@@ -594,17 +594,17 @@ ${this.parsedTsSchemas.join("\n\n")}`
 
         for (const { sourceFile, reqSchemaType, resSchemaType } of handlers) {
             if (reqSchemaType && !jsonSchemaDefs[reqSchemaType]) {
-                console.error(`Handler ${sourceFile.getBaseName} has request schema (${reqSchemaType}) defined, but JSON schema has been generated`);
+                console.error(`Handler ${sourceFile.getBaseName()} has request schema (${reqSchemaType}) defined, but no JSON schema has been generated`);
                 continue;
             }
 
             if (resSchemaType && !jsonSchemaDefs[resSchemaType]) {
-                console.error(`Handler ${sourceFile.getBaseName} has response schema (${resSchemaType}) defined, but JSON schema has been generated`);
+                console.error(`Handler ${sourceFile.getBaseName()} has response schema (${resSchemaType}) defined, but no JSON schema has been generated`);
                 continue;
             }
 
-            const reqJsonSchema = JSON.stringify(reqSchemaType ? deRefSchema(jsonSchemaDefs[reqSchemaType], jsonSchemas) : undefined);
-            const resJsonSchema = JSON.stringify(resSchemaType ? deRefSchema(jsonSchemaDefs[resSchemaType], jsonSchemas) : undefined);
+            const reqJsonSchema = JSON.stringify(reqSchemaType ? jsonSchemaDefs[reqSchemaType] : undefined);
+            const resJsonSchema = JSON.stringify(resSchemaType ? jsonSchemaDefs[resSchemaType] : undefined);
 
             sourceFile.addVariableStatement({
                 declarationKind: VariableDeclarationKind.Const,
