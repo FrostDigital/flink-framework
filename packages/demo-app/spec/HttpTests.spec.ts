@@ -7,7 +7,10 @@ import { cronJobInvocations } from "../src/jobs/FooCronJob";
 import { intervalJobInvocations } from "../src/jobs/IntervalJob";
 import CarListRes from "../src/schemas/CarListRes";
 
-describe("Integration tests", () => {
+// Example of a test suite that shots HTTP requests
+// to a running Flink app.
+
+describe("Http tests", () => {
     let flinkApp: FlinkApp<any>;
 
     beforeAll(async () => {

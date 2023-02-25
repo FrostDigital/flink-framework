@@ -162,6 +162,12 @@ export interface FlinkOptions {
         //      */
         //     autoAssignCollection?: string;
     };
+
+    /**
+     * If true, the HTTP server will be disabled.
+     * Only useful when starting a Flink app for testing purposes.
+     */
+    disableHttpServer?: boolean;
 }
 
 export interface HandlerConfig {
@@ -203,6 +209,7 @@ export class FlinkApp<C extends FlinkContext> {
     private routingConfigured = false;
     private jsonOptions?: OptionsJson;
     private schedulingOptions?: FlinkOptions["scheduling"];
+    private disableHttpServer = false;
 
     private repos: { [x: string]: FlinkRepo<C> } = {};
 
@@ -224,6 +231,7 @@ export class FlinkApp<C extends FlinkContext> {
         this.auth = opts.auth;
         this.jsonOptions = opts.jsonOptions || { limit: "1mb" };
         this.schedulingOptions = opts.scheduling;
+        this.disableHttpServer = !!opts.disableHttpServer;
     }
 
     get ctx() {
@@ -253,18 +261,22 @@ export class FlinkApp<C extends FlinkContext> {
 
         if (this.isSchedulingEnabled) {
             this.scheduler = new ToadScheduler();
+        } else {
+            log.info("🚫 Scheduling is disabled");
         }
 
-        this.expressApp = express();
+        if (!this.disableHttpServer) {
+            this.expressApp = express();
 
-        this.expressApp.use(cors(this.corsOpts));
+            this.expressApp.use(cors(this.corsOpts));
 
-        this.expressApp.use(bodyParser.json(this.jsonOptions));
+            this.expressApp.use(bodyParser.json(this.jsonOptions));
 
-        this.expressApp.use((req, res, next) => {
-            req.reqId = v4();
-            next();
-        });
+            this.expressApp.use((req, res, next) => {
+                req.reqId = v4();
+                next();
+            });
+        }
 
         // TODO: Add better more fine grained control when plugins are initialized, i.e. in what order
 
@@ -301,18 +313,24 @@ export class FlinkApp<C extends FlinkContext> {
         // Register 404 with slight delay to allow all manually added routes to be added
         // TODO: Is there a better solution to force this handler to always run last?
         setTimeout(() => {
-            this.expressApp!.use((req, res, next) => {
-                res.status(404).json(notFound());
-            });
+            if (!this.disableHttpServer) {
+                this.expressApp!.use((req, res, next) => {
+                    res.status(404).json(notFound());
+                });
+            }
 
             this.routingConfigured = true;
         });
 
-        this.expressApp?.listen(this.port, () => {
-            log.fontColorLog("magenta", `⚡️ HTTP server '${this.name}' is running and waiting for connections on ${this.port}`);
-
+        if (this.disableHttpServer) {
+            log.info("🚧 HTTP server is disabled, but flink app is running");
             this.started = true;
-        });
+        } else {
+            this.expressApp?.listen(this.port, () => {
+                log.fontColorLog("magenta", `⚡️ HTTP server '${this.name}' is running and waiting for connections on ${this.port}`);
+                this.started = true;
+            });
+        }
 
         return this;
     }
@@ -381,7 +399,6 @@ export class FlinkApp<C extends FlinkContext> {
 
         const { routeProps, schema = {} } = handlerConfig;
         const { method } = routeProps;
-        const app = this.expressApp!;
 
         if (!method) {
             log.error(`Route ${routeProps.path} is missing http method`);
@@ -390,7 +407,11 @@ export class FlinkApp<C extends FlinkContext> {
         if (method) {
             const methodAndRoute = `${method.toUpperCase()} ${routeProps.path}`;
 
-            app[method](routeProps.path, async (req, res) => {
+            if (this.disableHttpServer) {
+                return;
+            }
+
+            this.expressApp![method](routeProps.path, async (req, res) => {
                 if (routeProps.permissions) {
                     if (!(await this.authenticate(req, routeProps.permissions))) {
                         return res.status(401).json(unauthorized());
