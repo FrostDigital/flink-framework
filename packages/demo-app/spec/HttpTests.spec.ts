@@ -37,7 +37,7 @@ describe("Http tests", () => {
     });
 
     it("should register routes", () => {
-        expect(flinkApp.getRegisteredRoutes().length).toBe(12);
+        expect(flinkApp.getRegisteredRoutes().length).toBe(13);
     });
 
     it("should get 404", async () => {

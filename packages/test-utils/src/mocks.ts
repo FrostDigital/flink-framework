@@ -15,7 +15,7 @@ interface TestFlinkRequest<T, P, Q> extends Omit<Partial<FlinkRequest<T, P, Q>>,
 export function mockReq<T, P, Q>(req?: TestFlinkRequest<T, P, Q>): FlinkRequest<T, P, Q> {
     const aMockReq = {
         get: (headerName: string) => req?.headers?.[headerName],
-        body: req?.body,
+        ...(req || {}),
     };
 
     if (!req) {

@@ -2,6 +2,7 @@ import { FlinkApp } from "@flink-app/flink";
 import * as testUtils from "@flink-app/test-utils";
 import { noOpAuthPlugin } from "@flink-app/test-utils";
 import ApplicationContext from "../src/ApplicationContext";
+import GetCarById from "../src/handlers/car/GetCarById";
 import GetCars from "../src/handlers/car/GetCars";
 import GetHeaderTest from "../src/handlers/GetHeaderTest";
 
@@ -41,5 +42,16 @@ describe("Handler tests", () => {
             }),
         });
         expect(res.headers && res.headers["x-test"]).toBe("test");
+    });
+
+    it("should get car by id", async () => {
+        const res = await GetCarById({
+            ctx: flinkApp.ctx,
+            req: testUtils.mockReq({
+                params: { id: "123" },
+            }),
+        });
+
+        expect(res.status).toBe(200);
     });
 });
