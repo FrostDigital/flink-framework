@@ -27,7 +27,9 @@ const postPasswordResetStartHandler: Handler<
   }
 
   const { jwtSecret, numberOfDigits, lifeTime } =
-    ctx.plugins.genericAuthPlugin.passwordResetSettings.code;
+  (<any>ctx.plugins)[pluginName].passwordResetSettings.code;
+
+   
 
   const resp = await ctx.plugins.genericAuthPlugin.passwordResetStart(
     repo,
@@ -43,7 +45,7 @@ const postPasswordResetStartHandler: Handler<
   }
 
   const emailSettings =
-    ctx.plugins.genericAuthPlugin.passwordResetSettings.email;
+  (<any>ctx.plugins)[pluginName].passwordResetSettings.email;
 
   const emailCtx = {
     code: resp.code,
