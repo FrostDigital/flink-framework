@@ -18,7 +18,7 @@ import { FlinkPlugin } from "./FlinkPlugin";
 import { FlinkRepo } from "./FlinkRepo";
 import { FlinkResponse } from "./FlinkResponse";
 import generateMockData from "./mock-data-generator";
-import { isError } from "./utils";
+import { getPathParams, isError } from "./utils";
 
 const ajv = new Ajv();
 addFormats(ajv);
@@ -516,6 +516,23 @@ export class FlinkApp<C extends FlinkContext> {
             if (!handler.default) {
                 log.error(`Missing exported handler function in handler ${handler.__file}`);
                 continue;
+            }
+
+            if (!!handler.__params?.length) {
+                const pathParams = getPathParams(handler.Route.path);
+
+                for (const param of handler.__params) {
+                    if (!pathParams.includes(param.name)) {
+                        log.error(`Handler ${handler.__file} has param ${param.name} but it is not present in the path '${handler.Route.path}'`);
+                        throw new Error("Invalid/missing handler path param");
+                    }
+                }
+
+                if (pathParams.length !== handler.__params.length) {
+                    log.warn(
+                        `Handler ${handler.__file} has ${handler.__params.length} typed params but the path '${handler.Route.path}' has ${pathParams.length} params`
+                    );
+                }
             }
 
             this.registerHandler(
