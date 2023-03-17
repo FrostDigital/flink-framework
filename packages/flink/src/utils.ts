@@ -88,3 +88,15 @@ export function getJsDocComment(comment: string) {
 
     return rows.join("\n").trim();
 }
+
+const pathParamsRegex = /:([a-zA-Z0-9]+)/g;
+
+/**
+ * Returns array of path params from path string.
+ * For example `/user/:id` will return `["id"]`
+ * @param path
+ * @returns
+ */
+export function getPathParams(path: string) {
+    return path.match(pathParamsRegex)?.map((match) => match.slice(1)) || [];
+}
