@@ -5,6 +5,7 @@ import cors from "cors";
 import express, { Express, Request } from "express";
 import { JSONSchema7 } from "json-schema";
 import mongodb, { Db } from "mongodb";
+import morgan from "morgan";
 import ms from "ms";
 import { AsyncTask, CronJob, SimpleIntervalJob, ToadScheduler } from "toad-scheduler";
 import { v4 } from "uuid";
@@ -168,6 +169,23 @@ export interface FlinkOptions {
      * Only useful when starting a Flink app for testing purposes.
      */
     disableHttpServer?: boolean;
+
+    /**
+     * Configuration for access logs.
+     */
+    accessLog?: {
+        /**
+         * Enables access logs for all requests.
+         * Defaults to true.
+         */
+        enabled?: boolean;
+
+        /**
+         * Optional custom format.
+         * Uses `morgan` format and defaults to `dev`.
+         */
+        format?: string;
+    };
 }
 
 export interface HandlerConfig {
@@ -220,6 +238,8 @@ export class FlinkApp<C extends FlinkContext> {
 
     public scheduler?: ToadScheduler;
 
+    private accessLog: { enabled: boolean; format: string };
+
     constructor(opts: FlinkOptions) {
         this.name = opts.name;
         this.port = opts.port || 3333;
@@ -232,6 +252,7 @@ export class FlinkApp<C extends FlinkContext> {
         this.jsonOptions = opts.jsonOptions || { limit: "1mb" };
         this.schedulingOptions = opts.scheduling;
         this.disableHttpServer = !!opts.disableHttpServer;
+        this.accessLog = { enabled: true, format: "dev", ...opts.accessLog };
     }
 
     get ctx() {
@@ -267,10 +288,12 @@ export class FlinkApp<C extends FlinkContext> {
 
         if (!this.disableHttpServer) {
             this.expressApp = express();
-
             this.expressApp.use(cors(this.corsOpts));
-
             this.expressApp.use(bodyParser.json(this.jsonOptions));
+
+            if (this.accessLog.enabled) {
+                this.expressApp.use(morgan(this.accessLog.format));
+            }
 
             this.expressApp.use((req, res, next) => {
                 req.reqId = v4();
