@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import Ajv, { ValidateFunction } from "ajv";
 import addFormats from "ajv-formats";
 import bodyParser, { OptionsJson } from "body-parser";
 import cors from "cors";
@@ -411,6 +411,17 @@ export class FlinkApp<C extends FlinkContext> {
                 return;
             }
 
+            let validateReq: ValidateFunction<any> | undefined;
+            let validateRes: ValidateFunction<any> | undefined;
+
+            if (schema.reqSchema) {
+                validateReq = ajv.compile(schema.reqSchema);
+            }
+
+            if (schema.resSchema) {
+                validateRes = ajv.compile(schema.resSchema);
+            }
+
             this.expressApp![method](routeProps.path, async (req, res) => {
                 if (routeProps.permissions) {
                     if (!(await this.authenticate(req, routeProps.permissions))) {
@@ -418,12 +429,11 @@ export class FlinkApp<C extends FlinkContext> {
                     }
                 }
 
-                if (schema.reqSchema) {
-                    const validate = ajv.compile(schema.reqSchema);
-                    const valid = validate(req.body);
+                if (validateReq) {
+                    const valid = validateReq(req.body);
 
                     if (!valid) {
-                        log.warn(`${methodAndRoute}: Bad request ${JSON.stringify(validate.errors, null, 2)}`);
+                        log.warn(`${methodAndRoute}: Bad request ${JSON.stringify(validateReq.errors, null, 2)}`);
 
                         log.debug(`Invalid json: ${JSON.stringify(req.body)}`);
 
@@ -432,7 +442,7 @@ export class FlinkApp<C extends FlinkContext> {
                             error: {
                                 id: v4(),
                                 title: "Bad request",
-                                detail: `Schema did not validate ${JSON.stringify(validate.errors)}`,
+                                detail: `Schema did not validate ${JSON.stringify(validateReq.errors)}`,
                             },
                         });
                     }
@@ -465,12 +475,11 @@ export class FlinkApp<C extends FlinkContext> {
                     return res.status(500).json(internalServerError(err as any));
                 }
 
-                if (schema.resSchema && !isError(handlerRes)) {
-                    const validate = ajv.compile(schema.resSchema);
-                    const valid = validate(JSON.parse(JSON.stringify(handlerRes.data)));
+                if (validateRes && !isError(handlerRes)) {
+                    const valid = validateRes(JSON.parse(JSON.stringify(handlerRes.data)));
 
                     if (!valid) {
-                        log.warn(`[${req.reqId}] ${methodAndRoute}: Bad response ${JSON.stringify(validate.errors, null, 2)}`);
+                        log.warn(`[${req.reqId}] ${methodAndRoute}: Bad response ${JSON.stringify(validateRes.errors, null, 2)}`);
                         log.debug(`Invalid json: ${JSON.stringify(handlerRes.data)}`);
                         // log.debug(JSON.stringify(schema, null, 2));
 
@@ -479,7 +488,7 @@ export class FlinkApp<C extends FlinkContext> {
                             error: {
                                 id: v4(),
                                 title: "Bad response",
-                                detail: `Schema did not validate ${JSON.stringify(validate.errors)}`,
+                                detail: `Schema did not validate ${JSON.stringify(validateRes.errors)}`,
                             },
                         });
                     }
