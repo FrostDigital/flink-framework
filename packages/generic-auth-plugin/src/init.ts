@@ -17,15 +17,19 @@ export function init(app: FlinkApp<any>, options: GenericAuthPluginOptions) {
   if (options.enableUserCreation == null) options.enableUserCreation = true;
   if (options.enableProfileUpdate == null) options.enableProfileUpdate = true;
   if (options.enablePasswordUpdate == null) options.enablePasswordUpdate = true;
+  if (options.enableUserLogin == null) options.enableUserLogin = true;
+  
   if (options.baseUrl == null) options.baseUrl = "/user";
 
   if (options.enableRoutes) {
-    app.addHandler(userLoginHandler, {
-      method: HttpMethod.post,
-      path: options.baseUrl + "/login",
-      docs: "Authenticates a user",
-      origin: options.pluginId,
-    });
+    if(options.enableUserLogin){
+      app.addHandler(userLoginHandler, {
+        method: HttpMethod.post,
+        path: options.baseUrl + "/login",
+        docs: "Authenticates a user",
+        origin: options.pluginId,
+      });
+    }
     if(options.sms){
       app.addHandler(userLoginByTokenHandler, {
         method: HttpMethod.post,

@@ -9,6 +9,7 @@ export interface GenericAuthPluginOptions {
     enableUserCreation?: boolean;
     enableProfileUpdate?: boolean;
     enablePasswordUpdate?: boolean;
+    enableUserLogin?: boolean;
     baseUrl?: string;
     pluginId?: string;
     createPasswordHashAndSaltMethod?: {
