@@ -24,4 +24,5 @@ export enum ManagementApiType {
     managementUser = "MANAGEMENT_USER",
     action = "ACTION",
     debug = "DEBUG",
+    notification = "NOTIFICATION"
 }

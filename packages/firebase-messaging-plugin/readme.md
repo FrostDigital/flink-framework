@@ -44,3 +44,34 @@ export interface Ctx extends FlinkContext<FirebaseMessagingContext> {
 ## Configuration
 
 - `serverKey` - The firebase server key
+
+
+## Use as a managementmodule in the management-api-plugin
+
+Initiate the module and configure it:
+
+```
+import { GetManagementModule as GetNotificationManagementModule } from "@flink-app/firebase-messaging-plugin"
+const notificationManagementModule = GetNotificationManagementModule({
+  ui: true,
+  uiSettings: {
+      title: "Notifications"
+  },
+  segments : [{
+    id : "all", 
+    description : "All app users", 
+    handler : async (ctx : Ctx) => {
+      const users = await ctx.repos.userRepo.findAll({})
+      return users.map(u=>({
+        userId : u._id.toString(),
+        pushToken : u.pushNotificationTokens.map(p=>p.token)
+      }))
+    },
+   
+  }],
+  data : [],
+})
+```
+
+
+
