@@ -26,6 +26,8 @@ export function mockReq<T, P, Q>(req?: TestFlinkRequest<T, P, Q>): FlinkRequest<
 
     req.query = req.query || ({} as Q);
 
+    req.params = req.params ? JSON.parse(JSON.stringify(req.params)) : {};
+
     return aMockReq as any;
 }
 
