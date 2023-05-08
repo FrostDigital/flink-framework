@@ -96,7 +96,7 @@ async function authenticateRequest(
     let decodedToken;
 
     try {
-      decodedToken = jwtSimple.decode(token, secret, true, algo);
+      decodedToken = jwtSimple.decode(token, secret, false, algo);
     } catch (err) {
       log.debug(`Failed to decode token: ${err}`);
       decodedToken = null;
