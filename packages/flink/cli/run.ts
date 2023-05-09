@@ -40,7 +40,11 @@ module.exports = async function run(args: string[]) {
             console.warn("WARNING: --entry is ignored when using --precompiled");
         }
 
-        require("child_process").fork(dir + "/dist/.flink/start.js");
+        const forkedProcess = require("child_process").fork(dir + "/dist/.flink/start.js");
+
+        forkedProcess.on("exit", (code: any) => {
+            process.exit(code);
+        });
         return;
     }
 
@@ -58,5 +62,9 @@ module.exports = async function run(args: string[]) {
 
     compiler.emit();
 
-    require("child_process").fork(dir + "/dist/.flink/start.js");
+    const forkedProcess = require("child_process").fork(dir + "/dist/.flink/start.js");
+
+    forkedProcess.on("exit", (code: any) => {
+        process.exit(code);
+    });
 };
