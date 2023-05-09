@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/contentone-plugin",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Flink plugin that enables easy to use communication with content one",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
@@ -18,7 +18,7 @@
     "got": "^9.6.0"
   },
   "devDependencies": {
-    "@flink-app/flink": "^0.5.0",
+    "@flink-app/flink": "^0.6.0",
     "@types/got": "^9.6.0",
     "@types/node": "^15.6.2",
     "ts-node": "^9.1.1",
