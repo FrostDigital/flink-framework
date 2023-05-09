@@ -492,7 +492,20 @@ export class FlinkApp<C extends FlinkContext> {
                         ctx: this.ctx,
                         origin: routeProps.origin,
                     });
-                } catch (err) {
+                } catch (err: any) {
+                    // duck typing to check if it is a FlinkError
+                    if (typeof err.status === "number" && err.status >= 400 && err.status < 600 && err.error) {
+                        return res.status(err.status).json({
+                            status: err.status,
+                            error: {
+                                id: err.error.id || v4(),
+                                title: err.error.title || `Unhandled error: ${err.error.code || err.status}`,
+                                detail: err.error.detail,
+                                code: err.error.code,
+                            },
+                        });
+                    }
+
                     log.warn(`Handler '${methodAndRoute}' threw unhandled exception ${err}`);
                     console.error(err);
                     return res.status(500).json(internalServerError(err as any));

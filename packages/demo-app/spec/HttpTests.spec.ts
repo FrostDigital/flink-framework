@@ -37,7 +37,7 @@ describe("Http tests", () => {
     });
 
     it("should register routes", () => {
-        expect(flinkApp.getRegisteredRoutes().length).toBe(13);
+        expect(flinkApp.getRegisteredRoutes().length).toBe(14);
     });
 
     it("should get 404", async () => {
@@ -45,6 +45,13 @@ describe("Http tests", () => {
 
         expect(res.status).toBe(404);
         expect(res.error).toBeDefined();
+    });
+
+    it("should get error response when handler throws it", async () => {
+        const res = await testUtils.get("/throw-up");
+
+        expect(res.status).toBe(400);
+        expect(res.error?.title).toBe("Bad Request");
     });
 
     it("should get list of cars", async () => {
