@@ -499,7 +499,7 @@ export class FlinkApp<C extends FlinkContext> {
                             status: err.status,
                             error: {
                                 id: err.error.id || v4(),
-                                title: err.error.title || "Unknown error",
+                                title: err.error.title || `Unhandled error: ${err.error.code || err.status}`,
                                 detail: err.error.detail,
                                 code: err.error.code,
                             },
