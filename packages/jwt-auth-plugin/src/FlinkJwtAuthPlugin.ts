@@ -19,6 +19,7 @@ export interface JwtAuthPluginOptions {
   algo?: jwtSimple.TAlgorithm;
   getUser: (tokenData: any) => Promise<FlinkAuthUser>;
   passwordPolicy?: RegExp;
+  tokenTTL? : number;
   rolePermissions: {
     [role: string]: string[];
   };
@@ -64,6 +65,7 @@ export function jwtAuthPlugin({
   rolePermissions,
   algo = "HS256",
   passwordPolicy = defaultPasswordPolicy,
+  tokenTTL = 1000 * 60 * 60 * 24 * 365 * 100, //Defaults to hundred year
 }: JwtAuthPluginOptions): JwtAuthPlugin {
   return {
     authenticateRequest: async (req, permissions) =>
@@ -73,7 +75,7 @@ export function jwtAuthPlugin({
         getUser,
       }),
     createToken: (payload, roles) =>
-      createToken({ ...payload, roles }, { algo, secret }),
+      createToken({ ...payload, roles }, { algo, secret, tokenTTL }),
     createPasswordHashAndSalt: (password: string) =>
       createPasswordHashAndSalt(password, passwordPolicy),
     validatePassword,
@@ -140,14 +142,19 @@ function getTokenFromReq(req: FlinkRequest) {
 
 async function createToken(
   payload: any,
-  { secret, algo }: Pick<JwtAuthPluginOptions, "algo" | "secret">
+  { secret, algo, tokenTTL }: Pick<JwtAuthPluginOptions, "algo" | "secret" | "tokenTTL" >
 ) {
   if (!payload) {
     throw new Error("Cannot create token - payload is missing");
   }
 
-  return jwtSimple.encode(payload, secret, algo);
+  return jwtSimple.encode({exp : _calculateExpiration(tokenTTL || 1000 * 60 * 60 * 24 * 365 * 100),  ...payload}, secret, algo);
 }
+
+function _calculateExpiration(expiresInMs : number) {
+    return Math.floor((Date.now() + expiresInMs) / 1000);
+}
+
 
 async function createPasswordHashAndSalt(
   password: string,
