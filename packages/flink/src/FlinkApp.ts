@@ -12,7 +12,7 @@ import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
 import { internalServerError, notFound, unauthorized } from "./FlinkErrors";
-import { Handler, HandlerFile, HttpMethod, QueryParamMetadata, RouteProps } from "./FlinkHttpHandler";
+import { FlinkCompileTimeHandlerDetails, Handler, HandlerFile, HttpMethod, QueryParamMetadata, RouteProps } from "./FlinkHttpHandler";
 import { FlinkJobFile } from "./FlinkJob";
 import { log } from "./FlinkLog";
 import { FlinkPlugin } from "./FlinkPlugin";
@@ -36,10 +36,11 @@ export type JSONSchema = JSONSchema7;
  * This will be populated at compile time when the apps handlers
  * are picked up by TypeScript compiler
  */
-export const autoRegisteredHandlers: {
+export const autoRegisteredHandlers: ({
     handler: HandlerFile;
     assumedHttpMethod: HttpMethod;
-}[] = [];
+    Route?: RouteProps;
+} & FlinkCompileTimeHandlerDetails)[] = [];
 
 /**
  * This will be populated at compile time when the apps repos
@@ -364,7 +365,7 @@ export class FlinkApp<C extends FlinkContext> {
      * Typescript compiler will scan handler function and set schemas
      * which are derived from handler function type arguments.
      */
-    public addHandler(handler: HandlerFile, routePropsOverride?: Partial<HandlerConfig["routeProps"]>) {
+    public addHandler(handler: HandlerFile & FlinkCompileTimeHandlerDetails, routePropsOverride?: Partial<HandlerConfig["routeProps"]>) {
         if (this.routingConfigured) {
             throw new Error("Cannot add handler after routes has been registered, make sure to invoke earlier");
         }
@@ -552,31 +553,29 @@ export class FlinkApp<C extends FlinkContext> {
      * Will not register any handlers added programmatically.
      */
     private async registerAutoRegisterableHandlers() {
-        for (const { handler, assumedHttpMethod } of autoRegisteredHandlers) {
+        for (const { handler, assumedHttpMethod, __file, __params, __query, __schemas } of autoRegisteredHandlers) {
             if (!handler.Route) {
-                log.error(`Missing Props in handler ${handler.__file}`);
+                log.error(`Missing Props in handler ${__file}`);
                 continue;
             }
 
             if (!handler.default) {
-                log.error(`Missing exported handler function in handler ${handler.__file}`);
+                log.error(`Missing exported handler function in handler ${__file}`);
                 continue;
             }
 
-            if (!!handler.__params?.length) {
+            if (!!__params?.length) {
                 const pathParams = getPathParams(handler.Route.path);
 
-                for (const param of handler.__params) {
+                for (const param of __params) {
                     if (!pathParams.includes(param.name)) {
-                        log.error(`Handler ${handler.__file} has param ${param.name} but it is not present in the path '${handler.Route.path}'`);
+                        log.error(`Handler ${__file} has param ${param.name} but it is not present in the path '${handler.Route.path}'`);
                         throw new Error("Invalid/missing handler path param");
                     }
                 }
 
-                if (pathParams.length !== handler.__params.length) {
-                    log.warn(
-                        `Handler ${handler.__file} has ${handler.__params.length} typed params but the path '${handler.Route.path}' has ${pathParams.length} params`
-                    );
+                if (pathParams.length !== __params.length) {
+                    log.warn(`Handler ${__file} has ${__params.length} typed params but the path '${handler.Route.path}' has ${pathParams.length} params`);
                 }
             }
 
@@ -588,11 +587,11 @@ export class FlinkApp<C extends FlinkContext> {
                         origin: this.name,
                     },
                     schema: {
-                        reqSchema: handler.__schemas?.reqSchema,
-                        resSchema: handler.__schemas?.resSchema,
+                        reqSchema: __schemas?.reqSchema,
+                        resSchema: __schemas?.resSchema,
                     },
-                    queryMetadata: handler.__query || [],
-                    paramsMetadata: handler.__params || [],
+                    queryMetadata: __query || [],
+                    paramsMetadata: __params || [],
                 },
                 handler.default
             );

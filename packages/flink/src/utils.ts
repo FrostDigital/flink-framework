@@ -100,3 +100,23 @@ const pathParamsRegex = /:([a-zA-Z0-9]+)/g;
 export function getPathParams(path: string) {
     return path.match(pathParamsRegex)?.map((match) => match.slice(1)) || [];
 }
+
+// export function stringifyWithoutQuotes(obj: Record<string, any>): string {
+//     let result = "{";
+//     let isFirstProp = true;
+
+//     for (let key in obj) {
+//         if (Object.prototype.hasOwnProperty.call(obj, key)) {
+//             const value = obj[key];
+//             if (isFirstProp) {
+//                 isFirstProp = false;
+//             } else {
+//                 result += ",";
+//             }
+//             result += `${key}:${JSON.stringify(value)}`;
+//         }
+//     }
+
+//     result += "}";
+//     return result;
+// }

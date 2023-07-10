@@ -4,7 +4,6 @@ import { join } from "path";
 import glob from "tiny-glob";
 import { Config, createFormatter, createParser, Schema, SchemaGenerator } from "ts-json-schema-generator";
 import {
-    ArrayLiteralExpression,
     DiagnosticCategory,
     ImportDeclarationStructure,
     OptionalKind,
@@ -17,10 +16,21 @@ import {
     TypeReferenceNode,
     VariableDeclarationKind,
 } from "ts-morph";
+import { FlinkCompileTimeHandlerDetails } from "./FlinkHttpHandler";
 import { writeJsonFile } from "./FsUtils";
 import { addImports, getDefaultExport, getInterfaceName, getTypeMetadata, getTypesToImport } from "./TypeScriptUtils";
 import { getCollectionNameForRepo, getHttpMethodFromHandlerName, getRepoInstanceName } from "./utils";
 
+interface HandlerParseResult extends FlinkCompileTimeHandlerDetails {
+    importName: string;
+    moduleSpecifier: string;
+    assumedHttpMethod: string;
+    schemasToGenerate?: {
+        reqSchemaType?: string;
+        resSchemaType?: string;
+        // handlerImport: string;
+    };
+}
 class TypeScriptCompiler {
     private project: Project;
     private schemaGenerator?: SchemaGenerator;
@@ -131,19 +141,37 @@ export const handlers = [];
 autoRegisteredHandlers.push(...handlers);
     `
         );
-        const handlersArr = generatedFile.getVariableDeclarationOrThrow("handlers").getFirstDescendantByKindOrThrow(SyntaxKind.ArrayLiteralExpression);
 
-        const handlers = await this.parseHandlerDir(generatedFile, handlersArr);
-
-        generatedFile.addImportDeclarations(handlers.imports);
-
-        await generatedFile.save();
+        const parseResult = await this.parseHandlerDir(generatedFile);
 
         await this.createIntermediateSchemaFile();
 
-        const jsonSchemas = await this.generateAndSaveJsonSchemas(handlers.schemasToGenerate);
+        const schemas = parseResult.map((h) => h.schemasToGenerate).filter((s) => s) as { reqSchemaType?: string; resSchemaType?: string }[];
 
-        this.appendSchemasToHandlerSourceFiles(handlers.schemasToGenerate, jsonSchemas);
+        const jsonSchemas = await this.generateAndSaveJsonSchemas(schemas);
+
+        this.appendSchemasToHandlers(parseResult, jsonSchemas);
+
+        generatedFile.addImportDeclarations(parseResult.map((h) => ({ namespaceImport: h.importName, moduleSpecifier: h.moduleSpecifier })));
+
+        if (parseResult.length > 0) {
+            const handlersArr = generatedFile.getVariableDeclarationOrThrow("handlers").getFirstDescendantByKindOrThrow(SyntaxKind.ArrayLiteralExpression);
+            handlersArr.insertElements(
+                0,
+                parseResult.map((parsedHandler) => {
+                    // Do some hairy string bending to generate valid typescript from json string
+                    const { assumedHttpMethod, ...rest } = parsedHandler;
+                    const restStringified = JSON.stringify(rest);
+                    // Now append handler reference the assumedHttpMethod with type (not json strings)
+                    return (
+                        restStringified.substring(0, restStringified.length - 1) +
+                        `,"assumedHttpMethod":${assumedHttpMethod},"handler":${parsedHandler.importName},"Route":${parsedHandler.importName}.Route}`
+                    );
+                })
+            );
+        }
+
+        await generatedFile.save();
 
         return generatedFile;
     }
@@ -151,14 +179,10 @@ autoRegisteredHandlers.push(...handlers);
     /**
      * Scan `/src/handlers/*.ts` for handler files and register those.
      */
-    private async parseHandlerDir(generatedFile: SourceFile, handlersArr: ArrayLiteralExpression) {
-        const imports: OptionalKind<ImportDeclarationStructure>[] = [];
+    private async parseHandlerDir(generatedFile: SourceFile): Promise<HandlerParseResult[]> {
         let i = 0;
-        const schemasToGenerate: {
-            reqSchemaType?: string;
-            resSchemaType?: string;
-            sourceFile: SourceFile;
-        }[] = [];
+
+        const parseRes: HandlerParseResult[] = [];
 
         for (const sf of this.project.getSourceFiles()) {
             if (!sf.getFilePath().includes("src/handlers/")) {
@@ -169,62 +193,31 @@ autoRegisteredHandlers.push(...handlers);
 
             console.log(`Detected handler ${sf.getBaseName()} ${!isAutoRegister ? "(requires manual registration)" : ""}`);
 
-            const namespaceImport = sf.getBaseNameWithoutExtension().replace(/\./g, "_") + "_" + i;
-
-            imports.push({
-                namespaceImport,
-                moduleSpecifier: generatedFile.getRelativePathAsModuleSpecifierTo(sf),
-            });
+            const importName = sf.getBaseNameWithoutExtension().replace(/\./g, "_") + "_" + i;
 
             const assumedHttpMethod = getHttpMethodFromHandlerName(sf.getBaseName());
 
             const schemaTypes = await this.extractSchemasFromHandlerSourceFile(sf);
 
-            // Append schemas and metadata to source file that will be part of emitted dist bundle (javascript)
-            sf.addVariableStatement({
-                declarationKind: VariableDeclarationKind.Const,
-                isExported: true,
-                declarations: [
-                    {
-                        name: "__assumedHttpMethod",
-                        initializer: `"${assumedHttpMethod || ""}"`,
-                    },
-                    {
-                        name: "__file",
-                        initializer: `"${sf.getBaseName()}"`,
-                    },
-                    {
-                        name: "__query",
-                        initializer: `[${(schemaTypes?.queryMetadata || [])
-                            .map(({ description, name }) => `{description: "${description}", name: "${name}"}`)
-                            .join(",")}]`,
-                    },
-                    {
-                        name: "__params",
-                        initializer: `[${(schemaTypes?.paramsMetadata || [])
-                            .map(({ description, name }) => `{description: "${description}", name: "${name}"}`)
-                            .join(",")}]`,
-                    },
-                ],
-            });
-
             if (isAutoRegister) {
-                handlersArr.insertElement(
-                    i,
-                    `{handler: ${namespaceImport}, assumedHttpMethod: ${assumedHttpMethod ? "HttpMethod." + assumedHttpMethod : undefined}}`
-                );
-                i++;
-            }
-
-            if (schemaTypes) {
-                schemasToGenerate.push({ ...schemaTypes, sourceFile: sf });
+                parseRes.push({
+                    importName,
+                    moduleSpecifier: generatedFile.getRelativePathAsModuleSpecifierTo(sf),
+                    schemasToGenerate: schemaTypes
+                        ? {
+                              reqSchemaType: schemaTypes?.reqSchemaType,
+                              resSchemaType: schemaTypes?.resSchemaType,
+                          }
+                        : undefined,
+                    assumedHttpMethod: "HttpMethod." + assumedHttpMethod,
+                    __file: sf.getBaseName(),
+                    __query: schemaTypes?.queryMetadata,
+                    __params: schemaTypes?.paramsMetadata,
+                });
             }
         }
 
-        return {
-            imports,
-            schemasToGenerate,
-        };
+        return parseRes;
     }
 
     async parseRepos() {
@@ -243,6 +236,8 @@ autoRegisteredHandlers.push(...handlers);
 
         let i = 0;
 
+        const reposToInsert: string[] = [];
+
         for (const sf of this.project.getSourceFiles()) {
             if (!sf.getFilePath().includes("src/repos/")) {
                 continue;
@@ -255,14 +250,17 @@ autoRegisteredHandlers.push(...handlers);
                 moduleSpecifier: generatedFile.getRelativePathAsModuleSpecifierTo(sf),
             });
 
-            reposArr.insertElement(
-                i,
+            reposToInsert.push(
                 `{collectionName: "${getCollectionNameForRepo(sf.getBaseName())}", repoInstanceName: "${getRepoInstanceName(
                     sf.getBaseName()
                 )}", Repo: ${sf.getBaseNameWithoutExtension()}}`
             );
 
             i++;
+        }
+
+        if (reposToInsert.length > 0) {
+            reposArr.insertElements(0, reposToInsert);
         }
 
         generatedFile.addImportDeclarations(imports);
@@ -582,42 +580,34 @@ ${this.parsedTsSchemas.join("\n\n")}`
      * @param handlers
      * @param jsonSchemas
      */
-    private appendSchemasToHandlerSourceFiles(
-        handlers: {
-            sourceFile: SourceFile;
-            reqSchemaType?: string;
-            resSchemaType?: string;
-        }[],
-        jsonSchemas: JSONSchema7
-    ) {
+    private appendSchemasToHandlers(parseResult: HandlerParseResult[], jsonSchemas: JSONSchema7) {
         const jsonSchemaDefs = jsonSchemas.definitions || {};
 
-        for (const { sourceFile, reqSchemaType, resSchemaType } of handlers) {
-            if (reqSchemaType && !jsonSchemaDefs[reqSchemaType]) {
-                console.error(`Handler ${sourceFile.getBaseName()} has request schema (${reqSchemaType}) defined, but no JSON schema has been generated`);
+        for (const handler of parseResult) {
+            if (handler.schemasToGenerate?.reqSchemaType && !jsonSchemaDefs[handler.schemasToGenerate.reqSchemaType]) {
+                console.error(
+                    `Handler ${handler.__file} has request schema (${handler.schemasToGenerate.reqSchemaType}) defined, but no JSON schema has been generated`
+                );
                 continue;
             }
 
-            if (resSchemaType && !jsonSchemaDefs[resSchemaType]) {
-                console.error(`Handler ${sourceFile.getBaseName()} has response schema (${resSchemaType}) defined, but no JSON schema has been generated`);
+            if (handler.schemasToGenerate?.resSchemaType && !jsonSchemaDefs[handler.schemasToGenerate.resSchemaType]) {
+                console.error(
+                    `Handler ${handler.__file} has response schema (${handler.schemasToGenerate.resSchemaType}) defined, but no JSON schema has been generated`
+                );
                 continue;
             }
 
-            const reqJsonSchema = JSON.stringify(reqSchemaType ? jsonSchemaDefs[reqSchemaType] : undefined);
-            const resJsonSchema = JSON.stringify(resSchemaType ? jsonSchemaDefs[resSchemaType] : undefined);
+            const reqJsonSchema = handler.schemasToGenerate?.reqSchemaType ? jsonSchemaDefs[handler.schemasToGenerate.reqSchemaType] : undefined;
+            const resJsonSchema = handler.schemasToGenerate?.resSchemaType ? jsonSchemaDefs[handler.schemasToGenerate.resSchemaType] : undefined;
 
-            sourceFile.addVariableStatement({
-                declarationKind: VariableDeclarationKind.Const,
-                isExported: true,
-                declarations: [
-                    {
-                        name: "__schemas",
-                        type: "any",
-                        initializer: `{ reqSchema: ${reqJsonSchema}, resSchema: ${resJsonSchema} }`,
-                    },
-                ],
-            });
+            handler.__schemas = {
+                reqSchema: reqJsonSchema as JSONSchema7,
+                resSchema: resJsonSchema as JSONSchema7,
+            };
         }
+
+        return parseResult;
     }
 
     /**
@@ -638,6 +628,8 @@ autoRegisteredJobs.push(...jobs);
         const imports: OptionalKind<ImportDeclarationStructure>[] = [];
         let i = 0;
 
+        const jobsToInsert: string[] = [];
+
         for (const sf of this.project.getSourceFiles()) {
             if (!sf.getFilePath().includes("src/jobs/")) {
                 continue;
@@ -645,10 +637,10 @@ autoRegisteredJobs.push(...jobs);
 
             console.log(`Detected job ${sf.getBaseName()}`);
 
-            const namespaceImport = sf.getBaseNameWithoutExtension().replace(/\./g, "_") + "_" + i;
+            const importName = sf.getBaseNameWithoutExtension().replace(/\./g, "_") + "_" + i;
 
             imports.push({
-                namespaceImport,
+                importName,
                 moduleSpecifier: generatedFile.getRelativePathAsModuleSpecifierTo(sf),
             });
 
@@ -664,9 +656,13 @@ autoRegisteredJobs.push(...jobs);
                 ],
             });
 
-            jobsArr.insertElement(i, namespaceImport);
+            jobsToInsert.push(importName);
 
             i++;
+        }
+
+        if (jobsToInsert.length > 0) {
+            jobsArr.insertElements(0, jobsToInsert);
         }
 
         generatedFile.addImportDeclarations(imports);
