@@ -12,7 +12,7 @@ import { UserPasswordResetCompleteRes } from "./schemas/UserPasswordResetComplet
 import jsonwebtoken from "jsonwebtoken";
 import { GenericAuthsmsOptions } from "./genericAuthPluginOptions";
 
-export function getJtwTokenPlugin(secret: string, rolePermissions?: { [role: string]: string[] }, passwordPolicy?: RegExp) {
+export function getJtwTokenPlugin(secret: string, rolePermissions?: { [role: string]: string[] }, passwordPolicy?: RegExp, tokenTTL? : number) {
     if (passwordPolicy == undefined) {
         passwordPolicy = /.{1,}$/;
     }
@@ -36,6 +36,7 @@ export function getJtwTokenPlugin(secret: string, rolePermissions?: { [role: str
         },
         passwordPolicy,
         rolePermissions,
+        tokenTTL
     });
 }
 

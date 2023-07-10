@@ -11,7 +11,7 @@ import { GetManagementUserByUseridRes } from "../../schemas/Management/GetUserBy
 const GetManagementUserByUserid: Handler<
   FlinkContext,
   GetManagementUserByUseridReq,
-  GetManagementUserByUseridRes
+  any
 > = async ({ ctx, req, origin }) => {
   let pluginName = origin || "genericAuthPlugin";
   let repo = ctx.repos[(<any>ctx.plugins)[pluginName].repoName];
