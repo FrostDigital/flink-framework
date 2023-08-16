@@ -41,7 +41,7 @@ const postPasswordResetStartHandler: Handler<
   );
 
   if (resp.status != "success") {
-    return { data: { status: resp.status } };
+    return { data: { status: "success", passwordResetToken: resp.passwordResetToken } };
   }
 
   const emailSettings =

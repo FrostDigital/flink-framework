@@ -281,12 +281,21 @@ export async function passwordResetStart(
     lifeTime?: string
 ): Promise<UserPasswordResetStartRes> {
     const user = await repo.getOne({ username: username.toLowerCase() });
+
+    const fakepayload = {
+        type: "passwordReset",
+        username: username.toLocaleLowerCase(),
+    };
+    const fakeToken = jsonwebtoken.sign(fakepayload, "fake_payload", { expiresIn: lifeTime });
+
+
+
     if (user == null) {
-        return { status: "userNotFound" };
+        return { status: "userNotFound", passwordResetToken : fakeToken };
     }
 
     if (user.authentificationMethod != "password") {
-        return { status: "userNotFound" };
+        return { status: "userNotFound", passwordResetToken : fakeToken };
     }
 
     if (numberOfDigits == null) numberOfDigits = 6;
