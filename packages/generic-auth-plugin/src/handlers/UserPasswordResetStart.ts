@@ -30,7 +30,7 @@ const postPasswordResetStartHandler: Handler<
     const resp = await genericAuthPlugin.passwordResetStart(repo, <JwtAuthPlugin>ctx.auth, jwtSecret, req.body.username, numberOfDigits, lifeTime);
 
     if (resp.status != "success") {
-        return { data: { status: resp.status } };
+      return { data: { status: "success", passwordResetToken: resp.passwordResetToken } };
     }
 
     const emailCtx = {
