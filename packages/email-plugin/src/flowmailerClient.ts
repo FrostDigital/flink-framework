@@ -104,3 +104,4 @@ export class flowMailerClient implements client {
         return !failure;
     }
 }
+
