@@ -16,6 +16,12 @@ type SubmitMessage = {
     subject: string;
     text?: string;
     html?: string;
+    attachments? : {
+        content : string;
+        contentType : string;
+        disposition : "attachment",
+        filename : string;
+    }[]
 };
 
 export class flowMailerClient implements client {
@@ -53,7 +59,7 @@ export class flowMailerClient implements client {
         } catch (ex) {}
     }
     async sendEmail(email: email, to: string): Promise<boolean> {
-        const data = {
+        let data : SubmitMessage = {
             messageType: "EMAIL",
             senderAddress: email.from,
             recipientAddress: to,
@@ -61,6 +67,9 @@ export class flowMailerClient implements client {
             text: email.text,
             html: email.html,
         };
+        if(email.attachments) {
+            data = { ...data, attachments : email.attachments.map(a=>( {...a, disposition : "attachment"}) )}
+        }
         try {
             const resp = await axios.post(`https://api.flowmailer.net/${this.account_id}/messages/submit`, data, {
                 headers: {

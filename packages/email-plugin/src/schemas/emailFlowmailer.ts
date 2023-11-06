@@ -29,6 +29,14 @@ export type emailFlowmailer = {
 
   text? : string
 
-  html? : string
+  html? : string;
+
+  attachments? : fowmailerAttachment[]
 
 };
+
+export type fowmailerAttachment = {
+  content : string;
+  contentType : string;
+  filename : string;
+}
