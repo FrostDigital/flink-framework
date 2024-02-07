@@ -172,7 +172,7 @@ autoRegisteredHandlers.push(...handlers);
             const namespaceImport = sf.getBaseNameWithoutExtension().replace(/\./g, "_") + "_" + i;
 
             imports.push({
-                namespaceImport,
+                defaultImport: "* as " + namespaceImport,
                 moduleSpecifier: generatedFile.getRelativePathAsModuleSpecifierTo(sf),
             });
 
@@ -648,7 +648,7 @@ autoRegisteredJobs.push(...jobs);
             const namespaceImport = sf.getBaseNameWithoutExtension().replace(/\./g, "_") + "_" + i;
 
             imports.push({
-                namespaceImport,
+                defaultImport: "* as " + namespaceImport,
                 moduleSpecifier: generatedFile.getRelativePathAsModuleSpecifierTo(sf),
             });
 
