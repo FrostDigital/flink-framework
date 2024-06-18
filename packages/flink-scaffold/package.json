@@ -1,6 +1,6 @@
 {
     "name": "flink-scaffold",
-    "version": "0.9.0",
+    "version": "0.10.0",
     "description": "Scaffold your Flink Handlers and Repos with this CLI",
     "license": "MIT",
     "private": true,

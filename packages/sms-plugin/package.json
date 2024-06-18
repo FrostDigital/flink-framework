@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/sms-plugin",
-    "version": "0.9.0",
+    "version": "0.10.0",
     "description": "Flink plugin that makes it possible to send sms",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
@@ -17,7 +17,7 @@
         "axios": "^0.27.2"
     },
     "devDependencies": {
-        "@flink-app/flink": "^0.9.0",
+        "@flink-app/flink": "^0.10.0",
         "@types/node": "^15.6.2",
         "ts-node": "^9.1.1",
         "typescript": "^4.2.4"
