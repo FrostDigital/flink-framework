@@ -50,11 +50,22 @@ async function send(message: Message, adminApp: admin.app.App) {
         return { ...rest, token: to };
     });
 
-    for (const message of messages) {
+    // Split messages into batches of 500
+    const batchSize = 500;
+    for (let i = 0; i < messages.length; i += batchSize) {
+        const batch = messages.slice(i, i + batchSize);
+
         try {
-            await adminApp.messaging().send(message);
+            const response = await adminApp.messaging().sendEach(batch);
+            response.responses.forEach((res, idx) => {
+                if (res.success) {
+                    log.debug(`[firebaseMessaging] Successfully sent to device ${batch[idx].token}`);
+                } else {
+                    log.debug(`[firebaseMessaging] Failed sending to device ${batch[idx].token}: ${res.error}`);
+                }
+            });
         } catch (err: any) {
-            log.debug(`[firebaseMessaging] Failed sending to device ${message.token}: ${err}`);
+            log.debug(`[firebaseMessaging] Failed sending batch: ${err}`);
         }
     }
 }
