@@ -18,7 +18,8 @@ const userLoginHandler: Handler<
     req.body.username,
     req.body.password,
     ctx.plugins.genericAuthPlugin.validatePasswordMethod,
-    (<any>ctx.plugins)[pluginName].smsOptions
+    (<any>ctx.plugins)[pluginName].smsOptions,
+    ctx.plugins.genericAuthPlugin.onSuccessfulLogin
   );
 
   if (loginRespons.status != "success") {

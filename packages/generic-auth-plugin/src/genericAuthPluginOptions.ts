@@ -18,9 +18,11 @@ export interface GenericAuthPluginOptions {
     validatePasswordMethod?: {
         (password: string, hash: string, salt: string): Promise<boolean>;
     };
-
     usernameFormat?: RegExp;
     sms?: GenericAuthsmsOptions;
+    onSuccessfulLogin?: {
+        (userId:string): Promise<void>
+    };
 }
 
 export interface GenericAuthsmsOptions {
