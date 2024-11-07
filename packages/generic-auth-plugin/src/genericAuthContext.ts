@@ -14,7 +14,7 @@ export interface genericAuthContext{
     genericAuthPlugin : {
 
     
-        loginUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password? : string, validatePasswordMethod? : { (password : string, hash : string, salt : string) : Promise<boolean>  }, smsOptions? : GenericAuthsmsOptions, onSuccessfulLogin?: (userId:string) => Promise<void> ) : Promise<UserLoginRes>,
+        loginUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password? : string, validatePasswordMethod? : { (password : string, hash : string, salt : string) : Promise<boolean>  }, smsOptions? : GenericAuthsmsOptions, onSuccessfulLogin?: (user:User) => Promise<void> ) : Promise<UserLoginRes>,
         loginByToken(repo: FlinkRepo<any, User>, auth: JwtAuthPlugin, token : string, code : string,  jwtSecret : string) : Promise<UserLoginRes>,
         createUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password : string, authentificationMethod : "password" | "sms",  roles : string[], profile : UserProfile, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  }  ) : Promise<UserCreateRes>,
         changePassword( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, userId : string, newPassword : string, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  } ) : Promise<UserPasswordChangeRes>,
@@ -26,7 +26,7 @@ export interface genericAuthContext{
         validatePasswordMethod? : { (password : string, hash : string, salt : string) : Promise<boolean>  },
         usernameFormat : RegExp      
         smsOptions? : GenericAuthsmsOptions,
-        onSuccessfulLogin?: { (userId:string) : Promise<void> }
+        onSuccessfulLogin?: { (user:User) : Promise<void> }
     }
 
 }

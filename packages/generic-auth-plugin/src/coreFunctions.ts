@@ -160,7 +160,7 @@ export async function loginUser(
     },
     smsOptions? : GenericAuthsmsOptions,
     onSuccessfulLogin?: {
-        (userId:string): Promise<void>
+        (user:User): Promise<void>
     },
 ): Promise<UserLoginRes> {
 
@@ -222,7 +222,7 @@ export async function loginUser(
         const token = await auth.createToken({ username: username.toLowerCase(), _id: user._id }, user.roles);
 
         if (onSuccessfulLogin != null) {
-            await onSuccessfulLogin(user._id);
+            await onSuccessfulLogin(user);
         }
 
         return {

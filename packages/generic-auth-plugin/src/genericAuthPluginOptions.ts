@@ -1,3 +1,4 @@
+import { User } from "./schemas/User";
 import { UserPasswordResetSettings } from "./schemas/UserPasswordResetSettings";
 import { client as smsClient } from "@flink-app/sms-plugin";
 export interface GenericAuthPluginOptions {
@@ -21,7 +22,7 @@ export interface GenericAuthPluginOptions {
     usernameFormat?: RegExp;
     sms?: GenericAuthsmsOptions;
     onSuccessfulLogin?: {
-        (userId:string): Promise<void>
+        (user:User): Promise<void>
     };
 }
 
