@@ -35,6 +35,7 @@ export const genericAuthPlugin = (
       createPasswordHashAndSaltMethod: options.createPasswordHashAndSaltMethod,
       validatePasswordMethod: options.validatePasswordMethod,
       usernameFormat: options.usernameFormat || /.{1,}$/,
+      onSuccessfulLogin: options.onSuccessfulLogin,
       smsOptions : options.sms
     },
   };

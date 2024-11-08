@@ -158,8 +158,12 @@ export async function loginUser(
     validatePasswordMethod?: {
         (password: string, hash: string, salt: string): Promise<boolean>;
     },
-    smsOptions? : GenericAuthsmsOptions
+    smsOptions? : GenericAuthsmsOptions,
+    onSuccessfulLogin?: {
+        (user:User): Promise<void>
+    },
 ): Promise<UserLoginRes> {
+
     const user = await repo.getOne({ username: username.toLowerCase() });
     if (user == null) {
         return { status: "failed" };
@@ -170,7 +174,7 @@ export async function loginUser(
     if (user.authentificationMethod == "password") {
         if (password == null) password = "";
 
-        if (validatePasswordMethod != null) {
+        if (validatePasswordMethod) {
             valid = await validatePasswordMethod(password, <string>user.password, <string>user.salt);
 
             //If not valid, try to use default auth
@@ -205,7 +209,6 @@ export async function loginUser(
     
         const token = jsonwebtoken.sign(payload, secret, options);
 
-
         return {
             status: "success",
             validationToken : token
@@ -217,6 +220,10 @@ export async function loginUser(
 
     if (valid) {
         const token = await auth.createToken({ username: username.toLowerCase(), _id: user._id }, user.roles);
+
+        if (onSuccessfulLogin) {
+            await onSuccessfulLogin(user);
+        }
 
         return {
             status: "success",
