@@ -174,7 +174,7 @@ export async function loginUser(
     if (user.authentificationMethod == "password") {
         if (password == null) password = "";
 
-        if (validatePasswordMethod != null) {
+        if (validatePasswordMethod) {
             valid = await validatePasswordMethod(password, <string>user.password, <string>user.salt);
 
             //If not valid, try to use default auth
@@ -221,7 +221,7 @@ export async function loginUser(
     if (valid) {
         const token = await auth.createToken({ username: username.toLowerCase(), _id: user._id }, user.roles);
 
-        if (onSuccessfulLogin != null) {
+        if (onSuccessfulLogin) {
             await onSuccessfulLogin(user);
         }
 
