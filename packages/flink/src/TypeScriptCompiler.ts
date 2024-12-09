@@ -2,7 +2,7 @@ import { promises as fsPromises } from "fs";
 import { JSONSchema7 } from "json-schema";
 import { join } from "path";
 import glob from "tiny-glob";
-import { Config, createFormatter, createParser, Schema, SchemaGenerator } from "ts-json-schema-generator";
+import { CompletedConfig, createFormatter, createParser, DEFAULT_CONFIG, Schema, SchemaGenerator } from "ts-json-schema-generator";
 import {
     ArrayLiteralExpression,
     DiagnosticCategory,
@@ -437,7 +437,8 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
     }
 
     private initJsonSchemaGenerator() {
-        const conf: Config = {
+        const conf: CompletedConfig = {
+            ...DEFAULT_CONFIG,
             expose: "none", // Do not create shared $ref definitions.
             topRef: false, // Removes the wrapper object around the schema.
         };

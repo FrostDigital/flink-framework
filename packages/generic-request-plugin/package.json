@@ -1,28 +1,28 @@
 {
-  "name": "@flink-app/generic-request-plugin",
-  "version": "0.11.0",
-  "description": "Flink plugin that makes it possible to override default request handlers and handle specific requests manually",
-  "scripts": {
-    "test": "echo \"Error: no test specified\"",
-    "prepublish": "tsc"
-  },
-  "author": "johan@frost.se",
-  "publishConfig": {
-    "access": "public"
-  },
-  "license": "MIT",
-  "types": "dist/index.d.ts",
-  "main": "dist/index.js",
-  "dependencies": {
-    "express": "^4.17.1",
-    "node-color-log": "^5.3.1"
-  },
-  "devDependencies": {
-    "@flink-app/flink": "^0.11.0",
-    "@types/express": "4.17.11",
-    "@types/node": "^15.6.2",
-    "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
-  },
-  "gitHead": "548cc509c6087177cd22e4f0bea3044ba45154c6"
+    "name": "@flink-app/generic-request-plugin",
+    "version": "0.11.0",
+    "description": "Flink plugin that makes it possible to override default request handlers and handle specific requests manually",
+    "scripts": {
+        "test": "echo \"Error: no test specified\"",
+        "prepublish": "tsc"
+    },
+    "author": "johan@frost.se",
+    "publishConfig": {
+        "access": "public"
+    },
+    "license": "MIT",
+    "types": "dist/index.d.ts",
+    "main": "dist/index.js",
+    "dependencies": {
+        "express": "^4.17.1",
+        "node-color-log": "^5.3.1"
+    },
+    "devDependencies": {
+        "@flink-app/flink": "^0.11.0",
+        "@types/express": "4.17.11",
+        "@types/node": "^22.10.1",
+        "ts-node": "^10.9.2",
+        "typescript": "5.6.2"
+    },
+    "gitHead": "548cc509c6087177cd22e4f0bea3044ba45154c6"
 }

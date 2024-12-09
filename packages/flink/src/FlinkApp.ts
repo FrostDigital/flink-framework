@@ -289,9 +289,11 @@ export class FlinkApp<C extends FlinkContext> {
         if (!this.disableHttpServer) {
             this.expressApp = express();
             this.expressApp.use(cors(this.corsOpts));
+            // @ts-ignore
             this.expressApp.use(bodyParser.json(this.jsonOptions));
 
             if (this.accessLog.enabled) {
+                // @ts-ignore
                 this.expressApp.use(morgan(this.accessLog.format));
             }
 

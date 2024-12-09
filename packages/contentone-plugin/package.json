@@ -1,28 +1,28 @@
 {
-  "name": "@flink-app/contentone-plugin",
-  "version": "0.11.0",
-  "description": "Flink plugin that enables easy to use communication with content one",
-  "scripts": {
-    "test": "echo \"Error: no test specified\"",
-    "prepublish": "tsc"
-  },
-  "author": "johan@frost.se",
-  "publishConfig": {
-    "access": "public"
-  },
-  "license": "MIT",
-  "types": "dist/index.d.ts",
-  "main": "dist/index.js",
-  "dependencies": {
-    "form-data": "^2.5.1",
-    "got": "^9.6.0"
-  },
-  "devDependencies": {
-    "@flink-app/flink": "^0.11.0",
-    "@types/got": "^9.6.0",
-    "@types/node": "^15.6.2",
-    "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
-  },
-  "gitHead": "548cc509c6087177cd22e4f0bea3044ba45154c6"
+    "name": "@flink-app/contentone-plugin",
+    "version": "0.11.0",
+    "description": "Flink plugin that enables easy to use communication with content one",
+    "scripts": {
+        "test": "echo \"Error: no test specified\"",
+        "prepublish": "tsc"
+    },
+    "author": "johan@frost.se",
+    "publishConfig": {
+        "access": "public"
+    },
+    "license": "MIT",
+    "types": "dist/index.d.ts",
+    "main": "dist/index.js",
+    "dependencies": {
+        "form-data": "^2.5.1",
+        "got": "^9.6.0"
+    },
+    "devDependencies": {
+        "@flink-app/flink": "^0.11.0",
+        "@types/got": "^9.6.0",
+        "@types/node": "^22.10.1",
+        "ts-node": "^9.1.1",
+        "typescript": "5.6.2"
+    },
+    "gitHead": "548cc509c6087177cd22e4f0bea3044ba45154c6"
 }

@@ -90,7 +90,7 @@ function init(app: FlinkApp<any>, options: StaticOptions) {
             if (options.logToConsole) {
                 log.debug(requestItem);
             }
-            (oldEnd as Function).apply(res, arguments);
+            return (oldEnd as Function).apply(res, arguments); // Ensure the return value is passed through
         };
         if (next) {
             next();
