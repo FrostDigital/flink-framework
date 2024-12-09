@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/sms-plugin",
-    "version": "0.11.0",
+    "version": "0.11.4-next.0",
     "description": "Flink plugin that makes it possible to send sms",
     "author": "johan@frost.se",
     "publishConfig": {

@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/jwt-auth-plugin",
-    "version": "0.11.0",
+    "version": "0.11.4-next.0",
     "description": "Flink plugin for JWT auth",
     "author": "joel@frost.se",
     "license": "MIT",
@@ -17,10 +17,10 @@
         "jwt-simple": "^0.5.6"
     },
     "devDependencies": {
+        "@flink-app/flink": "^0.11.4-next.0",
         "@types/bcrypt": "^5.0.0",
         "@types/jasmine": "^3.7.1",
         "@types/node": "^22.10.1",
-        "@flink-app/flink": "^0.11.0",
         "jasmine": "^3.7.0",
         "jasmine-spec-reporter": "^7.0.0",
         "nodemon": "^2.0.7",
