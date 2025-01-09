@@ -138,6 +138,11 @@ export interface FlinkOptions {
      */
     jsonOptions?: OptionsJson;
 
+    /**
+     * Optional: content-types that should be parsed as raw body, and passed as a Buffer object instead of json
+     */
+    rawContentTypes?: string | string[];
+
     scheduling?: {
         /**
          * If true, the scheduler will be enabled.
@@ -226,6 +231,7 @@ export class FlinkApp<C extends FlinkContext> {
     private corsOpts: FlinkOptions["cors"];
     private routingConfigured = false;
     private jsonOptions?: OptionsJson;
+    private rawContentTypes?: string[];
     private schedulingOptions?: FlinkOptions["scheduling"];
     private disableHttpServer = false;
 
@@ -248,6 +254,7 @@ export class FlinkApp<C extends FlinkContext> {
         this.onDbConnection = opts.onDbConnection;
         this.plugins = opts.plugins || [];
         this.corsOpts = { ...defaultCorsOptions, ...opts.cors };
+        this.rawContentTypes = Array.isArray(opts.rawContentTypes) ? opts.rawContentTypes : (typeof opts.rawContentTypes === 'string' ? [opts.rawContentTypes] : undefined);
         this.auth = opts.auth;
         this.jsonOptions = opts.jsonOptions || { limit: "1mb" };
         this.schedulingOptions = opts.scheduling;
@@ -289,6 +296,13 @@ export class FlinkApp<C extends FlinkContext> {
         if (!this.disableHttpServer) {
             this.expressApp = express();
             this.expressApp.use(cors(this.corsOpts));
+
+            if (this.rawContentTypes) {
+                for (const type of this.rawContentTypes) {
+                    this.expressApp.use(express.raw({ type }));
+                }
+            }
+
             this.expressApp.use(bodyParser.json(this.jsonOptions));
 
             if (this.accessLog.enabled) {
