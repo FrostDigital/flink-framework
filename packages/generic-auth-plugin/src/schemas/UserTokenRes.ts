@@ -1,3 +1,3 @@
-export interface UserTokenRes{
-    token : string
+export interface UserTokenRes {
+    token: string;
 }
