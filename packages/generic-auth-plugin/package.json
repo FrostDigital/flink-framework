@@ -1,6 +1,6 @@
 {
   "name": "@flink-app/generic-auth-plugin",
-  "version": "0.11.5",
+  "version": "0.11.6",
   "description": "Flink plugin that provides a generic user authentification solution.",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
