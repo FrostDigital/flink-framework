@@ -1,4 +1,5 @@
-export interface PushNotificationToken{
-    deviceId : string;
-    token : string;
+export interface PushNotificationToken {
+    deviceId: string;
+    token: string;
+    platform?: "ios" | "android" | "web";
 }
