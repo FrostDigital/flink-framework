@@ -22,8 +22,16 @@ export interface GenericAuthPluginOptions {
     usernameFormat?: RegExp;
     sms?: GenericAuthsmsOptions;
     onSuccessfulLogin?: {
-        (user:User): Promise<void>
+        (user: User): Promise<void>;
     };
+    /**
+     * If true, when a new device is registered, all other devices identified by `deviceId`
+     * will be deregistered to avoid duplicate notifications.
+     *
+     * Also as safety measure, any usage of the same firebase token on other users will be
+     * deregistered.
+     */
+    deregisterOtherDevices?: boolean;
 }
 
 export interface GenericAuthsmsOptions {
