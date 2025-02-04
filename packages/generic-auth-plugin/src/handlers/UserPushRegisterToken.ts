@@ -41,7 +41,7 @@ const postUserPushRegisterTokenHandler: Handler<FlinkContext<genericAuthContext>
 
         for (let other of otherRegistrations) {
             try {
-                other.pushNotificationTokens = other.pushNotificationTokens.filter((t) => t.deviceId != req.body.deviceId || t.token != req.body.token);
+                other.pushNotificationTokens = other.pushNotificationTokens.filter((t) => t.deviceId !== req.body.deviceId && t.token !== req.body.token);
                 await repo.updateOne(other._id, {
                     pushNotificationTokens: other.pushNotificationTokens,
                 });
