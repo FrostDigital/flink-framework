@@ -32,7 +32,7 @@ const postUserPushRegisterTokenHandler: Handler<FlinkContext<genericAuthContext>
 
     if (!allowMultipleDevices) {
         // Filter out all other devices except the newly registered one
-        user.pushNotificationTokens = user.pushNotificationTokens.filter((t) => t.deviceId !== req.body.deviceId);
+        user.pushNotificationTokens = user.pushNotificationTokens.filter((t) => t.deviceId === req.body.deviceId);
     }
 
     await repo.updateOne(user._id, {
