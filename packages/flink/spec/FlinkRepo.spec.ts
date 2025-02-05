@@ -35,6 +35,15 @@ describe("FlinkRepo", () => {
         expect(doc?.name).toBe("foo");
     });
 
+    it("should get document by id using ObjectId", async () => {
+        const { insertedId } = await collection.insertOne({ name: "foo" });
+
+        const doc = await repo.getById(insertedId);
+
+        expect(doc).toBeDefined();
+        expect(doc?.name).toBe("foo");
+    });
+
     it("should create and delete document", async () => {
         const createdDoc = await repo.create<{ name: string }>({ name: "bar" });
 
