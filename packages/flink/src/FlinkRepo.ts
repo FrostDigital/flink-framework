@@ -68,11 +68,13 @@ export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
         let oid: ObjectId | string;
 
         if (typeof id === "string") {
-            oid = ObjectId.isValid(id) ? new ObjectId(id) : id;
+            oid = new ObjectId(id);
         } else if (id instanceof ObjectId) {
             oid = id;
         } else {
             throw new Error("Invalid id type");
         }
+
+        return oid;
     }
 }
