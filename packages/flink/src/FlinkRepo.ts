@@ -1,66 +1,80 @@
-import { Collection, Db, ObjectID } from "mongodb";
+import { Collection, Db, ObjectId } from "mongodb";
 import { FlinkContext } from "./FlinkContext";
 
 export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
-  collection: Collection;
+    collection: Collection;
 
-  private _ctx?: C;
+    private _ctx?: C;
 
-  set ctx(ctx: FlinkContext) {
-    this._ctx = ctx as C;
-  }
+    set ctx(ctx: FlinkContext) {
+        this._ctx = ctx as C;
+    }
 
-  get ctx() {
-    if (!this._ctx) throw new Error("Missing FlinkContext");
-    return this._ctx;
-  }
+    get ctx() {
+        if (!this._ctx) throw new Error("Missing FlinkContext");
+        return this._ctx;
+    }
 
-  constructor(private collectionName: string, private db: Db) {
-    this.collection = db.collection(this.collectionName);
-  }
+    constructor(private collectionName: string, private db: Db) {
+        this.collection = db.collection(this.collectionName);
+    }
 
-  async findAll(query = {}): Promise<Model[]> {
-    return this.collection.find(query).toArray();
-  }
+    async findAll(query = {}): Promise<Model[]> {
+        return this.collection.find(query).toArray();
+    }
 
-  async getById(id: string): Promise<Model | null> {
-    return this.collection.findOne({ _id: new ObjectID(id) });
-  }
+    async getById(id: string): Promise<Model | null> {
+        return this.collection.findOne({ _id: this.buildId(id) });
+    }
 
-  async getOne(query = {}): Promise<Model | null> {
-    return this.collection.findOne(query);
-  }
+    async getOne(query = {}): Promise<Model | null> {
+        return this.collection.findOne(query);
+    }
 
-  async create<C = Omit<Model, "_id">>(model: C): Promise<C & { _id: string }> {
-    const { ops } = await this.collection.insertOne(model);
-    return ops[0];
-  }
+    async create<C = Omit<Model, "_id">>(model: C): Promise<C & { _id: string }> {
+        const { ops } = await this.collection.insertOne(model);
+        return ops[0];
+    }
 
-  async updateOne<U = Partial<Model>>(id: string, model: U): Promise<Model> {
-    const oid = new ObjectID(id);
+    async updateOne<U = Partial<Model>>(id: string, model: U): Promise<Model> {
+        const oid = this.buildId(id);
 
-    await this.collection.updateOne(
-      {
-        _id: oid,
-      },
-      {
-        $set: model,
-      }
-    );
-    return this.collection.findOne({ _id: oid });
-  }
+        await this.collection.updateOne(
+            {
+                _id: oid,
+            },
+            {
+                $set: model,
+            }
+        );
+        return this.collection.findOne({ _id: oid });
+    }
 
-  async updateMany<U = Partial<Model>>(query: any, model: U): Promise<number> {
-    const { modifiedCount } = await this.collection.updateMany(query, {
-      $set: model,
-    });
-    return modifiedCount;
-  }
+    async updateMany<U = Partial<Model>>(query: any, model: U): Promise<number> {
+        const { modifiedCount } = await this.collection.updateMany(query, {
+            $set: model,
+        });
+        return modifiedCount;
+    }
 
-  async deleteById(id: string): Promise<number> {
-    const { deletedCount } = await this.collection.deleteOne({
-      _id: new ObjectID(id),
-    });
-    return deletedCount || 0;
-  }
+    async deleteById(id: string): Promise<number> {
+        const { deletedCount } = await this.collection.deleteOne({
+            _id: this.buildId(id),
+        });
+        return deletedCount || 0;
+    }
+
+    private buildId(id: string | ObjectId) {
+        let oid: ObjectId | string;
+
+        if (typeof id === "string") {
+            oid = new ObjectId(id);
+        } else if (id instanceof ObjectId) {
+            oid = id;
+        } else {
+            throw new Error("Invalid id type");
+        }
+
+        return oid;
+    }
 }
