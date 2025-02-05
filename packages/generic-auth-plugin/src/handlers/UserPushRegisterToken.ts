@@ -1,4 +1,4 @@
-import { FlinkContext, Handler, notFound } from "@flink-app/flink";
+import { FlinkContext, Handler, log, notFound } from "@flink-app/flink";
 import { genericAuthContext } from "../genericAuthContext";
 import { PushNotificationToken } from "../schemas/PushNotificationToken";
 import { PushNotificatioNTokenRes } from "../schemas/PushNotificationTokenRes";
@@ -45,9 +45,20 @@ const postUserPushRegisterTokenHandler: Handler<FlinkContext<genericAuthContext>
             _id: { $ne: user._id },
         });
 
+        log.debug(`Found ${otherRegistrations.length} other registrations for device ${req.body.deviceId} or token ${req.body.token}`);
+
         for (let other of otherRegistrations) {
             try {
+                let lengthBefore = other.pushNotificationTokens.length;
+
                 other.pushNotificationTokens = other.pushNotificationTokens.filter((t) => t.deviceId !== req.body.deviceId && t.token !== req.body.token);
+
+                log.debug(
+                    `Deregistering ${lengthBefore - other.pushNotificationTokens.length} devices for user ${other._id} as other user ${
+                        user._id
+                    } claimed this device`
+                );
+
                 await repo.updateOne(other._id, {
                     pushNotificationTokens: other.pushNotificationTokens,
                 });
