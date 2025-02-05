@@ -14,6 +14,7 @@ const postUserPushRegisterTokenHandler: Handler<FlinkContext<genericAuthContext>
     const pluginOptions: GenericAuthPluginOptions = (ctx.plugins as any)[pluginName];
     const repo = ctx.repos[pluginOptions.repoName];
     const deregisterOtherDevices = pluginOptions.deregisterOtherDevices || false;
+    const allowMultipleDevices = pluginOptions.allowMultipleDevices ?? true;
 
     const user = <User>await repo.getById(req.user._id);
 
@@ -27,6 +28,11 @@ const postUserPushRegisterTokenHandler: Handler<FlinkContext<genericAuthContext>
         exToken.token = req.body.token;
     } else {
         user.pushNotificationTokens.push(req.body);
+    }
+
+    if (!allowMultipleDevices) {
+        // Filter out all other devices except the newly registered one
+        user.pushNotificationTokens = user.pushNotificationTokens.filter((t) => t.deviceId === req.body.deviceId);
     }
 
     await repo.updateOne(user._id, {

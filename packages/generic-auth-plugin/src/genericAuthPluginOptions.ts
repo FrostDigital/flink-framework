@@ -32,6 +32,12 @@ export interface GenericAuthPluginOptions {
      * deregistered.
      */
     deregisterOtherDevices?: boolean;
+
+    /**
+     * If true, multiple devices can be registered with the same `deviceId`.
+     * Default is `true`.
+     */
+    allowMultipleDevices?: boolean;
 }
 
 export interface GenericAuthsmsOptions {
