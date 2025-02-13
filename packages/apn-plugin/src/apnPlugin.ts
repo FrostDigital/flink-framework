@@ -1,4 +1,4 @@
-import { FlinkPlugin } from "@flink-app/flink";
+import { FlinkPlugin, log } from "@flink-app/flink";
 import apn from "@parse/node-apn";
 
 import ApnMessage from "./schemas/ApnMessage";
@@ -83,7 +83,7 @@ export const apnPlugin = (options: ApnPluginOptions): FlinkPlugin => {
 
                 try {
                     const result = await provider.send(notification, message.to);
-                    console.log("APNs push result:", result);
+                    log.debug("[apn] APNs push result:", JSON.stringify(result));
                     return result;
                 } catch (err) {
                     console.error("Error sending APNs push:", err);

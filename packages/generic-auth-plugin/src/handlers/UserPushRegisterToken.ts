@@ -26,6 +26,7 @@ const postUserPushRegisterTokenHandler: Handler<FlinkContext<genericAuthContext>
 
     if (exToken != null) {
         exToken.token = req.body.token;
+        exToken.type = req.body.type || "firebase";
     } else {
         user.pushNotificationTokens.push({ ...req.body, type: req.body.type || "firebase" });
     }
