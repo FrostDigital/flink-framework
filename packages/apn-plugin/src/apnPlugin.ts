@@ -33,8 +33,8 @@ export type ApnPluginOptions = {
 
 export const apnPlugin = (options: ApnPluginOptions): FlinkPlugin => {
     // Decode the base64 encoded certificate and key.
-    const decodedCert = Buffer.from(options.certificate.cert, "base64").toString("utf8");
-    const decodedKey = Buffer.from(options.certificate.key, "base64").toString("utf8");
+    const decodedCert = Buffer.from(options.certificate.cert, "base64");
+    const decodedKey = Buffer.from(options.certificate.key, "base64");
 
     // Initialize the APNs provider using certificate-based authentication.
     const provider = new apn.Provider({
