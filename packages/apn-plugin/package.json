@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/apn-plugin",
-    "version": "0.11.9",
+    "version": "0.11.11",
     "description": "Flink plugin to send push notifications to APN",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
