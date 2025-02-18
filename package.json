@@ -5,9 +5,6 @@
         "test": "lerna run test",
         "watch": "lerna run watch --parallel",
         "bootstrap": "npx lerna bootstrap",
-        "build": "npm run build:compiler && npm run build:test-utils && lerna run build",
-        "build:compiler": "npx lerna run build --scope @flink-app/flink",
-        "build:test-utils": "npx lerna run build --scope @flink-app/test-utils",
         "clean:all": "npx lerna clean --yes && npx lerna exec -- rm -rf node_modules dist .flink"
     },
     "devDependencies": {
