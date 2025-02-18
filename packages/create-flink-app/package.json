@@ -21,7 +21,7 @@
     "scripts": {
         "dev": "ncc build ./index.ts -w -o dist/",
         "build": "rimraf ./dist/ && ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register",
-        "prepare": "npm run build"
+        "clean": "rimraf ./dist/"
     },
     "devDependencies": {
         "@flink-app/flink": "^0.11.9",
