@@ -4,17 +4,17 @@ A FLINK plugin that provides a generic and easy to use user system.
 
 This plugin is dependent on other flink plugins:
 
-- [jwt-auth-plugin](https://github.com/FrostDigital/flink-framework/tree/main/packages/jwt-auth-plugin)
-- [email-plugin](https://github.com/FrostDigital/flink-framework/tree/main/packages/email-plugin)
+-   [jwt-auth-plugin](https://github.com/FrostDigital/flink-framework/tree/main/packages/jwt-auth-plugin)
+-   [email-plugin](https://github.com/FrostDigital/flink-framework/tree/main/packages/email-plugin)
 
 This plugin enables the following functionalities:
 
-- User creation
-- User login
-- Change user password
-- Password reset routine (with email)
-- User profile
-- Push notification token management
+-   User creation
+-   User login
+-   Change user password
+-   Password reset routine (with email)
+-   User profile
+-   Push notification token management
 
 Plugin can both be used by accessing core functions by calling them directly from your code, or by using the embedded API endpoints.
 
@@ -153,10 +153,16 @@ Context used when processing the handlebars template for subject and html is:
 
 ### getJtwTokenPlugin()
 
-The function have the following definition:
+The function has the following definition:
 
 ```
-getJtwTokenPlugin(secret: string, rolePermissions?: { [role: string]: string[]; } | undefined, passwordPolicy?: RegExp | undefined): JwtAuthPlugin
+export function getJtwTokenPlugin({ secret, rolePermissions, passwordPolicy, tokenTTL, singleSession }: {
+  secret: string;
+  rolePermissions?: { [role: string]: string[] };
+  passwordPolicy?: RegExp;
+  tokenTTL?: number;
+  singleSession?: JwtAuthPluginOptions["singleSession"];
+})
 ```
 
 | Parameter       | Description                                                     |
@@ -164,6 +170,8 @@ getJtwTokenPlugin(secret: string, rolePermissions?: { [role: string]: string[]; 
 | secret          | A secret string that will be used to encrypt the jwt-token      |
 | rolePermissions | An object with roles as key and arrays of permissions as values |
 | passwordPolicy  | Regex used to validate password                                 |
+| tokenTTL        | Time to live for the token in seconds                           |
+| singleSession   | Option to enforce single session per user                       |
 
 #### rolePermissions
 
@@ -615,11 +623,10 @@ function start() {
 
 ### Enable user viewing
 
-To make it possible to view data for a user, you will need to first enable the `enableUserView` flag. 
+To make it possible to view data for a user, you will need to first enable the `enableUserView` flag.
 
-You can also provide a function that returns the data that should be shown of the user. 
-This function can also be extended to return a list of buttons that will be added to the toolbar. 
-
+You can also provide a function that returns the data that should be shown of the user.
+This function can also be extended to return a list of buttons that will be added to the toolbar.
 
 ```
 import { GetManagementModule  } from "@flink-app/generic-auth-plugin"
@@ -636,7 +643,7 @@ const genericAuthManagementModule =  GetManagementModule(
     },
     userView: {
         getData(user: User) {
-     
+
             let data: {
                 [key: string]: string
             } = {
@@ -660,12 +667,10 @@ const genericAuthManagementModule =  GetManagementModule(
                 data,
             }
         },
-    },    
+    },
   }
 )
 ```
-
-
 
 ### Make it possible to edit profile properites
 
@@ -743,18 +748,15 @@ export interface Profile{
 }
 ```
 
-
-
 ## Using SMS login
 
-
 ### prerequisites
-- A SMS client must be setup using the [sms-plugin](https://github.com/FrostDigital/flink-framework/tree/main/packages/sms-plugin)
 
+-   A SMS client must be setup using the [sms-plugin](https://github.com/FrostDigital/flink-framework/tree/main/packages/sms-plugin)
 
 ### Setup
-- Configure this plugin by setting the sms option:
 
+-   Configure this plugin by setting the sms option:
 
 ```
 import { FlinkApp } from "@flink-app/flink";
@@ -801,9 +803,8 @@ function start() {
 start();
 ```
 
-
-
 ### Register users with SMS-login
+
 To use SMS-login on a user, the user must be created with the `authentificationMethod` option set to sms.
 Username also have to be the users phone number in the "+4671234567" format.
 
@@ -816,7 +817,7 @@ Create a user that can login via SMS
 ```
 {
   "username" : "+4671234567",
- "authentificationMethod" : "sms" 
+ "authentificationMethod" : "sms"
 }
 ```
 
@@ -829,14 +830,12 @@ Create a user that can login via SMS
   },
 ```
 
-
-
 ### Initiate login
+
 Initiate a user login by sending a SMS with the code to the user.
-Please note that the user HAVE to be created with the  `authentificationMethod` option set to sms.
+Please note that the user HAVE to be created with the `authentificationMethod` option set to sms.
 
 ### POST /user/login
-
 
 #### Request data:
 
@@ -859,10 +858,10 @@ Please note that the user HAVE to be created with the  `authentificationMethod` 
 ```
 
 ### Login
+
 Finalize the login by sending the token received above, and the code received via SMS.
 
 ### POST /user/login-by-token
-
 
 #### Request data:
 
