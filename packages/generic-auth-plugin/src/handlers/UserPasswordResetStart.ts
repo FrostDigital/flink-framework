@@ -38,8 +38,9 @@ const postPasswordResetStartHandler: Handler<
         passwordResetToken: resp.passwordResetToken,
         username: req.body.username,
         profile: resp.profile,
-        type: req.body.type,
+        template: req.body.template,
         additionalAuth: req.body.additionalAuth,
+        resetPasswordFormBaseUrl: genericAuthPlugin.passwordResetSettings.resetPasswordFormBaseUrl
     };
 
     let emailSettings = genericAuthPlugin.passwordResetSettings.email;

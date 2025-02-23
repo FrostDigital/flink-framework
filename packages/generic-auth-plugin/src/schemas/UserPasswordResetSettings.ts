@@ -22,4 +22,6 @@ export interface UserPasswordResetSettings {
     };
     enablePasswordResetForm?: boolean;
     passwordResetForm?: string;
+    resetPasswordFormBaseUrl?: string;
+
 }
