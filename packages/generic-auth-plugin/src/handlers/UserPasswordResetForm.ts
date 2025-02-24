@@ -38,8 +38,26 @@ const defaultTemplate = `<html>
       max-width: 350px;
     }
   </style>
-  <script>
-    window.onload = () => {
+  <script src="form/script.js" type="text/javascript"></script>
+</head>
+<body>
+  <form id="form">
+    <p>Please enter new password</p>
+    <input type="password" name="password" placeholder="Enter new password" />
+    <input
+      type="password"
+      name="confirmPassword"
+      placeholder="Confirm new password"
+    />
+    <button id="submit-btn">Submit</button>
+  </form>
+  <div id="success">Password has been updated, please proceed to login.</div>
+</body>
+</html>
+`;
+
+const script = `
+      window.onload = () => {
       const urlSearchParams = new URLSearchParams(window.location.search);
       const params = Object.fromEntries(urlSearchParams.entries());
       const { token, code } = params;
@@ -87,22 +105,6 @@ const defaultTemplate = `<html>
         }
       };
     };
-  </script>
-</head>
-<body>
-  <form id="form">
-    <p>Please enter new password</p>
-    <input type="password" name="password" placeholder="Enter new password" />
-    <input
-      type="password"
-      name="confirmPassword"
-      placeholder="Confirm new password"
-    />
-    <button id="submit-btn">Submit</button>
-  </form>
-  <div id="success">Password has been updated, please proceed to login.</div>
-</body>
-</html>
 `;
 
 export async function handleUserPasswordResetForm(
@@ -117,6 +119,12 @@ export async function handleUserPasswordResetForm(
   });
 
   res.send(html);
+}
+
+export async function resetPasswordFormScript(req: ExpressRequest, res: ExpressResponse, { completeUrl }: { completeUrl: string }) {
+    res.header("Content-Type", "application/javascript");
+    const js = Handlebars.compile(script)({completeUrl});
+    res.send(js);
 }
 
 let cachedTemplate = "";
