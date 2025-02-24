@@ -1,3 +1,5 @@
 export interface UserPasswordResetStartReq{
-    username : string
+    username : string;
+    template?: string;
+    additionalAuth?: string;
 }
