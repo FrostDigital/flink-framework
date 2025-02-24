@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/flink",
-    "version": "0.11.9",
+    "version": "0.11.14",
     "description": "Typescript only framework for creating REST-like APIs on top of Express and mongodb",
     "types": "dist/src/index.d.ts",
     "main": "dist/src/index.js",
