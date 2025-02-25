@@ -6,38 +6,7 @@ import Handlebars from "handlebars";
 const defaultTemplate = `<html>
 <head>
   <title>Password reset</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
-    }
-
-    p {
-      margin: 0.5rem 0;
-    }
-
-    body {
-      padding: 1rem;
-    }
-
-    form {
-      display: block;
-      max-width: 320px;
-    }
-
-    input {
-      width: 100%;
-      display: block;
-      margin: 0.5rem 0;
-    }
-
-    #success {
-      display: none;
-      font-size: 1.2rem;
-      color: rgb(0, 177, 115);
-      max-width: 350px;
-    }
-  </style>
+  <link rel="stylesheet" href="form/style.css" />
   <script src="form/script.js" type="text/javascript"></script>
 </head>
 <body>
@@ -107,6 +76,38 @@ const script = `
     };
 `;
 
+const style =` * {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    p {
+      margin: 0.5rem 0;
+    }
+
+    body {
+      padding: 1rem;
+    }
+
+    form {
+      display: block;
+      max-width: 320px;
+    }
+
+    input {
+      width: 100%;
+      display: block;
+      margin: 0.5rem 0;
+    }
+
+    #success {
+      display: none;
+      font-size: 1.2rem;
+      color: rgb(0, 177, 115);
+      max-width: 350px;
+    }
+`;
+
 export async function handleUserPasswordResetForm(
   _req: ExpressRequest,
   res: ExpressResponse,
@@ -125,6 +126,11 @@ export async function resetPasswordFormScript(req: ExpressRequest, res: ExpressR
     res.header("Content-Type", "application/javascript");
     const js = Handlebars.compile(script)({completeUrl});
     res.send(js);
+}
+
+export async function resetPasswordFormCss(res: ExpressResponse) {
+  res.header("Content-Type", "text/css");
+  res.send(style);
 }
 
 let cachedTemplate = "";
