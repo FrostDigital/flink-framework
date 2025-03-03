@@ -285,7 +285,8 @@ export async function passwordResetStart(
     jwtSecret: string,
     username: string,
     numberOfDigits?: number,
-    lifeTime?: string
+    lifeTime?: string,
+    passwordResetReusableTokens: boolean = true
 ): Promise<UserPasswordResetStartRes> {
     const user = await repo.getOne({ username: username.toLowerCase() });
 
@@ -294,8 +295,6 @@ export async function passwordResetStart(
         username: username.toLocaleLowerCase(),
     };
     const fakeToken = jsonwebtoken.sign(fakepayload, "fake_payload", { expiresIn: lifeTime });
-
-
 
     if (user == null) {
         return { status: "userNotFound", passwordResetToken : fakeToken };
@@ -314,7 +313,14 @@ export async function passwordResetStart(
     };
     const code = generate(numberOfDigits);
 
-    const secret = jwtSecret + ":" + code;
+    const pwdResetStartedAt = new Date().toISOString();
+    let secret;
+    if(passwordResetReusableTokens) {
+        secret = jwtSecret + ":" + code;
+    } else {
+        secret = jwtSecret + ":" + code + ":" + pwdResetStartedAt;
+        await repo.updateOne(user._id, { pwdResetStartedAt });
+    }
 
     const options: jsonwebtoken.SignOptions = {
         expiresIn: lifeTime,
@@ -339,24 +345,37 @@ export async function passwordResetComplete(
     newPassword: string,
     createPasswordHashAndSaltMethod?: {
         (password: string): Promise<{ hash: string; salt: string } | null>;
-    }
+    },
+    passwordResetReusableTokens: boolean = true
 ): Promise<UserPasswordResetCompleteRes> {
-    let payload: { type: string; username: string } = { type: "", username: "" };
+
+    const payload = <{ username:string }>jsonwebtoken.decode(passwordResetToken);
+
+    if(!payload || !payload.username)
+        return { status: "invalidCode" };
+
+    const user = await repo.getOne({ username: payload.username });
+
+    if (!user || user == null || user.authentificationMethod != "password") {
+        return { status: "userNotFound" };
+    }
+
+    let secret;
+    if (passwordResetReusableTokens === true) {
+        secret = jwtSecret + ":" + code;
+    } else {
+        if (!user.pwdResetStartedAt || user.pwdResetStartedAt === null) {
+            return { status: "userNotFound" };
+        }
+        secret = jwtSecret + ":" + code + ":" + user.pwdResetStartedAt;
+    }
+
     try {
-        const secret = jwtSecret + ":" + code;
-        payload = <{ type: string; username: string }>jsonwebtoken.verify(passwordResetToken, secret);
+        jsonwebtoken.verify(passwordResetToken, secret);
     } catch (ex) {
         return { status: "invalidCode" };
     }
 
-    const user = await repo.getOne({ username: payload.username });
-    if (user == null) {
-        return { status: "userNotFound" };
-    }
-
-    if (user.authentificationMethod != "password") {
-        return { status: "userNotFound" };
-    }
 
     let passwordAndSalt = null;
 
@@ -375,6 +394,7 @@ export async function passwordResetComplete(
     await repo.updateOne(user._id, {
         password: passwordAndSalt.hash,
         salt: passwordAndSalt.salt,
+        pwdResetStartedAt: null
     });
 
     return { status: "success" };

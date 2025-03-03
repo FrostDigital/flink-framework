@@ -5,6 +5,7 @@ export interface GenericAuthPluginOptions {
     repoName: string;
     enableRoutes?: boolean;
     enablePasswordReset?: boolean;
+    passwordResetReusableTokens?: boolean;
     enablePushNotificationTokens?: boolean;
     passwordResetSettings?: UserPasswordResetSettings;
     enableUserCreation?: boolean;
