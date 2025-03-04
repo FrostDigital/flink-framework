@@ -18,8 +18,8 @@ export interface genericAuthContext{
         loginByToken(repo: FlinkRepo<any, User>, auth: JwtAuthPlugin, token : string, code : string,  jwtSecret : string) : Promise<UserLoginRes>,
         createUser( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, username : string, password : string, authentificationMethod : "password" | "sms",  roles : string[], profile : UserProfile, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  }  ) : Promise<UserCreateRes>,
         changePassword( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, userId : string, newPassword : string, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  } ) : Promise<UserPasswordChangeRes>,
-        passwordResetStart( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, jwtSecret : string, username : string, numberOfDigits? : number, lifeTime? : string) : Promise<UserPasswordResetStartRes>,
-        passwordResetComplete( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, jwtSecret : string, passwordResetToken : string, code : string, newPassword : string, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  } ) : Promise<UserPasswordResetCompleteRes>         
+        passwordResetStart( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, jwtSecret : string, username : string, numberOfDigits? : number, lifeTime? : string, passwordResetReusableTokens?:boolean) : Promise<UserPasswordResetStartRes>,
+        passwordResetComplete( repo : FlinkRepo<any, User>, auth : JwtAuthPlugin, jwtSecret : string, passwordResetToken : string, code : string, newPassword : string, createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  }, passwordResetReusableTokens?:boolean ) : Promise<UserPasswordResetCompleteRes>
         repoName : string,
         passwordResetSettings? : UserPasswordResetSettings,
         createPasswordHashAndSaltMethod? : { (password : string) : Promise<{ hash: string; salt: string;} | null>  },

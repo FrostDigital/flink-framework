@@ -8,6 +8,7 @@ export interface User {
     password?: string;
     salt? : string;
 
+    pwdResetStartedAt?: string;
     roles: string[];
     
     authentificationMethod : "password" | "sms";

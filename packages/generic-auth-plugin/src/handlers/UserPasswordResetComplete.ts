@@ -34,7 +34,8 @@ const postPasswordResetCompleteHandler: Handler<
     req.body.passwordResetToken,
     req.body.code,
     req.body.password,
-    ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod
+    ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod,
+    ctx.plugins.genericAuthPlugin.passwordResetSettings.passwordResetReusableTokens
   );
 
   switch (resp.status) {
