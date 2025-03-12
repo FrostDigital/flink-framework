@@ -35,7 +35,8 @@ const userCreateHandler: Handler<FlinkContext<genericAuthContext>, UserCreateReq
         authentificationMethod,
         roles,
         profile,
-        ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod
+        ctx.plugins.genericAuthPlugin.createPasswordHashAndSaltMethod,
+        ctx.plugins.genericAuthPlugin.onUserCreated
     );
     if (createUserResponse.status != "success") {
         switch (createUserResponse.status) {

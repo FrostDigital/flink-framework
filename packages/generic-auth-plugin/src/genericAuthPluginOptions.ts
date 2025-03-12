@@ -25,6 +25,9 @@ export interface GenericAuthPluginOptions {
     onSuccessfulLogin?: {
         (user: User): Promise<void>;
     };
+    onUserCreated?: {
+        (user: User): Promise<void>;
+    };
     /**
      * If true, when a new device is registered, all other devices identified by `deviceId`
      * will be deregistered to avoid duplicate notifications.
