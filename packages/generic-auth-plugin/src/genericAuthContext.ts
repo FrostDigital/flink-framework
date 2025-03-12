@@ -32,7 +32,6 @@ export interface genericAuthContext {
             profile: UserProfile,
             createPasswordHashAndSaltMethod?: {
                 (password: string): Promise<{ hash: string; salt: string } | null>;
-                onUserCreate?: (user: User) => Promise<void>;
             },
             onUserCreated?: (user: User) => Promise<void>
         ): Promise<UserCreateRes>;
