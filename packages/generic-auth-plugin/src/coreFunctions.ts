@@ -50,6 +50,9 @@ export async function createUser(
     profile: UserProfile,
     createPasswordHashAndSaltMethod?: {
         (password: string): Promise<{ hash: string; salt: string } | null>;
+    },
+    onUserCreated?: {
+        (user: User): Promise<void>;
     }
 ): Promise<UserCreateRes> {
     if (!roles.includes("user")) roles.push("user");
@@ -86,6 +89,10 @@ export async function createUser(
     }
 
     const user = await repo.create(userData);
+
+    if (onUserCreated) {
+        await onUserCreated(user);
+    }
 
     const token = await auth.createToken({ username: username.toLowerCase(), _id: user._id }, roles);
 
