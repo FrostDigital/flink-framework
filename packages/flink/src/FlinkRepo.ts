@@ -26,12 +26,18 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
 
     async getById(id: string | ObjectId) {
         const res = await this.collection.findOne<Model>({ _id: this.buildId(id) });
-        return this.objectIdToString(res);
+        if (res) {
+            return this.objectIdToString(res);
+        }
+        return null;
     }
 
     async getOne(query = {}) {
         const res = await this.collection.findOne<Model>(query);
-        return this.objectIdToString(res);
+        if (res) {
+            return this.objectIdToString(res);
+        }
+        return null;
     }
 
     async create<C = Omit<Model, "_id">>(model: C): Promise<C & { _id: string }> {
@@ -46,7 +52,10 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
 
         const res = await this.collection.findOne<Model>({ _id: oid });
 
-        return this.objectIdToString(res);
+        if (res) {
+            return this.objectIdToString(res);
+        }
+        return null;
     }
 
     async updateMany<U = Partial<Model>>(query: any, model: U): Promise<number> {
@@ -77,7 +86,7 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
         return oid;
     }
 
-    private objectIdToString(doc: any & { _id?: any }) {
+    private objectIdToString<T>(doc: T & { _id?: any }) {
         if (doc && doc._id) {
             doc._id = doc._id.toString();
         }

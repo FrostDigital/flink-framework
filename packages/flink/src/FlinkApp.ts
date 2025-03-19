@@ -2,9 +2,9 @@ import Ajv, { ValidateFunction } from "ajv";
 import addFormats from "ajv-formats";
 import bodyParser, { OptionsJson } from "body-parser";
 import cors from "cors";
-import express, { Express, Request } from "express";
+import express, { Express, Request, RequestHandler } from "express";
 import { JSONSchema7 } from "json-schema";
-import mongodb, { Db, MongoClient, ServerApiVersion } from "mongodb";
+import { Db, MongoClient, ServerApiVersion } from "mongodb";
 import morgan from "morgan";
 import ms from "ms";
 import { AsyncTask, CronJob, SimpleIntervalJob, ToadScheduler } from "toad-scheduler";
@@ -303,14 +303,14 @@ export class FlinkApp<C extends FlinkContext> {
 
             if (this.rawContentTypes) {
                 for (const type of this.rawContentTypes) {
-                    this.expressApp.use(express.raw({ type }));
+                    this.expressApp.use(express.raw({ type }) as RequestHandler);
                 }
             }
 
-            this.expressApp.use(bodyParser.json(this.jsonOptions));
+            this.expressApp.use(bodyParser.json(this.jsonOptions) as RequestHandler);
 
             if (this.accessLog.enabled) {
-                this.expressApp.use(morgan(this.accessLog.format));
+                this.expressApp.use(morgan(this.accessLog.format) as RequestHandler);
             }
 
             this.expressApp.use((req, res, next) => {
