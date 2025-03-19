@@ -1,7 +1,7 @@
-import { Collection, Db, ObjectId } from "mongodb";
+import { Collection, Db, Document, InsertOneResult, ObjectId, OptionalId, WithId } from "mongodb";
 import { FlinkContext } from "./FlinkContext";
 
-export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
+export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> {
     collection: Collection;
 
     private _ctx?: C;
@@ -19,45 +19,39 @@ export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
         this.collection = db.collection(this.collectionName);
     }
 
-    async findAll(query = {}): Promise<Model[]> {
-        return this.collection.find(query).toArray();
+    async findAll(query = {}) {
+        return this.collection.find<Model>(query).toArray();
     }
 
-    async getById(id: string): Promise<Model | null> {
-        return this.collection.findOne({ _id: this.buildId(id) });
+    async getById(id: string | ObjectId) {
+        return this.collection.findOne<Model>({ _id: this.buildId(id) });
     }
 
-    async getOne(query = {}): Promise<Model | null> {
-        return this.collection.findOne(query);
+    async getOne(query = {}) {
+        return this.collection.findOne<Model>(query);
     }
 
-    async create<C = Omit<Model, "_id">>(model: C): Promise<C & { _id: string }> {
-        const { ops } = await this.collection.insertOne(model);
-        return ops[0];
+    async create<C = Omit<Model, "_id">>(model: C): Promise<C & { _id: ObjectId }> {
+        const result: InsertOneResult<Model> = await this.collection.insertOne(model as any);
+        return { ...model, _id: result.insertedId as ObjectId };
     }
 
-    async updateOne<U = Partial<Model>>(id: string, model: U): Promise<Model> {
+    async updateOne(id: string | ObjectId, model: Partial<Model>): Promise<Model | null> {
         const oid = this.buildId(id);
 
-        await this.collection.updateOne(
-            {
-                _id: oid,
-            },
-            {
-                $set: model,
-            }
-        );
-        return this.collection.findOne({ _id: oid });
+        await this.collection.updateOne({ _id: oid }, { $set: model });
+
+        return this.collection.findOne<Model>({ _id: oid });
     }
 
     async updateMany<U = Partial<Model>>(query: any, model: U): Promise<number> {
         const { modifiedCount } = await this.collection.updateMany(query, {
-            $set: model,
+            $set: model as any,
         });
         return modifiedCount;
     }
 
-    async deleteById(id: string): Promise<number> {
+    async deleteById(id: string | ObjectId): Promise<number> {
         const { deletedCount } = await this.collection.deleteOne({
             _id: this.buildId(id),
         });

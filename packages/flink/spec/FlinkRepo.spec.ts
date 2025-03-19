@@ -1,5 +1,5 @@
+import { Collection, Db, MongoClient } from "mongodb";
 import { FlinkRepo } from "../src/FlinkRepo";
-import mongodb, { Collection, Db } from "mongodb";
 
 interface Model {
     _id: string;
@@ -19,7 +19,7 @@ describe("FlinkRepo", () => {
     let repo: Repo;
 
     beforeAll(async () => {
-        const client = await mongodb.connect("mongodb://localhost:27017/flink-test-db");
+        const client = await MongoClient.connect("mongodb://localhost:27017/flink-test-db");
         db = client.db();
         collection = db.collection("test-coll");
 
@@ -64,6 +64,6 @@ describe("FlinkRepo", () => {
         });
 
         expect(updatedDoc).toBeDefined();
-        expect(updatedDoc.name).toBe("foo");
+        expect(updatedDoc?.name).toBe("foo");
     });
 });

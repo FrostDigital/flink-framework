@@ -12,7 +12,7 @@ import { UserPasswordResetCompleteRes } from "./schemas/UserPasswordResetComplet
 import jsonwebtoken from "jsonwebtoken";
 import { GenericAuthsmsOptions } from "./genericAuthPluginOptions";
 
-export function getJtwTokenPlugin(secret: string, rolePermissions?: { [role: string]: string[] }, passwordPolicy?: RegExp, tokenTTL? : number) {
+export function getJtwTokenPlugin(secret: string, rolePermissions?: { [role: string]: string[] }, passwordPolicy?: RegExp, tokenTTL?: number) {
     if (passwordPolicy == undefined) {
         passwordPolicy = /.{1,}$/;
     }
@@ -36,7 +36,7 @@ export function getJtwTokenPlugin(secret: string, rolePermissions?: { [role: str
         },
         passwordPolicy,
         rolePermissions,
-        tokenTTL
+        tokenTTL,
     });
 }
 
@@ -91,7 +91,7 @@ export async function createUser(
     const user = await repo.create(userData);
 
     if (onUserCreated) {
-        await onUserCreated(user);
+        await onUserCreated({ ...user, _id: user._id.toString() });
     }
 
     const token = await auth.createToken({ username: username.toLowerCase(), _id: user._id }, roles);
@@ -105,42 +105,29 @@ export async function createUser(
     return {
         status: "success",
         user: {
-            _id: user._id,
+            _id: user._id.toString(),
             token: token,
             username: username.toLowerCase(),
         },
     };
 }
 
-export async function loginByToken(
-    repo: FlinkRepo<any, User>,
-    auth: JwtAuthPlugin,
-    token : string,
-    code : string,
-    jwtSecret : string
-
-): Promise<UserLoginRes> {
-
-
-    let payload : { type : string, userId : string};
-    try{
-        payload = jsonwebtoken.verify(token, jwtSecret + ":" + code) as { type : string, userId : string};
-    }catch(ex){
-        return { status: "failed" };
-    }
-     
-
-    if(payload.type != "smsLogin"){
+export async function loginByToken(repo: FlinkRepo<any, User>, auth: JwtAuthPlugin, token: string, code: string, jwtSecret: string): Promise<UserLoginRes> {
+    let payload: { type: string; userId: string };
+    try {
+        payload = jsonwebtoken.verify(token, jwtSecret + ":" + code) as { type: string; userId: string };
+    } catch (ex) {
         return { status: "failed" };
     }
 
-    
+    if (payload.type != "smsLogin") {
+        return { status: "failed" };
+    }
 
-    const user = await repo.getById(payload.userId)
+    const user = await repo.getById(payload.userId);
     if (user == null) {
         return { status: "failed" };
     }
-
 
     const authToken = await auth.createToken({ username: user.username.toLowerCase(), _id: user._id }, user.roles);
 
@@ -149,13 +136,11 @@ export async function loginByToken(
         user: {
             _id: user._id,
             username: user.username,
-            token : authToken,
+            token: authToken,
             profile: user.profile,
         },
-    };    
-
+    };
 }
-
 
 export async function loginUser(
     repo: FlinkRepo<any, User>,
@@ -165,12 +150,11 @@ export async function loginUser(
     validatePasswordMethod?: {
         (password: string, hash: string, salt: string): Promise<boolean>;
     },
-    smsOptions? : GenericAuthsmsOptions,
+    smsOptions?: GenericAuthsmsOptions,
     onSuccessfulLogin?: {
-        (user:User): Promise<void>
-    },
+        (user: User): Promise<void>;
+    }
 ): Promise<UserLoginRes> {
-
     const user = await repo.getOne({ username: username.toLowerCase() });
     if (user == null) {
         return { status: "failed" };
@@ -195,34 +179,31 @@ export async function loginUser(
         }
     }
     if (user.authentificationMethod == "sms") {
-        if(!smsOptions) throw "SMS options must be specified to use SMS login"
+        if (!smsOptions) throw "SMS options must be specified to use SMS login";
         let code = smsOptions.codeType == "numeric" ? generate(smsOptions.codeLength) : generateString(smsOptions.codeLength);
         smsOptions.smsClient.send({
-            to : [user.username],
-            from : smsOptions.smsFrom,
-            message : smsOptions.smsMessage.replace("{{code}}", code)
-        })
+            to: [user.username],
+            from: smsOptions.smsFrom,
+            message: smsOptions.smsMessage.replace("{{code}}", code),
+        });
 
         const payload = {
             type: "smsLogin",
             userId: user._id,
         };
-    
+
         const secret = smsOptions.jwtToken + ":" + code;
-    
+
         const options: jsonwebtoken.SignOptions = {
             expiresIn: "1h",
         };
-    
+
         const token = jsonwebtoken.sign(payload, secret, options);
 
         return {
             status: "success",
-            validationToken : token
+            validationToken: token,
         };
-
-
-
     }
 
     if (valid) {
@@ -304,11 +285,11 @@ export async function passwordResetStart(
     const fakeToken = jsonwebtoken.sign(fakepayload, "fake_payload", { expiresIn: lifeTime });
 
     if (user == null) {
-        return { status: "userNotFound", passwordResetToken : fakeToken };
+        return { status: "userNotFound", passwordResetToken: fakeToken };
     }
 
     if (user.authentificationMethod != "password") {
-        return { status: "userNotFound", passwordResetToken : fakeToken };
+        return { status: "userNotFound", passwordResetToken: fakeToken };
     }
 
     if (numberOfDigits == null) numberOfDigits = 6;
@@ -322,7 +303,7 @@ export async function passwordResetStart(
 
     const pwdResetStartedAt = new Date().toISOString();
     let secret;
-    if(passwordResetReusableTokens) {
+    if (passwordResetReusableTokens) {
         secret = jwtSecret + ":" + code;
     } else {
         secret = jwtSecret + ":" + code + ":" + pwdResetStartedAt;
@@ -355,11 +336,9 @@ export async function passwordResetComplete(
     },
     passwordResetReusableTokens: boolean = true
 ): Promise<UserPasswordResetCompleteRes> {
+    const payload = <{ username: string }>jsonwebtoken.decode(passwordResetToken);
 
-    const payload = <{ username:string }>jsonwebtoken.decode(passwordResetToken);
-
-    if(!payload || !payload.username)
-        return { status: "invalidCode" };
+    if (!payload || !payload.username) return { status: "invalidCode" };
 
     const user = await repo.getOne({ username: payload.username });
 
@@ -383,7 +362,6 @@ export async function passwordResetComplete(
         return { status: "invalidCode" };
     }
 
-
     let passwordAndSalt = null;
 
     if (createPasswordHashAndSaltMethod == null) {
@@ -401,7 +379,7 @@ export async function passwordResetComplete(
     await repo.updateOne(user._id, {
         password: passwordAndSalt.hash,
         salt: passwordAndSalt.salt,
-        pwdResetStartedAt: null
+        pwdResetStartedAt: null,
     });
 
     return { status: "success" };
@@ -422,14 +400,11 @@ function generate(n: number): string {
     return ("" + number).substring(add);
 }
 
-
-
-
-function generateString(length : number) {
-    const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = ' ';
+function generateString(length: number) {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = " ";
     const charactersLength = characters.length;
-    for ( let i = 0; i < length; i++ ) {
+    for (let i = 0; i < length; i++) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
 
