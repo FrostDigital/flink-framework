@@ -91,7 +91,7 @@ export async function createUser(
     const user = await repo.create(userData);
 
     if (onUserCreated) {
-        await onUserCreated({ ...user, _id: user._id.toString() });
+        await onUserCreated(user);
     }
 
     const token = await auth.createToken({ username: username.toLowerCase(), _id: user._id }, roles);
@@ -105,7 +105,7 @@ export async function createUser(
     return {
         status: "success",
         user: {
-            _id: user._id.toString(),
+            _id: user._id,
             token: token,
             username: username.toLowerCase(),
         },

@@ -32,7 +32,7 @@ const PostUser: Handler<Ctx, PostUserReq, PostUserRes, Params> = async ({ ctx, r
     const user = await ctx.repos.managementuserRepo.create(obj);
 
     return {
-        data: GetManagementUserViewModel({ ...user, _id: user._id.toString() }),
+        data: GetManagementUserViewModel(user),
         status: 200,
     };
 };

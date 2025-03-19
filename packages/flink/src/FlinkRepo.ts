@@ -1,4 +1,4 @@
-import { Collection, Db, Document, InsertOneResult, ObjectId, OptionalId, WithId } from "mongodb";
+import { Collection, Db, Document, InsertOneResult, ObjectId } from "mongodb";
 import { FlinkContext } from "./FlinkContext";
 
 export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> {
@@ -20,20 +20,23 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
     }
 
     async findAll(query = {}) {
-        return this.collection.find<Model>(query).toArray();
+        const res = await this.collection.find<Model>(query).toArray();
+        return res.map(this.objectIdToString);
     }
 
     async getById(id: string | ObjectId) {
-        return this.collection.findOne<Model>({ _id: this.buildId(id) });
+        const res = await this.collection.findOne<Model>({ _id: this.buildId(id) });
+        return this.objectIdToString(res);
     }
 
     async getOne(query = {}) {
-        return this.collection.findOne<Model>(query);
+        const res = await this.collection.findOne<Model>(query);
+        return this.objectIdToString(res);
     }
 
-    async create<C = Omit<Model, "_id">>(model: C): Promise<C & { _id: ObjectId }> {
+    async create<C = Omit<Model, "_id">>(model: C): Promise<C & { _id: string }> {
         const result: InsertOneResult<Model> = await this.collection.insertOne(model as any);
-        return { ...model, _id: result.insertedId as ObjectId };
+        return { ...model, _id: result.insertedId.toString() };
     }
 
     async updateOne(id: string | ObjectId, model: Partial<Model>): Promise<Model | null> {
@@ -41,7 +44,9 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
 
         await this.collection.updateOne({ _id: oid }, { $set: model });
 
-        return this.collection.findOne<Model>({ _id: oid });
+        const res = await this.collection.findOne<Model>({ _id: oid });
+
+        return this.objectIdToString(res);
     }
 
     async updateMany<U = Partial<Model>>(query: any, model: U): Promise<number> {
@@ -70,5 +75,13 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
         }
 
         return oid;
+    }
+
+    private objectIdToString(doc: Model | null) {
+        if (doc && doc._id) {
+            // @ts-ignore
+            doc._id = doc._id.toString();
+        }
+        return doc;
     }
 }
