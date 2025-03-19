@@ -19,7 +19,7 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
         this.collection = db.collection(this.collectionName);
     }
 
-    async findAll(query = {}) {
+    async findAll(query = {}): Promise<Model[]> {
         const res = await this.collection.find<Model>(query).toArray();
         return res.map(this.objectIdToString);
     }
@@ -77,9 +77,8 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
         return oid;
     }
 
-    private objectIdToString(doc: Model | null) {
+    private objectIdToString(doc: any & { _id?: any }) {
         if (doc && doc._id) {
-            // @ts-ignore
             doc._id = doc._id.toString();
         }
         return doc;
