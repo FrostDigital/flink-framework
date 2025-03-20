@@ -54,7 +54,9 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
     async updateOne(id: string | ObjectId, model: PartialModel<Model>): Promise<Model | null> {
         const oid = this.buildId(id);
 
-        await this.collection.updateOne({ _id: oid }, { $set: model });
+        const { _id, ...modelWithoutId } = model;
+
+        await this.collection.updateOne({ _id: oid }, { $set: modelWithoutId });
 
         const res = await this.collection.findOne<Model>({ _id: oid });
 
@@ -65,8 +67,10 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
     }
 
     async updateMany<U = PartialModel<Model>>(query: any, model: U): Promise<number> {
+        const { _id, ...modelWithoutId } = model as any;
+
         const { modifiedCount } = await this.collection.updateMany(query, {
-            $set: model as any,
+            $set: modelWithoutId as any,
         });
         return modifiedCount;
     }
