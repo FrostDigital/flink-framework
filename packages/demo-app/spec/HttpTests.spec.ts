@@ -36,6 +36,10 @@ describe("Http tests", () => {
         testUtils.init(flinkApp);
     });
 
+    afterAll(async () => {
+        await flinkApp.stop();
+    });
+
     it("should register routes", () => {
         expect(flinkApp.getRegisteredRoutes().length).toBe(14);
     });
@@ -89,6 +93,22 @@ describe("Http tests", () => {
         });
 
         expect(secretRes.status).toBe(200);
+    });
+
+    it("should use 'user' object in testUtils to access authenticated route", async () => {
+        const secretRes = await testUtils.get(`/car-secret`, {
+            user: { username: "bob@frost.se", roles: ["user"] },
+        });
+
+        expect(secretRes.status).toBe(200);
+    });
+
+    it("should fail to get authenticated route using 'user' object in testUtils if role does not have access", async () => {
+        const secretRes = await testUtils.get(`/car-secret`, {
+            user: { username: "bob@frost.se", roles: ["some-other-role"] },
+        });
+
+        expect(secretRes.status).toBe(401);
     });
 
     it("should fail to login if invalid password", async () => {

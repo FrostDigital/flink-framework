@@ -2,9 +2,9 @@ import Ajv, { ValidateFunction } from "ajv";
 import addFormats from "ajv-formats";
 import bodyParser, { OptionsJson } from "body-parser";
 import cors from "cors";
-import express, { Express, Request } from "express";
+import express, { Express, Request, RequestHandler } from "express";
 import { JSONSchema7 } from "json-schema";
-import mongodb, { Db } from "mongodb";
+import { Db, MongoClient, ServerApiVersion } from "mongodb";
 import morgan from "morgan";
 import ms from "ms";
 import { AsyncTask, CronJob, SimpleIntervalJob, ToadScheduler } from "toad-scheduler";
@@ -227,15 +227,16 @@ export class FlinkApp<C extends FlinkContext> {
     private onDbConnection?: FlinkOptions["onDbConnection"];
 
     private plugins: FlinkPlugin[] = [];
-    private auth?: FlinkAuthPlugin;
+    public auth?: FlinkAuthPlugin;
     private corsOpts: FlinkOptions["cors"];
     private routingConfigured = false;
     private jsonOptions?: OptionsJson;
     private rawContentTypes?: string[];
     private schedulingOptions?: FlinkOptions["scheduling"];
     private disableHttpServer = false;
+    private expressServer: any; // for simplicity, we don't want to import types from express/node here
 
-    private repos: { [x: string]: FlinkRepo<C> } = {};
+    private repos: { [x: string]: FlinkRepo<C, any> } = {};
 
     /**
      * Internal cache used to track registered handlers and potentially any overlapping routes
@@ -254,7 +255,11 @@ export class FlinkApp<C extends FlinkContext> {
         this.onDbConnection = opts.onDbConnection;
         this.plugins = opts.plugins || [];
         this.corsOpts = { ...defaultCorsOptions, ...opts.cors };
-        this.rawContentTypes = Array.isArray(opts.rawContentTypes) ? opts.rawContentTypes : (typeof opts.rawContentTypes === 'string' ? [opts.rawContentTypes] : undefined);
+        this.rawContentTypes = Array.isArray(opts.rawContentTypes)
+            ? opts.rawContentTypes
+            : typeof opts.rawContentTypes === "string"
+            ? [opts.rawContentTypes]
+            : undefined;
         this.auth = opts.auth;
         this.jsonOptions = opts.jsonOptions || { limit: "1mb" };
         this.schedulingOptions = opts.scheduling;
@@ -299,14 +304,14 @@ export class FlinkApp<C extends FlinkContext> {
 
             if (this.rawContentTypes) {
                 for (const type of this.rawContentTypes) {
-                    this.expressApp.use(express.raw({ type }));
+                    this.expressApp.use(express.raw({ type }) as RequestHandler);
                 }
             }
 
-            this.expressApp.use(bodyParser.json(this.jsonOptions));
+            this.expressApp.use(bodyParser.json(this.jsonOptions) as RequestHandler);
 
             if (this.accessLog.enabled) {
-                this.expressApp.use(morgan(this.accessLog.format));
+                this.expressApp.use(morgan(this.accessLog.format) as RequestHandler);
             }
 
             this.expressApp.use((req, res, next) => {
@@ -363,13 +368,35 @@ export class FlinkApp<C extends FlinkContext> {
             log.info("🚧 HTTP server is disabled, but flink app is running");
             this.started = true;
         } else {
-            this.expressApp?.listen(this.port, () => {
+            this.expressServer = this.expressApp?.listen(this.port, () => {
                 log.fontColorLog("magenta", `⚡️ HTTP server '${this.name}' is running and waiting for connections on ${this.port}`);
                 this.started = true;
             });
         }
 
         return this;
+    }
+
+    async stop() {
+        log.info("🛑 Stopping Flink app...");
+
+        if (this.scheduler) {
+            await this.scheduler.stop();
+        }
+
+        if (this.expressServer) {
+            return new Promise<void>((resolve, reject) => {
+                const int = setTimeout(() => {
+                    reject("Failed to stop HTTP server in time");
+                }, 2000);
+
+                this.expressServer.close(() => {
+                    clearInterval(int);
+                    log.info("HTTP server stopped");
+                    resolve();
+                });
+            });
+        }
     }
 
     /**
@@ -700,7 +727,7 @@ export class FlinkApp<C extends FlinkContext> {
         }
     }
 
-    public addRepo(instanceName: string, repoInstance: FlinkRepo<C>) {
+    public addRepo(instanceName: string, repoInstance: FlinkRepo<C, any>) {
         this.repos[instanceName] = repoInstance;
         // TODO: Find out if we need to set ctx here or wanted not to if plugin has its own context
         // repoInstance.ctx = this.ctx;
@@ -713,7 +740,7 @@ export class FlinkApp<C extends FlinkContext> {
     private async buildContext() {
         if (this.dbOpts) {
             for (const { collectionName, repoInstanceName, Repo } of autoRegisteredRepos) {
-                const repoInstance: FlinkRepo<C> = new Repo(collectionName, this.db);
+                const repoInstance: FlinkRepo<C, any> = new Repo(collectionName, this.db);
 
                 this.repos[repoInstanceName] = repoInstance;
 
@@ -749,10 +776,7 @@ export class FlinkApp<C extends FlinkContext> {
         if (this.dbOpts) {
             try {
                 log.debug("Connecting to db");
-                const client = await mongodb.connect(this.dbOpts.uri, {
-                    useUnifiedTopology: true,
-                    connectTimeoutMS: 4000,
-                });
+                const client = await MongoClient.connect(this.dbOpts.uri, this.getMongoConnectionOptions());
                 this.db = client.db();
             } catch (err) {
                 log.error("Failed to connect to db: " + err);
@@ -783,9 +807,7 @@ export class FlinkApp<C extends FlinkContext> {
             } else if (plugin.db.uri) {
                 try {
                     log.debug(`Connecting to '${plugin.id}' db`);
-                    const client = await mongodb.connect(plugin.db.uri, {
-                        useUnifiedTopology: true,
-                    });
+                    const client = await MongoClient.connect(plugin.db.uri, this.getMongoConnectionOptions());
                     return client.db();
                 } catch (err) {
                     log.error(`Failed to connect to db defined in plugin '${plugin.id}': ` + err);
@@ -807,5 +829,20 @@ export class FlinkApp<C extends FlinkContext> {
 
     private get isSchedulingEnabled() {
         return this.schedulingOptions?.enabled !== false;
+    }
+
+    private getMongoConnectionOptions() {
+        if (!this.dbOpts) {
+            throw new Error("No db configured");
+        }
+
+        return {
+            serverApi: {
+                version: ServerApiVersion.v1,
+                strict: process.env.FLINK_MONGO_SERVER_API_DISABLE_STRICT !== "true",
+                deprecationErrors: process.env.FLINK_MONGO_SERVER_API_DISABLE_DEPRECATION !== "true",
+            },
+            connectTimeoutMS: 10 * 1000,
+        };
     }
 }
