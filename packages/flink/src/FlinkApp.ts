@@ -227,7 +227,7 @@ export class FlinkApp<C extends FlinkContext> {
     private onDbConnection?: FlinkOptions["onDbConnection"];
 
     private plugins: FlinkPlugin[] = [];
-    private auth?: FlinkAuthPlugin;
+    public auth?: FlinkAuthPlugin;
     private corsOpts: FlinkOptions["cors"];
     private routingConfigured = false;
     private jsonOptions?: OptionsJson;
