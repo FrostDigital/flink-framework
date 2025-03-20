@@ -4,6 +4,7 @@ import { FlinkRepo } from "../src/FlinkRepo";
 interface Model {
     _id: string;
     name: string;
+    nested?: { field: number };
 }
 
 class Repo extends FlinkRepo<any, Model> {}
@@ -61,9 +62,19 @@ describe("FlinkRepo", () => {
 
         const updatedDoc = await repo.updateOne(createdDoc._id + "", {
             name: "foo",
+            "nested.field": 1,
         });
 
         expect(updatedDoc).toBeDefined();
         expect(updatedDoc?.name).toBe("foo");
+        expect(updatedDoc?.nested?.field).toBe(1);
+    });
+
+    it("should update many documents", async () => {
+        await collection.insertMany([{ name: "foo" }, { name: "foo" }, { name: "foo" }]);
+
+        const updatedCount = await repo.updateMany({ name: "foo" }, { name: "bar", "nested.field": 1 });
+
+        expect(updatedCount).toBe(3);
     });
 });

@@ -1,6 +1,12 @@
 import { Collection, Db, Document, InsertOneResult, ObjectId } from "mongodb";
 import { FlinkContext } from "./FlinkContext";
 
+/**
+ * Partial model to have intellisense for partial updates but
+ * also allow any other properties to be set such as nested objects etc.
+ */
+type PartialModel<Model> = Partial<Model> & { [x: string]: any };
+
 export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> {
     collection: Collection;
 
@@ -45,7 +51,7 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
         return { ...model, _id: result.insertedId.toString() };
     }
 
-    async updateOne(id: string | ObjectId, model: Partial<Model>): Promise<Model | null> {
+    async updateOne(id: string | ObjectId, model: PartialModel<Model>): Promise<Model | null> {
         const oid = this.buildId(id);
 
         await this.collection.updateOne({ _id: oid }, { $set: model });
@@ -58,7 +64,7 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
         return null;
     }
 
-    async updateMany<U = Partial<Model>>(query: any, model: U): Promise<number> {
+    async updateMany<U = PartialModel<Model>>(query: any, model: U): Promise<number> {
         const { modifiedCount } = await this.collection.updateMany(query, {
             $set: model as any,
         });
