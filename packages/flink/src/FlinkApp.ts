@@ -234,6 +234,7 @@ export class FlinkApp<C extends FlinkContext> {
     private rawContentTypes?: string[];
     private schedulingOptions?: FlinkOptions["scheduling"];
     private disableHttpServer = false;
+    private expressServer: any; // for simplicity, we don't want to import types from express/node here
 
     private repos: { [x: string]: FlinkRepo<C, any> } = {};
 
@@ -367,13 +368,35 @@ export class FlinkApp<C extends FlinkContext> {
             log.info("🚧 HTTP server is disabled, but flink app is running");
             this.started = true;
         } else {
-            this.expressApp?.listen(this.port, () => {
+            this.expressServer = this.expressApp?.listen(this.port, () => {
                 log.fontColorLog("magenta", `⚡️ HTTP server '${this.name}' is running and waiting for connections on ${this.port}`);
                 this.started = true;
             });
         }
 
         return this;
+    }
+
+    async stop() {
+        log.info("🛑 Stopping Flink app...");
+
+        if (this.scheduler) {
+            await this.scheduler.stop();
+        }
+
+        if (this.expressServer) {
+            return new Promise<void>((resolve, reject) => {
+                const int = setTimeout(() => {
+                    reject("Failed to stop HTTP server in time");
+                }, 2000);
+
+                this.expressServer.close(() => {
+                    clearInterval(int);
+                    log.info("HTTP server stopped");
+                    resolve();
+                });
+            });
+        }
     }
 
     /**

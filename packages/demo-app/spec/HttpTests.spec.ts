@@ -36,6 +36,10 @@ describe("Http tests", () => {
         testUtils.init(flinkApp);
     });
 
+    afterAll(async () => {
+        await flinkApp.stop();
+    });
+
     it("should register routes", () => {
         expect(flinkApp.getRegisteredRoutes().length).toBe(14);
     });
