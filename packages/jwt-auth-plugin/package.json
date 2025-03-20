@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/jwt-auth-plugin",
-    "version": "0.12.1-alpha.4",
+    "version": "0.12.1-alpha.5",
     "description": "Flink plugin for JWT auth",
     "scripts": {
         "test": "node --preserve-symlinks -r ts-node/register -- node_modules/jasmine/bin/jasmine --config=./spec/support/jasmine.json",
@@ -20,7 +20,7 @@
         "jwt-simple": "^0.5.6"
     },
     "devDependencies": {
-        "@flink-app/flink": "^0.12.1-alpha.4",
+        "@flink-app/flink": "^0.12.1-alpha.5",
         "@types/bcrypt": "^5.0.0",
         "@types/jasmine": "^3.7.1",
         "@types/node": "22.13.10",
