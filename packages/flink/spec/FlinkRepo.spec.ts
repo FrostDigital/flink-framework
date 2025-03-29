@@ -1,9 +1,10 @@
+import { Collection, Db, MongoClient } from "mongodb";
 import { FlinkRepo } from "../src/FlinkRepo";
-import mongodb, { Collection, Db } from "mongodb";
 
 interface Model {
     _id: string;
     name: string;
+    nested?: { field: number };
 }
 
 class Repo extends FlinkRepo<any, Model> {}
@@ -19,7 +20,7 @@ describe("FlinkRepo", () => {
     let repo: Repo;
 
     beforeAll(async () => {
-        const client = await mongodb.connect("mongodb://localhost:27017/flink-test-db");
+        const client = await MongoClient.connect("mongodb://localhost:27017/flink-test-db");
         db = client.db();
         collection = db.collection("test-coll");
 
@@ -61,9 +62,19 @@ describe("FlinkRepo", () => {
 
         const updatedDoc = await repo.updateOne(createdDoc._id + "", {
             name: "foo",
+            "nested.field": 1,
         });
 
         expect(updatedDoc).toBeDefined();
-        expect(updatedDoc.name).toBe("foo");
+        expect(updatedDoc?.name).toBe("foo");
+        expect(updatedDoc?.nested?.field).toBe(1);
+    });
+
+    it("should update many documents", async () => {
+        await collection.insertMany([{ name: "foo" }, { name: "foo" }, { name: "foo" }]);
+
+        const updatedCount = await repo.updateMany({ name: "foo" }, { name: "bar", "nested.field": 1 });
+
+        expect(updatedCount).toBe(3);
     });
 });

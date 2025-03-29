@@ -1,4 +1,4 @@
-import { PushNotificationToken} from "./PushNotificationToken";
+import { PushNotificationToken } from "./PushNotificationToken";
 import { UserProfile } from "./UserProfile";
 
 export interface User {
@@ -6,12 +6,12 @@ export interface User {
     username: string;
 
     password?: string;
-    salt? : string;
+    salt?: string;
 
-    pwdResetStartedAt?: string;
+    pwdResetStartedAt?: string | null;
     roles: string[];
-    
-    authentificationMethod : "password" | "sms";
-    profile : UserProfile;
-    pushNotificationTokens : Array<PushNotificationToken>
-};
+
+    authentificationMethod: "password" | "sms";
+    profile: UserProfile;
+    pushNotificationTokens: Array<PushNotificationToken>;
+}
