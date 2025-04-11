@@ -1,4 +1,4 @@
-import { Collection, Db, ObjectID } from "mongodb";
+import { Collection, Db, ObjectId } from "mongodb";
 import { FlinkContext } from "./FlinkContext";
 
 export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
@@ -24,7 +24,7 @@ export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
   }
 
   async getById(id: string): Promise<Model | null> {
-    return this.collection.findOne({ _id: new ObjectID(id) });
+    return this.collection.findOne({ _id: new ObjectId(id) });
   }
 
   async getOne(query = {}): Promise<Model | null> {
@@ -37,7 +37,7 @@ export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
   }
 
   async updateOne<U = Partial<Model>>(id: string, model: U): Promise<Model> {
-    const oid = new ObjectID(id);
+    const oid = new ObjectId(id);
 
     await this.collection.updateOne(
       {
@@ -59,7 +59,7 @@ export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
 
   async deleteById(id: string): Promise<number> {
     const { deletedCount } = await this.collection.deleteOne({
-      _id: new ObjectID(id),
+      _id: new ObjectId(id),
     });
     return deletedCount || 0;
   }
