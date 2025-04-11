@@ -5,7 +5,7 @@
     "scripts": {
         "test": "echo \"Error: no test specified\"",
         "build": "flink build",
-        "prepublish": "npm run build",
+        "prepare": "npm run build",
         "watch": "nodemon --exec \"flink build\""
     },
     "author": "johan@frost.se",

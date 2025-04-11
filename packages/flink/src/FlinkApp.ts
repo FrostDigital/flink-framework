@@ -217,6 +217,7 @@ export class FlinkApp<C extends FlinkContext> {
     public name: string;
     public expressApp?: Express;
     public db?: Db;
+    public dbClient?: MongoClient;
     public handlers: HandlerConfig[] = [];
     public port?: number;
     public started = false;
@@ -778,6 +779,7 @@ export class FlinkApp<C extends FlinkContext> {
                 log.debug("Connecting to db");
                 const client = await MongoClient.connect(this.dbOpts.uri, this.getMongoConnectionOptions());
                 this.db = client.db();
+                this.dbClient = client;
             } catch (err) {
                 log.error("Failed to connect to db: " + err);
                 process.exit(1);

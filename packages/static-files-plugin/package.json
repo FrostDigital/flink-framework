@@ -4,7 +4,7 @@
     "description": "Flink plugin that make flink serve static files",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
-        "prepublish": "tsc"
+        "prepare": "tsc"
     },
     "author": "johan@frost.se",
     "publishConfig": {

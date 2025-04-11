@@ -4,7 +4,7 @@
     "description": "Test utils for Flink",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
-        "prepublish": "tsc",
+        "prepare": "tsc",
         "build": "tsc",
         "watch": "tsc-watch"
     },

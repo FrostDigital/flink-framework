@@ -20,7 +20,7 @@
     ],
     "scripts": {
         "dev": "ncc build ./index.ts -w -o dist/",
-        "prepublish": "npm run build",
+        "prepare": "npm run build",
         "build": "rimraf ./dist/ && ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register",
         "clean": "rimraf ./dist/"
     },

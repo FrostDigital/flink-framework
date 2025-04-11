@@ -4,7 +4,7 @@
     "description": "Flink plugin that generates API documentation based on JSON schemas",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
-        "prepublish": "tsc && npm run copy:assets",
+        "prepare": "tsc && npm run copy:assets",
         "copy:assets": "mkdir -p dist/views && cp src/views/** dist/views/",
         "watch": "npm run copy:assets && tsc-watch"
     },
