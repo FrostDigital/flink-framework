@@ -1,4 +1,4 @@
-import { Collection, Db, ObjectId } from "mongodb";
+import { Collection, Db, ObjectId, MongoClient } from "mongodb";
 import { FlinkContext } from "./FlinkContext";
 
 export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
@@ -15,7 +15,11 @@ export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
     return this._ctx;
   }
 
-  constructor(private collectionName: string, public db: Db) {
+  constructor(
+    private collectionName: string,
+    public db: Db,
+    public client?: MongoClient
+  ) {
     this.collection = db.collection(this.collectionName);
   }
 

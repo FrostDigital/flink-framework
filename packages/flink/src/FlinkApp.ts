@@ -4,7 +4,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Express, Request } from "express";
 import { JSONSchema7 } from "json-schema";
-import mongodb, { Db } from "mongodb";
+import mongodb, { Db, MongoClient } from "mongodb";
 import log from "node-color-log";
 import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
@@ -155,6 +155,7 @@ export class FlinkApp<C extends FlinkContext> {
   public name: string;
   public expressApp?: Express;
   public db?: Db;
+  public dbClient?: MongoClient;
   public handlers: HandlerConfig[] = [];
   public port?: number;
   public started = false;
@@ -534,7 +535,11 @@ export class FlinkApp<C extends FlinkContext> {
         repoInstanceName,
         Repo,
       } of autoRegisteredRepos) {
-        const repoInstance: FlinkRepo<C> = new Repo(collectionName, this.db);
+        const repoInstance: FlinkRepo<C> = new Repo(
+          collectionName,
+          this.db,
+          this.dbClient
+        );
 
         this.repos[repoInstanceName] = repoInstance;
 
@@ -574,6 +579,7 @@ export class FlinkApp<C extends FlinkContext> {
           connectTimeoutMS: 4000,
         });
         this.db = client.db();
+        this.dbClient = client;
       } catch (err) {
         log.error("Failed to connect to db: " + err);
         process.exit(1);
