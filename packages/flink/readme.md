@@ -109,6 +109,7 @@ The following building blocks exists in Flink:
 
 - Handler - a handler is responsible for handling API requests and return a response. Normally a handler has some type of logic and invokes a _repo_ to CRUD data from database.
 - Repo - a repository is used to abstract data access to database. A repo is used to access a mongo db and a repo is used per collection.
+- Jobs - a piece of code that will be invoked on a schedule or once after app start. Jobs can be cron jobs, migration jobs etc.
 - App Context - the app context is the glue that ties parts of the app together. By defining and creating an app context you make sure that i.e. handlers can get access to repositories.
 - Schemas - models that defines API requests and responses. These are typescript interfaces which will during compile time be converted into JSON schemas used to validate requests and responses and also used to generate API documentation.
 - Flink app - is the entry
