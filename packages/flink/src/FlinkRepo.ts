@@ -2,7 +2,7 @@ import { Collection, Db, ObjectId } from "mongodb";
 import { FlinkContext } from "./FlinkContext";
 
 export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
-  collection: Collection;
+  public collection: Collection;
 
   private _ctx?: C;
 
@@ -15,7 +15,7 @@ export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
     return this._ctx;
   }
 
-  constructor(private collectionName: string, private db: Db) {
+  constructor(private collectionName: string, public db: Db) {
     this.collection = db.collection(this.collectionName);
   }
 
