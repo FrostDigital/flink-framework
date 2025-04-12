@@ -38,7 +38,6 @@
         "fs-extra": "^10.0.0",
         "mkdirp": "^1.0.4",
         "mock-json-schema": "^1.0.8",
-        "mongodb": "^6.15.0",
         "morgan": "^1.10.0",
         "ms": "^2.0.0",
         "node-color-log": "^10.0.2",
@@ -62,9 +61,13 @@
         "jasmine": "^3.7.0",
         "jasmine-spec-reporter": "^7.0.0",
         "jasmine-ts": "^0.3.3",
+        "mongodb": "^6.15.0",
         "nodemon": "^2.0.7",
         "rimraf": "^3.0.2",
         "ts-node": "^9.1.1"
+    },
+    "peerDependencies": {
+        "mongodb": ">=5.0.0 <7.0.0"
     },
     "gitHead": "770328c460ab4c755162df2294875780dd4d3803"
 }
