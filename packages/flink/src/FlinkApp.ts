@@ -777,6 +777,7 @@ export class FlinkApp<C extends FlinkContext> {
         if (this.dbOpts) {
             try {
                 log.debug("Connecting to db");
+
                 const client = await MongoClient.connect(this.dbOpts.uri, this.getMongoConnectionOptions());
                 this.db = client.db();
                 this.dbClient = client;
@@ -837,6 +838,18 @@ export class FlinkApp<C extends FlinkContext> {
         if (!this.dbOpts) {
             throw new Error("No db configured");
         }
+
+        const { version: driverVersion } = require("mongodb/package.json");
+
+        if (driverVersion.startsWith("3")) {
+            log.debug(`Using legacy mongodb connection options as mongo client is version ${driverVersion}`);
+            return {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+            };
+        }
+
+        log.debug(`Using modern MongoDB client options (driver version ${driverVersion})`);
 
         return {
             serverApi: {
