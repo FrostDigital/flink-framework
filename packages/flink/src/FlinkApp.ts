@@ -741,7 +741,7 @@ export class FlinkApp<C extends FlinkContext> {
     private async buildContext() {
         if (this.dbOpts) {
             for (const { collectionName, repoInstanceName, Repo } of autoRegisteredRepos) {
-                const repoInstance: FlinkRepo<C, any> = new Repo(collectionName, this.db);
+                const repoInstance: FlinkRepo<C, any> = new Repo(collectionName, this.db, this.dbClient);
 
                 this.repos[repoInstanceName] = repoInstance;
 
