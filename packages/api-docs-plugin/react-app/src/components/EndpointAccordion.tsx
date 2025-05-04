@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { MethodBadge } from "./MethodBadge";
 import { SchemaProperties, SchemaProperty } from "./SchemaProperties";
-import { ChevronDownIcon, ChevronUpIcon } from "./icons";
+import { ChevronDownIcon, ChevronUpIcon, ClipboardIcon, CheckIcon } from "./icons";
+import { generateTypeScriptInterface, copyToClipboard } from "../utils/typeGenerator";
 
 export type Endpoint = {
     routeProps: {
@@ -14,12 +15,14 @@ export type Endpoint = {
     };
     reqProps: SchemaProperty[];
     resProps: SchemaProperty[];
-    queryMetadata?: Record<string, any>;
+    queryMetadata?: Array<{ name: string; description?: string; type?: string; required?: boolean }>;
     paramsMetadata?: Array<{ name: string; description?: string }>;
 };
 
 export const EndpointAccordion: React.FC<{ endpoint: Endpoint }> = ({ endpoint }) => {
     const [open, setOpen] = useState(false);
+    const [copiedRequest, setCopiedRequest] = useState(false);
+    const [copiedResponse, setCopiedResponse] = useState(false);
     
     // Get method-specific styling
     const getMethodStyles = (method: string) => {
@@ -40,6 +43,21 @@ export const EndpointAccordion: React.FC<{ endpoint: Endpoint }> = ({ endpoint }
     };
 
     const methodStyles = getMethodStyles(endpoint.routeProps.method);
+
+    const handleCopyInterface = async (properties: SchemaProperty[], interfaceName: string, isRequest: boolean) => {
+        const tsInterface = generateTypeScriptInterface(properties, interfaceName);
+        const success = await copyToClipboard(tsInterface);
+        
+        if (success) {
+            if (isRequest) {
+                setCopiedRequest(true);
+                setTimeout(() => setCopiedRequest(false), 2000);
+            } else {
+                setCopiedResponse(true);
+                setTimeout(() => setCopiedResponse(false), 2000);
+            }
+        }
+    };
 
     return (
         <div className={`border-l-4 border ${methodStyles} rounded-lg overflow-hidden`}>
@@ -99,19 +117,19 @@ export const EndpointAccordion: React.FC<{ endpoint: Endpoint }> = ({ endpoint }
                     )}
 
                     {/* Query Parameters */}
-                    {endpoint.queryMetadata && Object.keys(endpoint.queryMetadata).length > 0 && (
+                    {endpoint.queryMetadata && endpoint.queryMetadata.length > 0 && (
                         <div className="mb-6">
                             <h3 className="text-sm font-semibold text-gray-700 mb-2">Query Parameters</h3>
                             <div className="bg-gray-50 rounded-md p-4">
-                                {Object.entries(endpoint.queryMetadata).map(([key, value], index) => (
+                                {endpoint.queryMetadata.map((param, index) => (
                                     <div key={index} className="flex items-start mb-2 last:mb-0">
-                                        <code className="text-sm font-mono text-blue-600 mr-2">{key}</code>
-                                        {value.required && (
+                                        <code className="text-sm font-mono text-blue-600 mr-2">{param.name}</code>
+                                        {param.required && (
                                             <span className="text-sm text-red-600 font-semibold mr-2">*</span>
                                         )}
-                                        <span className="text-sm text-gray-600 mr-2">({value.type || 'string'})</span>
-                                        {value.description && (
-                                            <span className="text-sm text-gray-600">{value.description}</span>
+                                        <span className="text-sm text-gray-600 mr-2">({param.type || 'string'})</span>
+                                        {param.description && (
+                                            <span className="text-sm text-gray-600">{param.description}</span>
                                         )}
                                     </div>
                                 ))}
@@ -122,7 +140,21 @@ export const EndpointAccordion: React.FC<{ endpoint: Endpoint }> = ({ endpoint }
                     {/* Request Body */}
                     {endpoint.reqProps && endpoint.reqProps.length > 0 && (
                         <div className="mb-6">
-                            <h3 className="text-sm font-semibold text-gray-700 mb-2">Request Body</h3>
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-sm font-semibold text-gray-700">Request Body</h3>
+                                <button
+                                    onClick={() => handleCopyInterface(endpoint.reqProps, 'RequestBody', true)}
+                                    className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                                    title="Copy TypeScript interface"
+                                >
+                                    {copiedRequest ? (
+                                        <CheckIcon className="w-3 h-3" />
+                                    ) : (
+                                        <ClipboardIcon className="w-3 h-3" />
+                                    )}
+                                    Copy TS interface
+                                </button>
+                            </div>
                             <SchemaProperties properties={endpoint.reqProps} />
                         </div>
                     )}
@@ -130,7 +162,21 @@ export const EndpointAccordion: React.FC<{ endpoint: Endpoint }> = ({ endpoint }
                     {/* Response */}
                     {endpoint.resProps && endpoint.resProps.length > 0 && (
                         <div>
-                            <h3 className="text-sm font-semibold text-gray-700 mb-2">Response</h3>
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-sm font-semibold text-gray-700">Response</h3>
+                                <button
+                                    onClick={() => handleCopyInterface(endpoint.resProps, 'ResponseBody', false)}
+                                    className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                                    title="Copy TypeScript interface"
+                                >
+                                    {copiedResponse ? (
+                                        <CheckIcon className="w-3 h-3" />
+                                    ) : (
+                                        <ClipboardIcon className="w-3 h-3" />
+                                    )}
+                                    Copy TS interface
+                                </button>
+                            </div>
                             <div className="mb-2">
                                 <span className="inline-block px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded">
                                     200 OK
