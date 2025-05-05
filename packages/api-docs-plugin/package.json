@@ -12,6 +12,10 @@
         "dev:react": "cd react-app && npm run dev",
         "clean": "rm -rf dist react-app/dist"
     },
+    "files": [
+        "dist/**/*",
+        "*.md"
+    ],
     "author": "joel@frost.se",
     "license": "MIT",
     "types": "dist/index.d.ts",

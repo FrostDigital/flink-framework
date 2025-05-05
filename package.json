@@ -5,7 +5,9 @@
         "test": "lerna run test",
         "watch": "lerna run watch --parallel",
         "bootstrap": "npx lerna bootstrap",
-        "clean:all": "npx lerna clean --yes && npx lerna exec -- rm -rf node_modules dist .flink"
+        "clean:all": "npx lerna clean --yes && npx lerna exec -- rm -rf node_modules dist .flink",
+        "link:all": "lerna exec -- npm link",
+        "unlink:all": "lerna exec -- npm unlink"
     },
     "devDependencies": {
         "lerna": "^4.0.0"
