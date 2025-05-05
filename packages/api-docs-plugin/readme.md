@@ -6,7 +6,6 @@ A FLINK plugin that automatically generates beautiful API documentation based on
 
 -   🚀 Automatic API documentation generation
 -   🔍 Detailed request/response schema documentation
--   🤖 MCP (Model Context Protocol) support for AI assistants
 
 ## Installation
 
@@ -32,10 +31,6 @@ function start() {
                 title: "API Docs: My app",
                 path: "/docs", // Optional: defaults to "/docs"
                 apiPath: "/docs/api", // Optional: defaults to "/docs/api"
-                mcp: {
-                    enabled: true, // Optional: defaults to true
-                    path: "/docs/mcp", // Optional: defaults to "/docs/mcp"
-                },
             }),
         ],
     }).start();
@@ -52,46 +47,8 @@ The plugin accepts the following configuration options:
 | `apiPath`     | string  | `/docs/api` | The URL path where the API data is served      |
 | `name`        | string  | -           | Custom name for the plugin instance            |
 | `title`       | string  | `API Docs`  | The title displayed in the documentation UI    |
-| `mcp.enabled` | boolean | `true`      | Enable/disable MCP server                      |
-| `mcp.path`    | string  | `/docs/mcp` | The URL path where the MCP endpoint is served  |
 
-## MCP (Model Context Protocol) Support
 
-The plugin includes built-in MCP support, allowing AI assistants and other tools to programmatically access your API documentation.
-
-### What is MCP?
-
-MCP (Model Context Protocol) is a standard protocol that enables AI assistants to interact with external tools and services. With MCP enabled, AI assistants can:
-
--   Discover all available API endpoints
--   Understand request/response schemas
--   Generate example API calls
--   Help with API integration and debugging
-
-### MCP Configuration
-
-```typescript
-apiDocPlugin({
-    mcp: {
-        enabled: true, // Enable MCP server (default: true)
-        path: "/docs/mcp", // MCP endpoint path (default: "/docs/mcp")
-    },
-});
-```
-
-### MCP Endpoints
-
-The MCP server exposes these endpoints:
-
--   `GET /docs/mcp` - Returns MCP server information
--   `POST /docs/mcp` - Handles MCP protocol messages
-
-Each API endpoint is exposed as an MCP tool with the naming convention:
-
--   `get_users__id` for `GET /users/:id`
--   `post_auth_login` for `POST /auth/login`
-
-See [MCP.md](./MCP.md) for detailed MCP documentation.
 
 ## How It Works
 
@@ -102,7 +59,6 @@ The plugin automatically:
 3. Serves a React application that fetches and displays your API documentation
 4. Groups endpoints by resource for better organization
 5. Displays detailed request/response schemas with proper TypeScript types
-6. Sets up an MCP server endpoint for AI assistant integration
 
 ## Development
 
@@ -126,11 +82,10 @@ The development setup includes hot-reloading for the React application, allowing
 
 ## Architecture
 
-The plugin consists of three main parts:
+The plugin consists of two main parts:
 
 1. **Express Plugin**: Integrates with your Flink application to serve the documentation
 2. **React Application**: Modern UI that displays the API documentation
-3. **MCP Server**: Provides programmatic access to API documentation for AI assistants
 
 The React app uses:
 

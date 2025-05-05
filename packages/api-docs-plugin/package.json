@@ -29,8 +29,5 @@
         "tsc-watch": "^4.2.9",
         "typescript": "5.4.5"
     },
-    "gitHead": "770328c460ab4c755162df2294875780dd4d3803",
-    "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.11.0"
-    }
+    "gitHead": "770328c460ab4c755162df2294875780dd4d3803"
 }
