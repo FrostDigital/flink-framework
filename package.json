@@ -11,5 +11,8 @@
     },
     "devDependencies": {
         "lerna": "^4.0.0"
+    },
+    "dependencies": {
+        "zod": "^3.24.4"
     }
 }
