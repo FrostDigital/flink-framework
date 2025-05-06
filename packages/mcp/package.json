@@ -18,6 +18,9 @@
         "dist/**/*",
         "*.md"
     ],
+    "publishConfig": {
+        "access": "public"
+    },
     "author": "joel@frost.se",
     "license": "MIT",
     "types": "dist/index.d.ts",
@@ -28,5 +31,6 @@
     },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.11.0"
-    }
+    },
+    "gitHead": "8634b4ecbefb3f3b0b408ed80cec6caae7551cb2"
 }
