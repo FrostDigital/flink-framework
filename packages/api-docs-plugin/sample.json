@@ -1,0 +1,3463 @@
+[
+    {
+        "routeProps": {
+            "path": "/app/feedback",
+            "method": "post",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "organisation": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    }
+                },
+                "required": ["comment", "name"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/cms/category/assign",
+            "method": "post",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "categoryId": {
+                        "type": "string"
+                    },
+                    "companies": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "companyId": {
+                                    "type": "string"
+                                },
+                                "roles": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "required": ["companyId", "roles"],
+                            "additionalProperties": false
+                        }
+                    }
+                },
+                "required": ["categoryId", "companies"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/cms/certification-statitics",
+            "method": "post",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "jobId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["jobId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/cms/companycategoryaccess/:categoryid",
+            "method": "get",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "companies": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "CompanyId": {
+                                    "type": "string"
+                                },
+                                "MastersCount": {
+                                    "type": "number"
+                                },
+                                "MastersWithAccess": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "MastersWithoutAccess": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "UsersCount": {
+                                    "type": "number"
+                                },
+                                "UsersWithAccess": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "UsersWithoutAccess": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "required": [
+                                "CompanyId",
+                                "MastersCount",
+                                "MastersWithAccess",
+                                "MastersWithoutAccess",
+                                "UsersCount",
+                                "UsersWithAccess",
+                                "UsersWithoutAccess"
+                            ],
+                            "additionalProperties": false
+                        }
+                    }
+                },
+                "required": ["companies"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "categoryid"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/cms/export/:jobid",
+            "method": "get",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "jobId": {
+                        "type": "string"
+                    },
+                    "fileName": {
+                        "type": "string"
+                    },
+                    "contentType": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["new", "failed", "done"]
+                    },
+                    "total": {
+                        "type": "number"
+                    },
+                    "processed": {
+                        "type": "number"
+                    }
+                },
+                "required": ["_id", "contentType", "fileName", "jobId", "processed", "status", "total"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "jobid"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/cms/push",
+            "method": "post",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "text": {
+                        "type": "string"
+                    },
+                    "users": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "videoId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["text", "title", "users"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/cms/user",
+            "method": "post",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "CompanyID": {
+                        "type": "string"
+                    },
+                    "UserName": {
+                        "type": "string"
+                    },
+                    "Password": {
+                        "type": "string"
+                    },
+                    "Role": {
+                        "type": "string"
+                    }
+                },
+                "required": ["CompanyID", "Password", "UserName"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "error", "userExists", "passwordError"]
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "_id": {
+                                "type": "string"
+                            },
+                            "username": {
+                                "type": "string"
+                            },
+                            "token": {
+                                "type": "string"
+                            }
+                        },
+                        "required": ["_id", "username", "token"],
+                        "additionalProperties": false
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/cms/user-password",
+            "method": "put",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "UserID": {
+                        "type": "string"
+                    },
+                    "NewPassword": {
+                        "type": "string"
+                    }
+                },
+                "required": ["NewPassword", "UserID"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/edu/certification",
+            "method": "get",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "_id": {
+                                    "type": "string"
+                                },
+                                "userId": {
+                                    "type": "string"
+                                },
+                                "educationId": {
+                                    "type": "string"
+                                },
+                                "dateStarted": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "dateFinished": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": ["started", "failed", "completed"]
+                                },
+                                "diplomaId": {
+                                    "type": "string"
+                                },
+                                "reminderSent": {
+                                    "type": "boolean"
+                                },
+                                "testQuestions": {
+                                    "type": "number"
+                                },
+                                "testCorrect": {
+                                    "type": "number"
+                                },
+                                "examQuestions": {
+                                    "type": "number"
+                                },
+                                "examCorrect": {
+                                    "type": "number"
+                                },
+                                "completedVideos": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "lastOpen": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "expiryDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "expiryStatus": {
+                                    "type": "string",
+                                    "enum": ["active", "expired"]
+                                },
+                                "doNotExpire": {
+                                    "type": "boolean"
+                                },
+                                "expiryReminder1Sent": {
+                                    "type": "boolean"
+                                },
+                                "expiryReminder2Sent": {
+                                    "type": "boolean"
+                                },
+                                "categoryId": {
+                                    "type": ["string", "null"]
+                                },
+                                "title": {
+                                    "type": "string"
+                                },
+                                "user": {
+                                    "type": "object",
+                                    "properties": {
+                                        "profile": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "firstName": {
+                                                    "type": "string"
+                                                },
+                                                "lastName": {
+                                                    "type": "string"
+                                                },
+                                                "companyId": {
+                                                    "type": "string"
+                                                },
+                                                "organisations": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "organisationId": {
+                                                                "type": "string"
+                                                            },
+                                                            "videoCall": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "videoCallStatus": {
+                                                                "type": "string",
+                                                                "enum": ["enabled", "disabled"]
+                                                            },
+                                                            "videoCallAvailability": {
+                                                                "type": "string",
+                                                                "enum": ["available", "busy"]
+                                                            },
+                                                            "videoCallActiveUntil": {
+                                                                "type": "string",
+                                                                "format": "date-time"
+                                                            },
+                                                            "videoCallForceLogout": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "title": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": ["organisationId", "videoCall", "videoCallStatus", "videoCallAvailability", "title"],
+                                                        "additionalProperties": false
+                                                    }
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        }
+                                    },
+                                    "required": ["profile"],
+                                    "additionalProperties": false
+                                },
+                                "groups": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "categoryId": {
+                                                "type": "string"
+                                            },
+                                            "diplomaId": {
+                                                "type": "string"
+                                            },
+                                            "completed": {
+                                                "type": "boolean"
+                                            },
+                                            "expiryDate": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "expiryStatus": {
+                                                "type": "string",
+                                                "enum": ["active", "expired"]
+                                            },
+                                            "title": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": false,
+                                        "required": ["categoryId", "completed"]
+                                    }
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": ["_id", "dateStarted", "educationId", "status", "userId"]
+                        }
+                    }
+                },
+                "required": ["items"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [
+            {
+                "name": "archived",
+                "description": "If true, return archived certifications"
+            }
+        ],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/edu/certification",
+            "method": "post",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "educationId": {
+                        "type": "string"
+                    },
+                    "categoryId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["educationId"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "userId": {
+                        "type": "string"
+                    },
+                    "educationId": {
+                        "type": "string"
+                    },
+                    "dateStarted": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "dateFinished": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["started", "failed", "completed"]
+                    },
+                    "diplomaId": {
+                        "type": "string"
+                    },
+                    "reminderSent": {
+                        "type": "boolean"
+                    },
+                    "testQuestions": {
+                        "type": "number"
+                    },
+                    "testCorrect": {
+                        "type": "number"
+                    },
+                    "examQuestions": {
+                        "type": "number"
+                    },
+                    "examCorrect": {
+                        "type": "number"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "categoryId": {
+                                    "type": "string"
+                                },
+                                "diplomaId": {
+                                    "type": "string"
+                                },
+                                "completed": {
+                                    "type": "boolean"
+                                },
+                                "expiryDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "expiryStatus": {
+                                    "type": "string",
+                                    "enum": ["active", "expired"]
+                                },
+                                "title": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["categoryId", "completed"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "completedVideos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "lastOpen": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryStatus": {
+                        "type": "string",
+                        "enum": ["active", "expired"]
+                    },
+                    "doNotExpire": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder1Sent": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder2Sent": {
+                        "type": "boolean"
+                    },
+                    "categoryId": {
+                        "type": ["string", "null"]
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "profile": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "firstName": {
+                                        "type": "string"
+                                    },
+                                    "lastName": {
+                                        "type": "string"
+                                    },
+                                    "companyId": {
+                                        "type": "string"
+                                    },
+                                    "organisations": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "organisationId": {
+                                                    "type": "string"
+                                                },
+                                                "videoCall": {
+                                                    "type": "boolean"
+                                                },
+                                                "videoCallStatus": {
+                                                    "type": "string",
+                                                    "enum": ["enabled", "disabled"]
+                                                },
+                                                "videoCallAvailability": {
+                                                    "type": "string",
+                                                    "enum": ["available", "busy"]
+                                                },
+                                                "videoCallActiveUntil": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "videoCallForceLogout": {
+                                                    "type": "boolean"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": ["organisationId", "videoCall", "videoCallStatus", "videoCallAvailability", "title"],
+                                            "additionalProperties": false
+                                        }
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": ["profile"],
+                        "additionalProperties": false
+                    }
+                },
+                "required": ["_id", "dateStarted", "educationId", "status", "userId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/edu/certification/:certificationid/open",
+            "method": "post",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "userId": {
+                        "type": "string"
+                    },
+                    "educationId": {
+                        "type": "string"
+                    },
+                    "dateStarted": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "dateFinished": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["started", "failed", "completed"]
+                    },
+                    "diplomaId": {
+                        "type": "string"
+                    },
+                    "reminderSent": {
+                        "type": "boolean"
+                    },
+                    "testQuestions": {
+                        "type": "number"
+                    },
+                    "testCorrect": {
+                        "type": "number"
+                    },
+                    "examQuestions": {
+                        "type": "number"
+                    },
+                    "examCorrect": {
+                        "type": "number"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "categoryId": {
+                                    "type": "string"
+                                },
+                                "diplomaId": {
+                                    "type": "string"
+                                },
+                                "completed": {
+                                    "type": "boolean"
+                                },
+                                "expiryDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "expiryStatus": {
+                                    "type": "string",
+                                    "enum": ["active", "expired"]
+                                },
+                                "title": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["categoryId", "completed"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "completedVideos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "lastOpen": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryStatus": {
+                        "type": "string",
+                        "enum": ["active", "expired"]
+                    },
+                    "doNotExpire": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder1Sent": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder2Sent": {
+                        "type": "boolean"
+                    },
+                    "categoryId": {
+                        "type": ["string", "null"]
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "profile": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "firstName": {
+                                        "type": "string"
+                                    },
+                                    "lastName": {
+                                        "type": "string"
+                                    },
+                                    "companyId": {
+                                        "type": "string"
+                                    },
+                                    "organisations": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "organisationId": {
+                                                    "type": "string"
+                                                },
+                                                "videoCall": {
+                                                    "type": "boolean"
+                                                },
+                                                "videoCallStatus": {
+                                                    "type": "string",
+                                                    "enum": ["enabled", "disabled"]
+                                                },
+                                                "videoCallAvailability": {
+                                                    "type": "string",
+                                                    "enum": ["available", "busy"]
+                                                },
+                                                "videoCallActiveUntil": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "videoCallForceLogout": {
+                                                    "type": "boolean"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": ["organisationId", "videoCall", "videoCallStatus", "videoCallAvailability", "title"],
+                                            "additionalProperties": false
+                                        }
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": ["profile"],
+                        "additionalProperties": false
+                    }
+                },
+                "required": ["_id", "dateStarted", "educationId", "status", "userId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "certificationid"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/edu/certification/:certificationid/restart",
+            "method": "post",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "userId": {
+                        "type": "string"
+                    },
+                    "educationId": {
+                        "type": "string"
+                    },
+                    "dateStarted": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "dateFinished": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["started", "failed", "completed"]
+                    },
+                    "diplomaId": {
+                        "type": "string"
+                    },
+                    "reminderSent": {
+                        "type": "boolean"
+                    },
+                    "testQuestions": {
+                        "type": "number"
+                    },
+                    "testCorrect": {
+                        "type": "number"
+                    },
+                    "examQuestions": {
+                        "type": "number"
+                    },
+                    "examCorrect": {
+                        "type": "number"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "categoryId": {
+                                    "type": "string"
+                                },
+                                "diplomaId": {
+                                    "type": "string"
+                                },
+                                "completed": {
+                                    "type": "boolean"
+                                },
+                                "expiryDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "expiryStatus": {
+                                    "type": "string",
+                                    "enum": ["active", "expired"]
+                                },
+                                "title": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["categoryId", "completed"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "completedVideos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "lastOpen": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryStatus": {
+                        "type": "string",
+                        "enum": ["active", "expired"]
+                    },
+                    "doNotExpire": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder1Sent": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder2Sent": {
+                        "type": "boolean"
+                    },
+                    "categoryId": {
+                        "type": ["string", "null"]
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "profile": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "firstName": {
+                                        "type": "string"
+                                    },
+                                    "lastName": {
+                                        "type": "string"
+                                    },
+                                    "companyId": {
+                                        "type": "string"
+                                    },
+                                    "organisations": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "organisationId": {
+                                                    "type": "string"
+                                                },
+                                                "videoCall": {
+                                                    "type": "boolean"
+                                                },
+                                                "videoCallStatus": {
+                                                    "type": "string",
+                                                    "enum": ["enabled", "disabled"]
+                                                },
+                                                "videoCallAvailability": {
+                                                    "type": "string",
+                                                    "enum": ["available", "busy"]
+                                                },
+                                                "videoCallActiveUntil": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "videoCallForceLogout": {
+                                                    "type": "boolean"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": ["organisationId", "videoCall", "videoCallStatus", "videoCallAvailability", "title"],
+                                            "additionalProperties": false
+                                        }
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": ["profile"],
+                        "additionalProperties": false
+                    }
+                },
+                "required": ["_id", "dateStarted", "educationId", "status", "userId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "certificationid"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/edu/certification/:certificationid/video",
+            "method": "post",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "videoId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["videoId"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "userId": {
+                        "type": "string"
+                    },
+                    "educationId": {
+                        "type": "string"
+                    },
+                    "dateStarted": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "dateFinished": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["started", "failed", "completed"]
+                    },
+                    "diplomaId": {
+                        "type": "string"
+                    },
+                    "reminderSent": {
+                        "type": "boolean"
+                    },
+                    "testQuestions": {
+                        "type": "number"
+                    },
+                    "testCorrect": {
+                        "type": "number"
+                    },
+                    "examQuestions": {
+                        "type": "number"
+                    },
+                    "examCorrect": {
+                        "type": "number"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "categoryId": {
+                                    "type": "string"
+                                },
+                                "diplomaId": {
+                                    "type": "string"
+                                },
+                                "completed": {
+                                    "type": "boolean"
+                                },
+                                "expiryDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "expiryStatus": {
+                                    "type": "string",
+                                    "enum": ["active", "expired"]
+                                },
+                                "title": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["categoryId", "completed"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "completedVideos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "lastOpen": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryStatus": {
+                        "type": "string",
+                        "enum": ["active", "expired"]
+                    },
+                    "doNotExpire": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder1Sent": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder2Sent": {
+                        "type": "boolean"
+                    },
+                    "categoryId": {
+                        "type": ["string", "null"]
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "profile": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "firstName": {
+                                        "type": "string"
+                                    },
+                                    "lastName": {
+                                        "type": "string"
+                                    },
+                                    "companyId": {
+                                        "type": "string"
+                                    },
+                                    "organisations": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "organisationId": {
+                                                    "type": "string"
+                                                },
+                                                "videoCall": {
+                                                    "type": "boolean"
+                                                },
+                                                "videoCallStatus": {
+                                                    "type": "string",
+                                                    "enum": ["enabled", "disabled"]
+                                                },
+                                                "videoCallAvailability": {
+                                                    "type": "string",
+                                                    "enum": ["available", "busy"]
+                                                },
+                                                "videoCallActiveUntil": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "videoCallForceLogout": {
+                                                    "type": "boolean"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": ["organisationId", "videoCall", "videoCallStatus", "videoCallAvailability", "title"],
+                                            "additionalProperties": false
+                                        }
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": ["profile"],
+                        "additionalProperties": false
+                    }
+                },
+                "required": ["_id", "dateStarted", "educationId", "status", "userId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "certificationid"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/edu/certification/:diplomaid",
+            "method": "post",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "diplomaid"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/edu/certification/:id",
+            "method": "get",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "userId": {
+                        "type": "string"
+                    },
+                    "educationId": {
+                        "type": "string"
+                    },
+                    "dateStarted": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "dateFinished": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["started", "failed", "completed"]
+                    },
+                    "diplomaId": {
+                        "type": "string"
+                    },
+                    "reminderSent": {
+                        "type": "boolean"
+                    },
+                    "testQuestions": {
+                        "type": "number"
+                    },
+                    "testCorrect": {
+                        "type": "number"
+                    },
+                    "examQuestions": {
+                        "type": "number"
+                    },
+                    "examCorrect": {
+                        "type": "number"
+                    },
+                    "completedVideos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "lastOpen": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryStatus": {
+                        "type": "string",
+                        "enum": ["active", "expired"]
+                    },
+                    "doNotExpire": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder1Sent": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder2Sent": {
+                        "type": "boolean"
+                    },
+                    "categoryId": {
+                        "type": ["string", "null"]
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "profile": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "firstName": {
+                                        "type": "string"
+                                    },
+                                    "lastName": {
+                                        "type": "string"
+                                    },
+                                    "companyId": {
+                                        "type": "string"
+                                    },
+                                    "organisations": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "organisationId": {
+                                                    "type": "string"
+                                                },
+                                                "videoCall": {
+                                                    "type": "boolean"
+                                                },
+                                                "videoCallStatus": {
+                                                    "type": "string",
+                                                    "enum": ["enabled", "disabled"]
+                                                },
+                                                "videoCallAvailability": {
+                                                    "type": "string",
+                                                    "enum": ["available", "busy"]
+                                                },
+                                                "videoCallActiveUntil": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "videoCallForceLogout": {
+                                                    "type": "boolean"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": ["organisationId", "videoCall", "videoCallStatus", "videoCallAvailability", "title"],
+                                            "additionalProperties": false
+                                        }
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": ["profile"],
+                        "additionalProperties": false
+                    },
+                    "groups": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "categoryId": {
+                                    "type": "string"
+                                },
+                                "diplomaId": {
+                                    "type": "string"
+                                },
+                                "completed": {
+                                    "type": "boolean"
+                                },
+                                "expiryDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "expiryStatus": {
+                                    "type": "string",
+                                    "enum": ["active", "expired"]
+                                },
+                                "title": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": ["categoryId", "completed"]
+                        }
+                    }
+                },
+                "required": ["_id", "dateStarted", "educationId", "status", "userId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "id"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/edu/certification/:id",
+            "method": "put",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["started", "failed", "completed"]
+                    },
+                    "mainUserId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "userId": {
+                        "type": "string"
+                    },
+                    "educationId": {
+                        "type": "string"
+                    },
+                    "dateStarted": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "dateFinished": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["started", "failed", "completed"]
+                    },
+                    "diplomaId": {
+                        "type": "string"
+                    },
+                    "reminderSent": {
+                        "type": "boolean"
+                    },
+                    "testQuestions": {
+                        "type": "number"
+                    },
+                    "testCorrect": {
+                        "type": "number"
+                    },
+                    "examQuestions": {
+                        "type": "number"
+                    },
+                    "examCorrect": {
+                        "type": "number"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "categoryId": {
+                                    "type": "string"
+                                },
+                                "diplomaId": {
+                                    "type": "string"
+                                },
+                                "completed": {
+                                    "type": "boolean"
+                                },
+                                "expiryDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "expiryStatus": {
+                                    "type": "string",
+                                    "enum": ["active", "expired"]
+                                },
+                                "title": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["categoryId", "completed"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "completedVideos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "lastOpen": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expiryStatus": {
+                        "type": "string",
+                        "enum": ["active", "expired"]
+                    },
+                    "doNotExpire": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder1Sent": {
+                        "type": "boolean"
+                    },
+                    "expiryReminder2Sent": {
+                        "type": "boolean"
+                    },
+                    "categoryId": {
+                        "type": ["string", "null"]
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "profile": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "firstName": {
+                                        "type": "string"
+                                    },
+                                    "lastName": {
+                                        "type": "string"
+                                    },
+                                    "companyId": {
+                                        "type": "string"
+                                    },
+                                    "organisations": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "organisationId": {
+                                                    "type": "string"
+                                                },
+                                                "videoCall": {
+                                                    "type": "boolean"
+                                                },
+                                                "videoCallStatus": {
+                                                    "type": "string",
+                                                    "enum": ["enabled", "disabled"]
+                                                },
+                                                "videoCallAvailability": {
+                                                    "type": "string",
+                                                    "enum": ["available", "busy"]
+                                                },
+                                                "videoCallActiveUntil": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "videoCallForceLogout": {
+                                                    "type": "boolean"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": ["organisationId", "videoCall", "videoCallStatus", "videoCallAvailability", "title"],
+                                            "additionalProperties": false
+                                        }
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": ["profile"],
+                        "additionalProperties": false
+                    }
+                },
+                "required": ["_id", "dateStarted", "educationId", "status", "userId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "id"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/edu/certification/:id/:stage/result",
+            "method": "put",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "questions": {
+                        "type": "number"
+                    },
+                    "correct": {
+                        "type": "number"
+                    }
+                },
+                "required": ["correct", "questions"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "stage"
+            },
+            {
+                "description": "",
+                "name": "id"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "method": "post",
+            "path": "/edu/create",
+            "docs": "Creates a new user",
+            "origin": "genericAuthPluginEdUser"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "username": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "authentificationMethod": {
+                        "type": "string",
+                        "enum": ["password", "sms"]
+                    },
+                    "profile": {
+                        "type": "object"
+                    }
+                },
+                "required": ["username"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "error", "userExists", "passwordError"]
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "_id": {
+                                "type": "string"
+                            },
+                            "username": {
+                                "type": "string"
+                            },
+                            "token": {
+                                "type": "string"
+                            }
+                        },
+                        "required": ["_id", "username", "token"],
+                        "additionalProperties": false
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/edu/currentcompany",
+            "method": "put",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "companyId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["companyId"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/edu/fullprofile",
+            "method": "get",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "companyId": {
+                        "type": "string"
+                    },
+                    "organisations": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "organisationId": {
+                                    "type": "string"
+                                },
+                                "videoCall": {
+                                    "type": "boolean"
+                                },
+                                "videoCallStatus": {
+                                    "type": "string",
+                                    "enum": ["enabled", "disabled"]
+                                },
+                                "videoCallAvailability": {
+                                    "type": "string",
+                                    "enum": ["available", "busy"]
+                                },
+                                "videoCallActiveUntil": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "videoCallForceLogout": {
+                                    "type": "boolean"
+                                },
+                                "title": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["organisationId", "videoCall", "videoCallStatus", "videoCallAvailability", "title"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "userId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["userId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "post",
+            "path": "/edu/login",
+            "docs": "Authenticates a user",
+            "origin": "genericAuthPluginEdUser"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "username": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    }
+                },
+                "required": ["username"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "failed", "requiresValidation"]
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "_id": {
+                                "type": "string"
+                            },
+                            "username": {
+                                "type": "string"
+                            },
+                            "token": {
+                                "type": "string"
+                            },
+                            "profile": {
+                                "type": "object"
+                            }
+                        },
+                        "required": ["_id", "username", "token", "profile"],
+                        "additionalProperties": false
+                    },
+                    "validationToken": {
+                        "type": "string"
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "put",
+            "path": "/edu/password",
+            "docs": "Updates the user password",
+            "permissions": "authenticated",
+            "origin": "genericAuthPluginEdUser"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "password": {
+                        "type": "string"
+                    }
+                },
+                "required": ["password"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "failed", "passwordError"]
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "post",
+            "path": "/edu/password/reset",
+            "docs": "Start the password reset process for a user",
+            "origin": "genericAuthPluginEdUser"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "username": {
+                        "type": "string"
+                    }
+                },
+                "required": ["username"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "userNotFound"]
+                    },
+                    "passwordResetToken": {
+                        "type": "string"
+                    },
+                    "profile": {
+                        "type": "object"
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "post",
+            "path": "/edu/password/reset/complete",
+            "docs": "Completes a password reset for a user",
+            "origin": "genericAuthPluginEdUser"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "passwordResetToken": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    }
+                },
+                "required": ["code", "password", "passwordResetToken"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "userNotFound", "invalidCode", "passwordError"]
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "get",
+            "path": "/edu/profile",
+            "docs": "Gets the user profile",
+            "permissions": "authenticated",
+            "origin": "genericAuthPluginEdUser"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "put",
+            "path": "/edu/profile",
+            "docs": "Updates the user profile",
+            "permissions": "authenticated",
+            "origin": "genericAuthPluginEdUser"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "post",
+            "path": "/edu/push",
+            "docs": "Register a push notification on current user",
+            "permissions": "authenticated",
+            "origin": "genericAuthPluginEdUser"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "deviceId": {
+                        "type": "string"
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "platform": {
+                        "type": "string",
+                        "enum": ["ios", "android", "web"]
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": ["firebase", "apn-voip"],
+                        "description": "The type of the token. This is used to determine which push notification service to use. Default is \"firebase\""
+                    }
+                },
+                "required": ["deviceId", "token"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "failed"]
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "delete",
+            "path": "/edu/push",
+            "docs": "Removes a push notification token from current user",
+            "permissions": "authenticated",
+            "origin": "genericAuthPluginEdUser"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "deviceId": {
+                        "type": "string"
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "platform": {
+                        "type": "string",
+                        "enum": ["ios", "android", "web"]
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": ["firebase", "apn-voip"],
+                        "description": "The type of the token. This is used to determine which push notification service to use. Default is \"firebase\""
+                    }
+                },
+                "required": ["deviceId", "token"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "failed"]
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "get",
+            "path": "/edu/token",
+            "docs": "Gets a refreshed token for the user",
+            "permissions": "authenticated",
+            "origin": "genericAuthPluginEdUser"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "token": {
+                        "type": "string"
+                    }
+                },
+                "required": ["token"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/edu/username",
+            "method": "put",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "username": {
+                        "type": "string"
+                    }
+                },
+                "required": ["username"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/edu/videocall",
+            "method": "post",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "organisationId": {
+                        "type": "string"
+                    },
+                    "users": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": ["organisationId", "users"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "callId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["callId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/edu/videocall",
+            "method": "put",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "organisationId": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["enabled", "disabled"]
+                    },
+                    "activeUntil": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                },
+                "required": ["organisationId", "status"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/edu/videocall/:callid",
+            "method": "get",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "videoCallId": {
+                        "type": "string"
+                    },
+                    "livekitUrl": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["new", "active", "ended"]
+                    },
+                    "livekitToken": {
+                        "type": "string"
+                    },
+                    "participants": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "userId": {
+                                    "type": "string"
+                                },
+                                "username": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": ["pending", "active", "disconnected"]
+                                },
+                                "role": {
+                                    "type": "string",
+                                    "enum": ["caller", "recipent"]
+                                },
+                                "livekitIdentity": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["livekitIdentity", "name", "role", "status", "userId", "username"]
+                        }
+                    }
+                },
+                "required": ["livekitToken", "livekitUrl", "participants", "status", "videoCallId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "callid"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/edu/videocall/:callid",
+            "method": "put",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["active", "disconnected"]
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "videoCallId": {
+                        "type": "string"
+                    },
+                    "livekitUrl": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["new", "active", "ended"]
+                    },
+                    "livekitToken": {
+                        "type": "string"
+                    },
+                    "participants": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "userId": {
+                                    "type": "string"
+                                },
+                                "username": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": ["pending", "active", "disconnected"]
+                                },
+                                "role": {
+                                    "type": "string",
+                                    "enum": ["caller", "recipent"]
+                                },
+                                "livekitIdentity": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["livekitIdentity", "name", "role", "status", "userId", "username"]
+                        }
+                    }
+                },
+                "required": ["livekitToken", "livekitUrl", "participants", "status", "videoCallId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "callid"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/edu/videocall/:callid/user",
+            "method": "delete",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "userId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["userId"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "videoCallId": {
+                        "type": "string"
+                    },
+                    "livekitUrl": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["new", "active", "ended"]
+                    },
+                    "livekitToken": {
+                        "type": "string"
+                    },
+                    "participants": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "userId": {
+                                    "type": "string"
+                                },
+                                "username": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": ["pending", "active", "disconnected"]
+                                },
+                                "role": {
+                                    "type": "string",
+                                    "enum": ["caller", "recipent"]
+                                },
+                                "livekitIdentity": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["livekitIdentity", "name", "role", "status", "userId", "username"]
+                        }
+                    }
+                },
+                "required": ["livekitToken", "livekitUrl", "participants", "status", "videoCallId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "callid"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/edu/videocall/:callid/user",
+            "method": "post",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "userId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["userId"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "videoCallId": {
+                        "type": "string"
+                    },
+                    "livekitUrl": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["new", "active", "ended"]
+                    },
+                    "livekitToken": {
+                        "type": "string"
+                    },
+                    "participants": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "userId": {
+                                    "type": "string"
+                                },
+                                "username": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": ["pending", "active", "disconnected"]
+                                },
+                                "role": {
+                                    "type": "string",
+                                    "enum": ["caller", "recipent"]
+                                },
+                                "livekitIdentity": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["livekitIdentity", "name", "role", "status", "userId", "username"]
+                        }
+                    }
+                },
+                "required": ["livekitToken", "livekitUrl", "participants", "status", "videoCallId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "callid"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/edu/videocall/:organisationid/users",
+            "method": "get",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "users": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "userId": {
+                                    "type": "string"
+                                },
+                                "firstName": {
+                                    "type": "string"
+                                },
+                                "lastName": {
+                                    "type": "string"
+                                },
+                                "videoCallAvailability": {
+                                    "type": "string",
+                                    "enum": ["available", "busy"]
+                                },
+                                "videoCallStatus": {
+                                    "type": "string",
+                                    "enum": ["enabled", "disabled"]
+                                },
+                                "title": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["userId", "firstName", "lastName", "videoCallAvailability", "videoCallStatus", "title"],
+                            "additionalProperties": false
+                        }
+                    }
+                },
+                "required": ["users"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "organisationid"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/edu/videocall/pending",
+            "method": "get",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "callId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["callId"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "post",
+            "path": "/send-message",
+            "docs": "Publishes push notification to one or multiple devices",
+            "permissions": ["firebase-messaging:send"]
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "to": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Devices to send to"
+                    },
+                    "notification": {
+                        "type": "object",
+                        "properties": {
+                            "title": {
+                                "type": "string",
+                                "description": "Optional push notification title"
+                            },
+                            "body": {
+                                "type": "string",
+                                "description": "Optional body"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "description": "Use `notification` if sending a standard push notification https://firebase.google.com/docs/cloud-messaging/concept-options#notifications"
+                    },
+                    "data": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "Use `data` to send data messages. https://firebase.google.com/docs/cloud-messaging/concept-options#data_messages"
+                    }
+                },
+                "required": ["data", "to"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "failedDevices": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Devices to which delivery failed"
+                    }
+                },
+                "required": ["failedDevices"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/test",
+            "method": "get",
+            "origin": "Acme Backend"
+        },
+        "schema": {},
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/user/fullprofile",
+            "method": "get",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "UserID": {
+                        "type": "string"
+                    },
+                    "UserName": {
+                        "type": "string"
+                    },
+                    "CompanyID": {
+                        "type": "string"
+                    },
+                    "Languages": {
+                        "type": "string"
+                    },
+                    "Categories": {
+                        "type": "string"
+                    },
+                    "EduCategories": {
+                        "type": "string"
+                    },
+                    "CompanyName": {
+                        "type": "string"
+                    },
+                    "OrganisationId": {
+                        "type": "string"
+                    },
+                    "videoCallEnabled": {
+                        "type": "boolean"
+                    },
+                    "videoCallUsersCanCreateAccount": {
+                        "type": "boolean"
+                    },
+                    "videoCallLoginMethods": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "titles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "Categories",
+                    "CompanyID",
+                    "CompanyName",
+                    "EduCategories",
+                    "Languages",
+                    "OrganisationId",
+                    "UserID",
+                    "UserName",
+                    "titles",
+                    "videoCallEnabled",
+                    "videoCallLoginMethods",
+                    "videoCallUsersCanCreateAccount"
+                ],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "post",
+            "path": "/user/login",
+            "docs": "Authenticates a user",
+            "origin": "genericAuthPlugin"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "username": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    }
+                },
+                "required": ["username"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "failed", "requiresValidation"]
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "_id": {
+                                "type": "string"
+                            },
+                            "username": {
+                                "type": "string"
+                            },
+                            "token": {
+                                "type": "string"
+                            },
+                            "profile": {
+                                "type": "object"
+                            }
+                        },
+                        "required": ["_id", "username", "token", "profile"],
+                        "additionalProperties": false
+                    },
+                    "validationToken": {
+                        "type": "string"
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/user/notifications",
+            "method": "get",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "notifications": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "_id": {
+                                    "type": "string"
+                                },
+                                "title": {
+                                    "type": "string"
+                                },
+                                "text": {
+                                    "type": "string"
+                                },
+                                "users": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "videoId": {
+                                    "type": "string"
+                                },
+                                "Timestamp": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            },
+                            "required": ["_id", "title", "text", "users", "Timestamp"],
+                            "additionalProperties": false
+                        }
+                    }
+                },
+                "required": ["notifications"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "get",
+            "path": "/user/profile",
+            "docs": "Gets the user profile",
+            "permissions": "authenticated",
+            "origin": "genericAuthPlugin"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "post",
+            "path": "/user/push",
+            "docs": "Register a push notification on current user",
+            "permissions": "authenticated",
+            "origin": "genericAuthPlugin"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "deviceId": {
+                        "type": "string"
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "platform": {
+                        "type": "string",
+                        "enum": ["ios", "android", "web"]
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": ["firebase", "apn-voip"],
+                        "description": "The type of the token. This is used to determine which push notification service to use. Default is \"firebase\""
+                    }
+                },
+                "required": ["deviceId", "token"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "failed"]
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "delete",
+            "path": "/user/push",
+            "docs": "Removes a push notification token from current user",
+            "permissions": "authenticated",
+            "origin": "genericAuthPlugin"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "deviceId": {
+                        "type": "string"
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "platform": {
+                        "type": "string",
+                        "enum": ["ios", "android", "web"]
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": ["firebase", "apn-voip"],
+                        "description": "The type of the token. This is used to determine which push notification service to use. Default is \"firebase\""
+                    }
+                },
+                "required": ["deviceId", "token"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["success", "failed"]
+                    }
+                },
+                "required": ["status"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "method": "get",
+            "path": "/user/token",
+            "docs": "Gets a refreshed token for the user",
+            "permissions": "authenticated",
+            "origin": "genericAuthPlugin"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "token": {
+                        "type": "string"
+                    }
+                },
+                "required": ["token"],
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/video/feedback",
+            "method": "post",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "movieId": {
+                        "type": "string"
+                    },
+                    "feedbackId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["feedbackId", "movieId"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/video/statistic",
+            "method": "post",
+            "permissions": "authenticated",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "videoId": {
+                        "type": "string"
+                    },
+                    "videoName": {
+                        "type": "string"
+                    },
+                    "language": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": ["language", "status", "videoId", "videoName"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    },
+    {
+        "routeProps": {
+            "path": "/videocall/:callId/decline/:userId",
+            "method": "post",
+            "origin": "Acme Backend"
+        },
+        "schema": {},
+        "queryMetadata": [],
+        "paramsMetadata": [
+            {
+                "description": "",
+                "name": "callId"
+            },
+            {
+                "description": "",
+                "name": "userId"
+            }
+        ]
+    },
+    {
+        "routeProps": {
+            "path": "/webhook",
+            "method": "post",
+            "origin": "Acme Backend"
+        },
+        "schema": {
+            "reqSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "participantId": {
+                        "type": "string"
+                    },
+                    "callId": {
+                        "type": "string"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": ["callId", "participantId", "timestamp", "type"],
+                "definitions": {}
+            },
+            "resSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "additionalProperties": false,
+                "definitions": {}
+            }
+        },
+        "queryMetadata": [],
+        "paramsMetadata": []
+    }
+]

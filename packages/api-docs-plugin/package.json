@@ -4,24 +4,27 @@
     "description": "Flink plugin that generates API documentation based on JSON schemas",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
-        "prepare": "tsc && npm run copy:assets",
-        "copy:assets": "mkdir -p dist/views && cp src/views/** dist/views/",
-        "watch": "npm run copy:assets && tsc-watch"
+        "prepare": "npm run build:react && tsc && npm run copy:assets",
+        "build:react": "cd react-app && npm run build",
+        "copy:assets": "mkdir -p dist/react-app && cp -r react-app/dist/* dist/react-app/",
+        "watch": "tsc-watch",
+        "dev:mock-api": "ts-node src/dev-server.ts",
+        "dev:react": "cd react-app && npm run dev",
+        "clean": "rm -rf dist react-app/dist"
     },
+    "files": [
+        "dist/**/*",
+        "*.md"
+    ],
     "author": "joel@frost.se",
     "license": "MIT",
     "types": "dist/index.d.ts",
     "main": "dist/index.js",
-    "dependencies": {
-        "pug": "^3.0.2"
-    },
     "devDependencies": {
         "@flink-app/flink": "^0.12.1-alpha.12",
         "@types/express": "^4.17.12",
-        "@types/got": "^9.6.11",
         "@types/node": "22.13.10",
-        "@types/pug": "^2.0.4",
-        "nodemon": "^2.0.7",
+        "express": "^4.18.2",
         "ts-node": "^9.1.1",
         "tsc-watch": "^4.2.9",
         "typescript": "5.4.5"
