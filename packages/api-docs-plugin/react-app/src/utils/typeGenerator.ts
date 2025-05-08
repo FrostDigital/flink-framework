@@ -93,10 +93,17 @@ export function generateTypeScriptInterface(properties: SchemaProperty[], interf
     return `interface ${interfaceName} {\n${interfaceBody}}`;
 }
 
-function mapToTypeScriptType(schemaType: string): string {
+function mapToTypeScriptType(schemaType: string | undefined): string {
+    // Handle undefined, null, or non-string types
+    if (typeof schemaType !== 'string' || !schemaType) {
+        return 'any';
+    }
+    
     switch (schemaType.toLowerCase()) {
         case 'string':
             return 'string';
+        case 'stringnull':
+            return 'string | null';
         case 'number':
         case 'integer':
         case 'float':

@@ -5,30 +5,13 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 
 // API docs plugin API root
 const apiRoot = process.argv[2] || "http://localhost:3333/docs/api";
+const name = process.argv[3] || "API Docs";
 
 // Create server instance
 const server = new McpServer({
-    name: "Flink API",
+    name,
     version: "1.0.0",
 });
-
-// server.resource("api-docs", "api-docs://endpoints", async (uri) => {
-//     const apiDocs = await makeFlinkApiDocsRequest<any>();
-
-//     if (!apiDocs) {
-//         throw new Error("Failed to fetch API docs");
-//     }
-
-//     return {
-//         contents: [
-//             {
-//                 uri: uri.toString(),
-//                 mimeType: "application/json",
-//                 text: JSON.stringify(apiDocs, null, 2),
-//             },
-//         ],
-//     };
-// });
 
 server.tool("api-endpoints", "Get all documented API endpoints and its request and response bodies.", async () => {
     const apiDocs = await makeFlinkApiDocsRequest<any>();
@@ -53,7 +36,7 @@ async function makeFlinkApiDocsRequest<T>(): Promise<T | null> {
         Accept: "application/json",
     };
 
-    console.error(`Fetching API docs from ${apiRoot}`);
+    console.log(`Fetching API docs from ${apiRoot}`);
 
     try {
         const response = await fetch(apiRoot, { headers });
