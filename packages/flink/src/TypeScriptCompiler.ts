@@ -1,9 +1,8 @@
-import { promises as fsPromises } from "fs";
-import fs from "fs";
+import fs, { promises as fsPromises } from "fs";
 import { JSONSchema7 } from "json-schema";
 import { join } from "path";
 import glob from "tiny-glob";
-import { CompletedConfig, Config, createFormatter, createParser, Schema, SchemaGenerator } from "ts-json-schema-generator";
+import { CompletedConfig, createFormatter, createParser, Schema, SchemaGenerator } from "ts-json-schema-generator";
 import {
     ArrayLiteralExpression,
     DiagnosticCategory,
