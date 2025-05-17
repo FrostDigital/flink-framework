@@ -36,8 +36,6 @@ async function makeFlinkApiDocsRequest<T>(): Promise<T | null> {
         Accept: "application/json",
     };
 
-    console.log(`Fetching API docs from ${apiRoot}`);
-
     try {
         const response = await fetch(apiRoot, { headers });
         if (!response.ok) {
@@ -59,7 +57,7 @@ async function main() {
         // Connect the server to the transport
         await server.connect(transport);
 
-        console.error("Flink API MCP server started successfully");
+        console.log(JSON.stringify({ error: "Flink API MCP server started successfully" }));
     } catch (error) {
         console.error("Failed to start Flink API MCP server:", error);
         process.exit(1);
