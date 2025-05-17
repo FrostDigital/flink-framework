@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/mcp",
-    "version": "0.12.1-alpha.14",
+    "version": "0.12.1-alpha.15",
     "description": "MCP server/client to expose API docs and possibly other things to LLM",
     "bin": {
         "flink-mcp": "./dist/index.js"
