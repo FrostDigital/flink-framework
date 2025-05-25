@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/generic-request-plugin",
-    "version": "0.12.1-alpha.17",
+    "version": "0.12.1-alpha.18",
     "description": "Flink plugin that makes it possible to override default request handlers and handle specific requests manually",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
@@ -18,7 +18,7 @@
         "node-color-log": "^5.3.1"
     },
     "devDependencies": {
-        "@flink-app/flink": "^0.12.1-alpha.17",
+        "@flink-app/flink": "^0.12.1-alpha.18",
         "@types/express": "4.17.11",
         "@types/node": "22.13.10",
         "ts-node": "^9.1.1",
