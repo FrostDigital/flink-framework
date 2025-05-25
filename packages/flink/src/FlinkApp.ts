@@ -12,7 +12,7 @@ import { v4 } from "uuid";
 import { FlinkAuthPlugin } from "./auth/FlinkAuthPlugin";
 import { FlinkContext } from "./FlinkContext";
 import { internalServerError, notFound, unauthorized } from "./FlinkErrors";
-import { Handler, HandlerFile, HttpMethod, QueryParamMetadata, RouteProps } from "./FlinkHttpHandler";
+import { FlinkRequest, Handler, HandlerFile, HttpMethod, QueryParamMetadata, RouteProps } from "./FlinkHttpHandler";
 import { FlinkJobFile } from "./FlinkJob";
 import { log } from "./FlinkLog";
 import { FlinkPlugin } from "./FlinkPlugin";
@@ -530,7 +530,7 @@ export class FlinkApp<C extends FlinkContext> {
                 try {
                     // 👇 This is where the actual handler gets invoked
                     handlerRes = await handler({
-                        req,
+                        req: req as FlinkRequest,
                         ctx: this.ctx,
                         origin: routeProps.origin,
                     });
@@ -823,7 +823,7 @@ export class FlinkApp<C extends FlinkContext> {
         if (!this.auth) {
             throw new Error(`Attempting to authenticate request (${req.method} ${req.path}) but no authPlugin is set`);
         }
-        return await this.auth.authenticateRequest(req, permissions);
+        return await this.auth.authenticateRequest(req as FlinkRequest, permissions);
     }
 
     public getRegisteredRoutes() {

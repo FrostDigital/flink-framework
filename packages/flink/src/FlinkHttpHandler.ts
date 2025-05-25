@@ -15,12 +15,10 @@ type Params = Request["params"];
 
 /**
  * Query type for request query parameters.
- *
- * Support simple key-value pairs (for backwards compatibility) as
- * well as the express Request query type which allows for more complex
- * query structures.
+ * Does currently not allow nested objects, although
+ * underlying express Request does allow it.
  */
-type Query = Record<string, undefined | string> | Request["query"];
+type Query = Record<any, string | string[] | undefined>;
 
 /**
  * Flink request extends express Request but adds reqId and user object.
