@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/email-plugin",
-    "version": "0.12.1-alpha.15",
+    "version": "0.12.1-alpha.17",
     "description": "Flink plugin that makes it possible to send email",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
@@ -21,7 +21,7 @@
         "querystring": "^0.2.1"
     },
     "devDependencies": {
-        "@flink-app/flink": "^0.12.1-alpha.15",
+        "@flink-app/flink": "^0.12.1-alpha.17",
         "@types/node": "22.13.10",
         "ts-node": "^9.1.1",
         "typescript": "5.4.5"
