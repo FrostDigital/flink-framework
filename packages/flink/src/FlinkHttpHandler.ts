@@ -18,7 +18,7 @@ type Params = Request["params"];
  * Does currently not allow nested objects, although
  * underlying express Request does allow it.
  */
-type Query = Record<any, string | string[] | undefined>;
+type Query = Record<string, string | string[] | undefined>;
 
 /**
  * Flink request extends express Request but adds reqId and user object.
