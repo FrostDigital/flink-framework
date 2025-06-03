@@ -594,7 +594,7 @@ export class FlinkApp<C extends FlinkContext> {
      * Will not register any handlers added programmatically.
      */
     private async registerAutoRegisterableHandlers() {
-        for (const { handler, assumedHttpMethod } of autoRegisteredHandlers) {
+        for (const { handler, assumedHttpMethod } of autoRegisteredHandlers.sort((a, b) => (a.handler.Route?.order || 0) - (b.handler.Route?.order || 0))) {
             if (!handler.Route) {
                 log.error(`Missing Props in handler ${handler.__file}`);
                 continue;

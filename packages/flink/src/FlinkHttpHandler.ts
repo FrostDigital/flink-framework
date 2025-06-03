@@ -76,6 +76,15 @@ export interface RouteProps {
      * I.e. filename or plugin name that describes where handler origins from
      */
     origin?: string;
+
+    /**
+     * Order handler should be registered in.
+     *
+     * By default all handlers has order 0 and in most cases this is fine,
+     * but if for example you want to register a handler before all others
+     * to avoid conflicts you can set a negative order.
+     */
+    order?: number;
 }
 
 /**
