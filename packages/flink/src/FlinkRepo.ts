@@ -82,7 +82,14 @@ export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> 
         return deletedCount || 0;
     }
 
-    private buildId(id: string | ObjectId) {
+    /**
+     * Helper to ensure the id is always an ObjectId.
+     * If a string is passed, it will be converted to an ObjectId.
+     * If an ObjectId is passed, it will be returned as is.
+     * @param id
+     * @returns
+     */
+    buildId(id: string | ObjectId) {
         let oid: ObjectId | string;
 
         if (typeof id === "string") {

@@ -43,7 +43,7 @@ const postUserPushRegisterTokenHandler: Handler<FlinkContext<genericAuthContext>
     if (deregisterOtherDevices) {
         const otherRegistrations = <User[]>await repo.findAll({
             $or: [{ "pushNotificationTokens.deviceId": req.body.deviceId }, { "pushNotificationTokens.token": req.body.token }],
-            _id: { $ne: user._id },
+            _id: { $ne: repo.buildId(user._id) },
         });
 
         log.debug(`Found ${otherRegistrations.length} other registrations for device ${req.body.deviceId} or token ${req.body.token}`);
