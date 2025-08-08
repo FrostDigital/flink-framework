@@ -382,7 +382,7 @@ export async function passwordResetComplete(
         pwdResetStartedAt: null,
     });
 
-    return { status: "success" };
+    return { status: "success", user };
 }
 
 function generate(n: number): string {
