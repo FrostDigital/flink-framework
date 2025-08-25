@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/bankid-plugin",
-    "version": "0.12.1-alpha.22",
+    "version": "0.12.1-alpha.21",
     "description": "Flink plugin for Swedish BankID authentication and document signing",
     "scripts": {
         "test": "node --preserve-symlinks -r ts-node/register -- node_modules/jasmine/bin/jasmine --config=./spec/support/jasmine.json",
@@ -16,10 +16,13 @@
         "access": "public"
     },
     "dependencies": {
-        "bankid": "^7.0.1"
+        "bankid": "^3.2.1"
+    },
+    "overrides": {
+        "@types/node": "22.13.10"
     },
     "devDependencies": {
-        "@flink-app/flink": "^0.12.1-alpha.22",
+        "@flink-app/flink": "^0.12.1-alpha.20",
         "@types/jasmine": "^3.7.1",
         "@types/node": "22.13.10",
         "jasmine": "^3.7.0",
