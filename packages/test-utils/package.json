@@ -1,10 +1,10 @@
 {
     "name": "@flink-app/test-utils",
-    "version": "0.11.14",
+    "version": "0.12.1-alpha.20",
     "description": "Test utils for Flink",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
-        "prepublish": "tsc",
+        "prepare": "tsc",
         "build": "tsc",
         "watch": "tsc-watch"
     },
@@ -20,15 +20,15 @@
         "qs": "^6.7.0"
     },
     "devDependencies": {
-        "@flink-app/flink": "^0.11.14",
+        "@flink-app/flink": "^0.12.1-alpha.20",
         "@types/express": "^4.17.12",
         "@types/got": "^9.6.12",
-        "@types/node": "^15.6.2",
+        "@types/node": "22.13.10",
         "jasmine-spec-reporter": "^7.0.0",
         "nodemon": "^2.0.7",
         "ts-node": "^9.1.1",
         "tsc-watch": "^4.2.9",
-        "typescript": "^4.2.4"
+        "typescript": "5.4.5"
     },
-    "gitHead": "548cc509c6087177cd22e4f0bea3044ba45154c6"
+    "gitHead": "770328c460ab4c755162df2294875780dd4d3803"
 }

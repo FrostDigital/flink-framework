@@ -1,7 +1,13 @@
-import { Collection, Db, ObjectId } from "mongodb";
+import { Collection, Db, Document, InsertOneResult, MongoClient, ObjectId } from "mongodb";
 import { FlinkContext } from "./FlinkContext";
 
-export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
+/**
+ * Partial model to have intellisense for partial updates but
+ * also allow any other properties to be set such as nested objects etc.
+ */
+type PartialModel<Model> = Partial<Model> & { [x: string]: any };
+
+export abstract class FlinkRepo<C extends FlinkContext, Model extends Document> {
     collection: Collection;
 
     private _ctx?: C;
@@ -15,56 +21,75 @@ export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
         return this._ctx;
     }
 
-    constructor(private collectionName: string, private db: Db) {
+    constructor(public collectionName: string, public db: Db, public client?: MongoClient) {
         this.collection = db.collection(this.collectionName);
     }
 
     async findAll(query = {}): Promise<Model[]> {
-        return this.collection.find(query).toArray();
+        const res = await this.collection.find<Model>(query).toArray();
+        return res.map(this.objectIdToString) as Model[];
     }
 
-    async getById(id: string): Promise<Model | null> {
-        return this.collection.findOne({ _id: this.buildId(id) });
+    async getById(id: string | ObjectId) {
+        const res = await this.collection.findOne<Model>({ _id: this.buildId(id) });
+        if (res) {
+            return this.objectIdToString(res) as Model;
+        }
+        return null;
     }
 
-    async getOne(query = {}): Promise<Model | null> {
-        return this.collection.findOne(query);
+    async getOne(query = {}) {
+        const res = await this.collection.findOne<Model>(query);
+        if (res) {
+            return this.objectIdToString(res) as Model;
+        }
+        return null;
     }
 
     async create<C = Omit<Model, "_id">>(model: C): Promise<C & { _id: string }> {
-        const { ops } = await this.collection.insertOne(model);
-        return ops[0];
+        const result: InsertOneResult<Model> = await this.collection.insertOne(model as any);
+        return { ...model, _id: result.insertedId.toString() };
     }
 
-    async updateOne<U = Partial<Model>>(id: string, model: U): Promise<Model> {
+    async updateOne(id: string | ObjectId, model: PartialModel<Model>): Promise<Model | null> {
         const oid = this.buildId(id);
 
-        await this.collection.updateOne(
-            {
-                _id: oid,
-            },
-            {
-                $set: model,
-            }
-        );
-        return this.collection.findOne({ _id: oid });
+        const { _id, ...modelWithoutId } = model;
+
+        await this.collection.updateOne({ _id: oid }, { $set: modelWithoutId });
+
+        const res = await this.collection.findOne<Model>({ _id: oid });
+
+        if (res) {
+            return this.objectIdToString(res) as Model;
+        }
+        return null;
     }
 
-    async updateMany<U = Partial<Model>>(query: any, model: U): Promise<number> {
+    async updateMany<U = PartialModel<Model>>(query: any, model: U): Promise<number> {
+        const { _id, ...modelWithoutId } = model as any;
+
         const { modifiedCount } = await this.collection.updateMany(query, {
-            $set: model,
+            $set: modelWithoutId as any,
         });
         return modifiedCount;
     }
 
-    async deleteById(id: string): Promise<number> {
+    async deleteById(id: string | ObjectId): Promise<number> {
         const { deletedCount } = await this.collection.deleteOne({
             _id: this.buildId(id),
         });
         return deletedCount || 0;
     }
 
-    private buildId(id: string | ObjectId) {
+    /**
+     * Helper to ensure the id is always an ObjectId.
+     * If a string is passed, it will be converted to an ObjectId.
+     * If an ObjectId is passed, it will be returned as is.
+     * @param id
+     * @returns
+     */
+    buildId(id: string | ObjectId) {
         let oid: ObjectId | string;
 
         if (typeof id === "string") {
@@ -76,5 +101,12 @@ export abstract class FlinkRepo<C extends FlinkContext, Model = any> {
         }
 
         return oid;
+    }
+
+    private objectIdToString<T>(doc: T & { _id?: any }) {
+        if (doc && doc._id) {
+            doc._id = doc._id.toString();
+        }
+        return doc;
     }
 }

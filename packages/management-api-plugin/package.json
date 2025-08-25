@@ -1,11 +1,11 @@
 {
     "name": "@flink-app/management-api-plugin",
-    "version": "0.11.14",
+    "version": "0.12.1-alpha.20",
     "description": "Flink plugin that makes it possible to expose management api:s for other plugins",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
         "build": "flink build",
-        "prepublish": "npm run build",
+        "prepare": "npm run build",
         "watch": "nodemon --exec \"flink build\""
     },
     "author": "johan@frost.se",
@@ -16,20 +16,19 @@
     "types": "dist/src/index.d.ts",
     "main": "dist/src/index.js",
     "dependencies": {
-        "@types/mongodb": "3.6.12",
         "bcrypt": "^5.0.1",
         "express": "^4.17.1",
         "jsonwebtoken": "^8.5.1"
     },
     "devDependencies": {
-        "@flink-app/flink": "^0.11.14",
+        "@flink-app/flink": "^0.12.1-alpha.20",
         "@types/bcrypt": "^5.0.0",
         "@types/express": "4.17.11",
         "@types/express-fileupload": "^1.1.7",
         "@types/jsonwebtoken": "^8.5.4",
-        "@types/node": "^15.6.2",
+        "@types/node": "22.13.10",
         "ts-node": "^9.1.1",
-        "typescript": "^4.2.4"
+        "typescript": "5.4.5"
     },
-    "gitHead": "548cc509c6087177cd22e4f0bea3044ba45154c6"
+    "gitHead": "770328c460ab4c755162df2294875780dd4d3803"
 }

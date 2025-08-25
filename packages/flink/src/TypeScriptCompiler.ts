@@ -1,8 +1,8 @@
-import { promises as fsPromises } from "fs";
+import fs, { promises as fsPromises } from "fs";
 import { JSONSchema7 } from "json-schema";
 import { join } from "path";
 import glob from "tiny-glob";
-import { Config, createFormatter, createParser, Schema, SchemaGenerator } from "ts-json-schema-generator";
+import { CompletedConfig, createFormatter, createParser, Schema, SchemaGenerator } from "ts-json-schema-generator";
 import {
     ArrayLiteralExpression,
     DiagnosticCategory,
@@ -24,6 +24,7 @@ import { getCollectionNameForRepo, getHttpMethodFromHandlerName, getRepoInstance
 class TypeScriptCompiler {
     private project: Project;
     private schemaGenerator?: SchemaGenerator;
+    private isEsm: boolean;
 
     /**
      * Parsed typescript schemas that will be added to intermediate
@@ -41,16 +42,68 @@ class TypeScriptCompiler {
     private tsSchemasSymbolsToImports: Symbol[] = [];
 
     constructor(private cwd: string) {
+        // Detect if project is using ESM based solely on package.json "type": "module"
+        this.isEsm = this.isEsmProject(cwd);
+
+        const compilerOptions: ts.CompilerOptions = {
+            noEmit: false, // We need to emit files
+            outDir: join(cwd, "dist"),
+        };
+
+        // Set appropriate module settings based on detected module system
+        if (this.isEsm) {
+            // For ESM projects, use ESNext module with Node resolution
+            compilerOptions.module = ts.ModuleKind.ESNext;
+            compilerOptions.moduleResolution = ts.ModuleResolutionKind.NodeJs;
+            compilerOptions.esModuleInterop = true;
+        } else {
+            // For CommonJS projects, use CommonJS module with Node resolution
+            compilerOptions.module = ts.ModuleKind.CommonJS;
+            compilerOptions.moduleResolution = ts.ModuleResolutionKind.NodeJs;
+        }
+
         this.project = new Project({
             tsConfigFilePath: join(cwd, "tsconfig.json"),
-            compilerOptions: {
-                noEmit: false,
-                outDir: join(cwd, "dist"),
-                // incremental: true,
-            },
+            compilerOptions,
         });
 
         console.log("Loaded", this.project.getSourceFiles().length, "source file(s) from", cwd);
+        console.log("Module system:", this.isEsm ? "ESM" : "CommonJS");
+        console.log("Using module:", compilerOptions.module === ts.ModuleKind.ESNext ? "ESNext" : "CommonJS");
+    }
+
+    /**
+     * Detects if the project is using ESM (ECMAScript Modules)
+     * by checking type in package.json.
+     */
+    private isEsmProject(cwd: string): boolean {
+        try {
+            // Check package.json for "type": "module"
+            const packageJsonPath = join(cwd, "package.json");
+            if (fs.existsSync(packageJsonPath)) {
+                const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+                return packageJson.type === "module";
+            }
+        } catch (error) {
+            // If we can't determine, default to CommonJS
+            console.warn("Error detecting module system, defaulting to CommonJS:", error);
+        }
+
+        return false;
+    }
+
+    /**
+     * Gets the module specifier for imports, adding .js extension for ESM
+     */
+    private getModuleSpecifier(fromFile: SourceFile, toFile: SourceFile): string {
+        let moduleSpecifier = fromFile.getRelativePathAsModuleSpecifierTo(toFile);
+
+        // Add .js extension for ESM imports (only for relative paths)
+        if (this.isEsm && !moduleSpecifier.startsWith("@") && !moduleSpecifier.endsWith(".js")) {
+            moduleSpecifier += ".js";
+        }
+
+        return moduleSpecifier;
     }
 
     /**
@@ -173,7 +226,7 @@ autoRegisteredHandlers.push(...handlers);
 
             imports.push({
                 defaultImport: "* as " + namespaceImport,
-                moduleSpecifier: generatedFile.getRelativePathAsModuleSpecifierTo(sf),
+                moduleSpecifier: this.getModuleSpecifier(generatedFile, sf),
             });
 
             const assumedHttpMethod = getHttpMethodFromHandlerName(sf.getBaseName());
@@ -252,7 +305,7 @@ autoRegisteredHandlers.push(...handlers);
 
             imports.push({
                 defaultImport: sf.getBaseNameWithoutExtension(),
-                moduleSpecifier: generatedFile.getRelativePathAsModuleSpecifierTo(sf),
+                moduleSpecifier: this.getModuleSpecifier(generatedFile, sf),
             });
 
             reposArr.insertElement(
@@ -288,10 +341,11 @@ autoRegisteredHandlers.push(...handlers);
         const sf = this.createSourceFile(
             ["start.ts"],
             `// Generated ${new Date()}
-import "./generatedHandlers";
-import "./generatedRepos";
-import "./generatedJobs";
-import "..${appEntryScript.replace(/\.ts/g, "")}";
+import "./generatedHandlers${this.isEsm ? ".js" : ""}";
+import "./generatedRepos${this.isEsm ? ".js" : ""}";
+import "./generatedJobs${this.isEsm ? ".js" : ""}";
+import "..${appEntryScript.replace(/\.ts/g, "")}${this.isEsm ? ".js" : ""}";
+export default {}; // Export an empty object to make it a module
 `
         );
 
@@ -437,9 +491,20 @@ import "..${appEntryScript.replace(/\.ts/g, "")}";
     }
 
     private initJsonSchemaGenerator() {
-        const conf: Config = {
+        const conf: CompletedConfig = {
             expose: "none", // Do not create shared $ref definitions.
             topRef: false, // Removes the wrapper object around the schema.
+            additionalProperties: false,
+            jsDoc: "basic",
+            sortProps: false,
+            strictTuples: false,
+            minify: false,
+            markdownDescription: false,
+            skipTypeCheck: false,
+            encodeRefs: false,
+            extraTags: [],
+            functions: "fail",
+            discriminatorType: "json-schema",
         };
         const formatter = createFormatter(conf);
         const parser = createParser(this.project.getProgram().compilerObject, conf);
@@ -649,7 +714,7 @@ autoRegisteredJobs.push(...jobs);
 
             imports.push({
                 defaultImport: "* as " + namespaceImport,
-                moduleSpecifier: generatedFile.getRelativePathAsModuleSpecifierTo(sf),
+                moduleSpecifier: this.getModuleSpecifier(generatedFile, sf),
             });
 
             // Append metadata to source file that will be part of emitted dist bundle (javascript)

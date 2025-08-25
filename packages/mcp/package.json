@@ -1,0 +1,36 @@
+{
+    "name": "@flink-app/mcp",
+    "version": "0.12.1-alpha.16",
+    "description": "MCP server/client to expose API docs and possibly other things to LLM",
+    "bin": {
+        "flink-mcp": "./dist/index.js"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\"",
+        "prepare": "npm run build",
+        "build": "tsc && chmod 755 dist/index.js",
+        "watch": "tsc-watch",
+        "clean": "rm -rf dist",
+        "prestart": "npm run build",
+        "start": "node dist/index.js"
+    },
+    "files": [
+        "dist/**/*",
+        "*.md"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "author": "joel@frost.se",
+    "license": "MIT",
+    "types": "dist/index.d.ts",
+    "main": "dist/index.js",
+    "devDependencies": {
+        "@types/node": "22.13.10",
+        "typescript": "5.4.5"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.11.0"
+    },
+    "gitHead": "8634b4ecbefb3f3b0b408ed80cec6caae7551cb2"
+}

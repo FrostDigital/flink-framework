@@ -1,10 +1,10 @@
 {
     "name": "@flink-app/debug-plugin",
-    "version": "0.11.14",
+    "version": "0.12.1-alpha.20",
     "description": "Flink plugin that make it possbile to debug requests",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
-        "prepublish": "tsc"
+        "prepare": "tsc"
     },
     "author": "johan@frost.se",
     "publishConfig": {
@@ -14,16 +14,16 @@
     "types": "dist/index.d.ts",
     "main": "dist/index.js",
     "dependencies": {
-        "@flink-app/management-api-plugin": "^0.11.14",
+        "@flink-app/management-api-plugin": "^0.12.1-alpha.20",
         "express": "^4.17.1",
         "node-color-log": "^5.3.1"
     },
     "devDependencies": {
-        "@flink-app/flink": "^0.11.14",
+        "@flink-app/flink": "^0.12.1-alpha.20",
         "@types/express": "4.17.13",
-        "@types/node": "^15.6.2",
+        "@types/node": "22.13.10",
         "ts-node": "^9.1.1",
-        "typescript": "^4.2.4"
+        "typescript": "5.4.5"
     },
-    "gitHead": "548cc509c6087177cd22e4f0bea3044ba45154c6"
+    "gitHead": "770328c460ab4c755162df2294875780dd4d3803"
 }

@@ -1,35 +1,35 @@
 {
-  "name": "@flink-app/jwt-auth-plugin",
-  "version": "0.11.14",
-  "description": "Flink plugin for JWT auth",
-  "scripts": {
-    "test": "node --preserve-symlinks -r ts-node/register -- node_modules/jasmine/bin/jasmine --config=./spec/support/jasmine.json",
-    "test:watch": "nodemon --ext ts --exec 'jasmine-ts  --config=./spec/support/jasmine.json'",
-    "prepublish": "tsc --project tsconfig.dist.json",
-    "watch": "tsc-watch --project tsconfig.dist.json"
-  },
-  "author": "joel@frost.se",
-  "license": "MIT",
-  "types": "dist/index.d.ts",
-  "main": "dist/index.js",
-  "publishConfig": {
-    "access": "public"
-  },
-  "dependencies": {
-    "bcrypt": "^5.0.1",
-    "jwt-simple": "^0.5.6"
-  },
-  "devDependencies": {
-    "@flink-app/flink": "^0.11.14",
-    "@types/bcrypt": "^5.0.0",
-    "@types/jasmine": "^3.7.1",
-    "@types/node": "^15.6.2",
-    "jasmine": "^3.7.0",
-    "jasmine-spec-reporter": "^7.0.0",
-    "nodemon": "^2.0.7",
-    "ts-node": "^9.1.1",
-    "tsc-watch": "^4.2.9",
-    "typescript": "^4.2.4"
-  },
-  "gitHead": "548cc509c6087177cd22e4f0bea3044ba45154c6"
+    "name": "@flink-app/jwt-auth-plugin",
+    "version": "0.12.1-alpha.20",
+    "description": "Flink plugin for JWT auth",
+    "scripts": {
+        "test": "node --preserve-symlinks -r ts-node/register -- node_modules/jasmine/bin/jasmine --config=./spec/support/jasmine.json",
+        "test:watch": "nodemon --ext ts --exec 'jasmine-ts  --config=./spec/support/jasmine.json'",
+        "prepare": "tsc --project tsconfig.dist.json",
+        "watch": "tsc-watch --project tsconfig.dist.json"
+    },
+    "author": "joel@frost.se",
+    "license": "MIT",
+    "types": "dist/index.d.ts",
+    "main": "dist/index.js",
+    "publishConfig": {
+        "access": "public"
+    },
+    "dependencies": {
+        "bcrypt": "^5.0.1",
+        "jwt-simple": "^0.5.6"
+    },
+    "devDependencies": {
+        "@flink-app/flink": "^0.12.1-alpha.20",
+        "@types/bcrypt": "^5.0.0",
+        "@types/jasmine": "^3.7.1",
+        "@types/node": "22.13.10",
+        "jasmine": "^3.7.0",
+        "jasmine-spec-reporter": "^7.0.0",
+        "nodemon": "^2.0.7",
+        "ts-node": "^9.1.1",
+        "tsc-watch": "^4.2.9",
+        "typescript": "5.4.5"
+    },
+    "gitHead": "770328c460ab4c755162df2294875780dd4d3803"
 }
