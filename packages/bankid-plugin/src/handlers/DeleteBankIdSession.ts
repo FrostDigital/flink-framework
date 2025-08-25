@@ -1,60 +1,31 @@
-import { Handler, RouteProps, badRequest, internalServerError, log, notFound } from "@flink-app/flink";
-import { Ctx } from "../BankIdPluginContext";
+import { Handler, HttpMethod, RouteProps, badRequest, internalServerError, notFound } from "@flink-app/flink";
 import SessionCancelRes from "../schemas/SessionCancelRes";
+import { BankIdInternalCtx } from "../BankIdInternalContext";
+import { cancelSession } from "../functions/cancelSession";
 
 export const Route: RouteProps = {
     path: "/bankid/session/:orderRef",
+    method: HttpMethod.delete,
 };
 
-const DeleteBankidSession: Handler<Ctx, any, SessionCancelRes, { orderRef: string }> = async ({ ctx, req }) => {
+const DeleteBankIdSession: Handler<BankIdInternalCtx, any, SessionCancelRes, { orderRef: string }> = async ({ ctx, req }) => {
+    const { orderRef } = req.params;
+
     try {
-        const { orderRef } = req.params;
-        const { bankIdClient } = ctx.plugins.bankId;
-
-        // Find session in database
-        const session = await ctx.repos.bankIdSessionRepo.getSession(orderRef);
-
-        if (!session) {
-            return notFound("Session not found");
-        }
-
-        // If session is already completed or failed, can't cancel
-        if (session.status === "complete" || session.status === "failed") {
-            return badRequest(`Cannot cancel ${session.status} session`, "SESSION_ALREADY_COMPLETED");
-        }
-
-        // If already cancelled, return success
-        if (session.status === "cancelled") {
-            return {
-                data: {
-                    success: true,
-                    message: "Session already cancelled",
-                },
-            };
-        }
-
-        try {
-            // Try to cancel with BankID service
-            await bankIdClient.cancel({ orderRef });
-        } catch (error: any) {
-            // BankID cancel might fail if session is already completed/expired
-            // Log but don't fail - we still want to mark our session as cancelled
-            log.warn("BankID cancel request failed:", error.message);
-        }
-
-        // Update session status to cancelled
-        await ctx.repos.bankIdSessionRepo.cancelSession(orderRef);
+        const cancelResponse = await cancelSession(ctx, { orderRef });
 
         return {
-            data: {
-                success: true,
-                message: "Session cancelled successfully",
-            },
+            data: cancelResponse,
         };
     } catch (error: any) {
-        console.error("Session cancellation error:", error);
+        if (error.message === "Session not found") {
+            return notFound("Session not found");
+        }
+        if (error.message?.includes("Cannot cancel")) {
+            return badRequest(error.message, "SESSION_ALREADY_COMPLETED");
+        }
         return internalServerError("Failed to cancel session");
     }
 };
 
-export default DeleteBankidSession;
+export default DeleteBankIdSession;

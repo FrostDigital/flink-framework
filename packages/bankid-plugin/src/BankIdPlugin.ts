@@ -7,7 +7,11 @@ import * as PostBankidAuth from "./handlers/PostBankIdAuth";
 import * as GetBankidSign from "./handlers/GetBankIdSign";
 import * as DeleteBankidSession from "./handlers/DeleteBankIdSession";
 import { BankIdPluginContext } from "./BankIdPluginContext";
+import { auth } from "./functions/auth";
 import { sign } from "./functions/sign";
+import { getAuthStatus } from "./functions/getAuthStatus";
+import { getSignStatus } from "./functions/getSignStatus";
+import { cancelSession } from "./functions/cancelSession";
 
 export function bankIdPlugin(options: BankIdPluginOptions): FlinkPlugin {
     if (!options.pfxBase64) {
@@ -36,14 +40,17 @@ export function bankIdPlugin(options: BankIdPluginOptions): FlinkPlugin {
                 throw new Error("BankID Plugin: Database connection is required");
             }
 
-            const repo = new BankIdSessionRepo("BankIdSessionRepo", app.db);
+            const repo = new BankIdSessionRepo(options.bankIdSessionsCollectionName || "bankid_sessions", app.db);
 
             app.addRepo("bankIdSessionRepo", repo);
 
-            app.addHandler(GetBankidAuth);
-            app.addHandler(PostBankidAuth);
-            app.addHandler(GetBankidSign);
-            app.addHandler(DeleteBankidSession);
+            // Only register handlers if registerRoutes is enabled (default: true)
+            if (options.registerRoutes !== false) {
+                app.addHandler(GetBankidAuth);
+                app.addHandler(PostBankidAuth);
+                app.addHandler(GetBankidSign);
+                app.addHandler(DeleteBankidSession);
+            }
 
             repo.ensureExpiringIndex(options.keepSessionsSec || 86400 /* 24 hours */);
 
@@ -57,7 +64,11 @@ export function bankIdPlugin(options: BankIdPluginOptions): FlinkPlugin {
     const pluginCtx: BankIdPluginContext["bankId"] = {
         bankIdClient,
         options,
+        auth: (authOptions) => auth(flinkApp.ctx as any, authOptions),
         sign: (signOptions) => sign(flinkApp.ctx as any, signOptions),
+        getAuthStatus: (statusOptions) => getAuthStatus(flinkApp.ctx as any, statusOptions),
+        getSignStatus: (statusOptions) => getSignStatus(flinkApp.ctx as any, statusOptions),
+        cancelSession: (cancelOptions) => cancelSession(flinkApp.ctx as any, cancelOptions),
     };
 
     return {

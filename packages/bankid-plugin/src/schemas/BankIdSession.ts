@@ -16,7 +16,7 @@ export default interface BankIdSession {
     device?: {
         ipAddress: string;
     };
-    signature?: BankIdSignature;
+    signature?: string;
     createdAt: Date;
     updatedAt?: Date;
     completedAt?: Date;

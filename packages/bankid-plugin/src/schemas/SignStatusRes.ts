@@ -8,4 +8,5 @@ export default interface SignStatusRes {
     signature?: BankIdSignature;
     hintCode?: string;
     errorCode?: string;
+    qr?: string;
 }

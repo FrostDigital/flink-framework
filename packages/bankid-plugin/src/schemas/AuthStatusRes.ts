@@ -11,4 +11,5 @@ export default interface AuthStatusRes {
     user?: any;
     hintCode?: string;
     errorCode?: string;
+    qr?: string;
 }

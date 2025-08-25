@@ -19,7 +19,7 @@ class BankIdSessionRepo extends FlinkRepo<any, BankIdSession> {
         return this.getOne({ orderRef });
     }
 
-    async completeSession(orderRef: string, userData: Pick<BankIdSession, "user" | "device" | "hintCode">) {
+    async completeSession(orderRef: string, userData: Pick<BankIdSession, "user" | "device" | "hintCode" | "signature">) {
         await this.collection.updateOne({ orderRef }, { $set: { status: "complete", completedAt: new Date(), ...userData } });
         return this.getOne({ orderRef });
     }

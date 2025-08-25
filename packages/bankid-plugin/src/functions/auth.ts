@@ -3,30 +3,18 @@ import BankIdSession from "../schemas/BankIdSession";
 import { BankIdInternalCtx } from "../BankIdInternalContext";
 import { checkAndGenerateQr } from "../bankid-utils";
 
-export interface SignOptions {
-    userVisibleData: string;
-    userNonVisibleData?: string;
+export interface AuthOptions {
     endUserIp?: string;
 }
 
-export interface SignResponse {
+export interface AuthResponse {
     orderRef: string;
     autoStartToken: string;
     qr: string;
 }
 
-export async function sign(ctx: BankIdInternalCtx, options: SignOptions): Promise<SignResponse> {
+export async function auth(ctx: BankIdInternalCtx, options: AuthOptions = {}): Promise<AuthResponse> {
     const { bankIdClient, options: pluginOptions } = ctx.plugins.bankId;
-    const { userVisibleData, userNonVisibleData } = options;
-
-    if (!pluginOptions.onSignSuccess) {
-        log.error("No onSignSuccess callback defined");
-        throw new Error("Sign success callback not defined");
-    }
-
-    if (!userVisibleData) {
-        throw new Error("userVisibleData is required for signing");
-    }
 
     let clientIp = options.endUserIp;
 
@@ -40,44 +28,42 @@ export async function sign(ctx: BankIdInternalCtx, options: SignOptions): Promis
         }
     }
 
-    let signResponse: Awaited<ReturnType<typeof bankIdClient.sign>>;
+    let authResponse: Awaited<ReturnType<typeof bankIdClient.authenticate>>;
 
     try {
-        // Initiate BankID signing
-        signResponse = await bankIdClient.sign({
+        // Initiate BankID authentication
+        authResponse = await bankIdClient.authenticate({
             endUserIp: clientIp,
-            userVisibleData,
-            userNonVisibleData,
         });
     } catch (error: any) {
         // Handle specific BankID errors
         if (error.message?.includes("Already in progress")) {
-            throw new Error("Signing already in progress for this user");
+            throw new Error("Authentication already in progress for this user");
         }
 
         if (error.message?.includes("Invalid parameters")) {
             throw new Error("Invalid request parameters");
         }
 
-        throw new Error("Failed to initiate BankID signing");
+        throw new Error("Failed to initiate BankID authentication");
     }
 
     const session: Omit<BankIdSession, "_id"> = {
-        orderRef: signResponse.orderRef,
-        type: "sign",
+        orderRef: authResponse.orderRef,
+        type: "auth",
         status: "pending",
         createdAt: new Date(),
         ip: clientIp,
-        autoStartToken: signResponse.autoStartToken,
+        autoStartToken: authResponse.autoStartToken,
         qr: {
-            qrStartToken: signResponse.qrStartToken,
-            qrStartSecret: signResponse.qrStartSecret,
+            qrStartToken: authResponse.qrStartToken,
+            qrStartSecret: authResponse.qrStartSecret,
         },
     };
 
     await ctx.repos.bankIdSessionRepo.createSession(session);
 
-    const qrGenerator = signResponse.qr;
+    const qrGenerator = authResponse.qr;
 
     if (!qrGenerator) {
         log.error("No QR code generator returned from BankID");
@@ -85,11 +71,11 @@ export async function sign(ctx: BankIdInternalCtx, options: SignOptions): Promis
     }
 
     // Get the first QR code and start the background QR generation loop
-    const firstQrCode = await checkAndGenerateQr(ctx, signResponse.orderRef, qrGenerator);
+    const firstQrCode = await checkAndGenerateQr(ctx, authResponse.orderRef, qrGenerator);
 
     return {
-        orderRef: signResponse.orderRef,
-        autoStartToken: signResponse.autoStartToken,
+        orderRef: authResponse.orderRef,
+        autoStartToken: authResponse.autoStartToken,
         qr: firstQrCode,
     };
 }

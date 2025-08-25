@@ -2,6 +2,13 @@ export * from "./BankIdPlugin";
 export * from "./BankIdPluginContext";
 export * from "./BankIdPluginOptions";
 
+// Functions
+export * from "./functions/auth";
+export * from "./functions/sign";
+export * from "./functions/getAuthStatus";
+export * from "./functions/getSignStatus";
+export * from "./functions/cancelSession";
+
 // Schemas
 export type { default as BankIdSession } from "./schemas/BankIdSession";
 export type { default as AuthInitiateReq } from "./schemas/AuthInitiateReq";

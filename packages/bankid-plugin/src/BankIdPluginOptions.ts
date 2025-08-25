@@ -18,11 +18,6 @@ export interface AuthSuccessCallbackResponse {
     token: string;
 }
 
-export interface SignSuccessCallbackResponse {
-    user: any;
-    signature: BankIdSignature;
-}
-
 export interface BankIdPluginOptions {
     /**
      * BankID PFX certificate in base64 format
@@ -41,13 +36,6 @@ export interface BankIdPluginOptions {
      * Default is false.
      */
     production?: boolean;
-
-    /**
-     * The apps authentication plugin. This is used during auth process when creating a token.
-     */
-    // authPlugin: FlinkAuthPlugin;
-    // getUserByPersonalNumber: (userData: BankIdSession["user"]) => Promise<FlinkAuthUser | null>;
-    // createUserFromBankId?: (bankIdUser: BankIdUserInfo) => Promise<FlinkAuthUser>;
 
     /**
      * Whether to allow requests without an end user IP address.
@@ -81,7 +69,7 @@ export interface BankIdPluginOptions {
      * @param signature
      * @returns
      */
-    onSignSuccess: (userData: BankIdUserData, signature: BankIdSignature) => Promise<SignSuccessCallbackResponse>;
+    onSignSuccess?: (userData: BankIdUserData, signature: BankIdSignature) => Promise<void>;
 
     /**
      * For how long to keep sessions in database.
@@ -94,4 +82,17 @@ export interface BankIdPluginOptions {
      * Default is 24 hours (86400 seconds)
      */
     keepSessionsSec?: number;
+
+    /**
+     * The name of the MongoDB collection to use for storing BankID sessions.
+     * Default is "bankid_sessions".
+     */
+    bankIdSessionsCollectionName?: string;
+
+    /**
+     * Whether to register the default HTTP routes for BankID operations.
+     * If false, you'll need to implement your own handlers using the functions.
+     * Default is true.
+     */
+    registerRoutes?: boolean;
 }
