@@ -58,7 +58,10 @@ export async function checkAndGenerateQr(ctx: BankIdInternalCtx, orderRef: strin
                     user: completionData.user,
                     device: completionData.device,
                     hintCode: resp.hintCode,
-                    signature: completionData?.signature,
+                    signature: {
+                        signature: completionData.signature,
+                        ocspResponse: completionData.ocspResponse,
+                    },
                 });
                 break;
             } else if (resp.status === "failed") {

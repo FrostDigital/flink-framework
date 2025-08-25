@@ -47,13 +47,8 @@ export async function getSignStatus(ctx: BankIdInternalCtx, options: SignStatusO
             throw new Error("Signature data is missing");
         }
 
-        const signature = {
-            signature: session.signature.signature,
-            ocspResponse: session.signature.ocspResponse,
-        };
-
         // Invoke host app callback
-        await pluginOptions.onSignSuccess(session.user, signature);
+        await pluginOptions.onSignSuccess(session.user, session.signature);
 
         return {
             status: "complete",
