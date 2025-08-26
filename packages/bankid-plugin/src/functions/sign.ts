@@ -7,6 +7,7 @@ export interface SignOptions {
     userVisibleData: string;
     userNonVisibleData?: string;
     endUserIp?: string;
+    payload?: Record<string, any>;
 }
 
 export interface SignResponse {
@@ -69,6 +70,7 @@ export async function sign(ctx: BankIdInternalCtx, options: SignOptions): Promis
         createdAt: new Date(),
         ip: clientIp,
         autoStartToken: signResponse.autoStartToken,
+        payload: options.payload,
         qr: {
             qrStartToken: signResponse.qrStartToken,
             qrStartSecret: signResponse.qrStartSecret,

@@ -15,7 +15,10 @@ const PostBankIdAuth: Handler<BankIdInternalCtx, AuthInitiateReq, AuthInitiateRe
     try {
         let clientIp = await options.onGetEndUserIp(req);
 
-        const authResponse = await auth(ctx, { endUserIp: clientIp });
+        const authResponse = await auth(ctx, { 
+            endUserIp: clientIp,
+            payload: req.body.payload 
+        });
 
         return {
             data: authResponse,

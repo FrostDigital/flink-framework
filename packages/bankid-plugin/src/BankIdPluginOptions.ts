@@ -57,9 +57,10 @@ export interface BankIdPluginOptions {
      * token. This will be relayed in the collect response to client.
      * @param userData
      * @param ip
+     * @param payload
      * @returns
      */
-    onAuthSuccess: (userData: BankIdUserData, ip?: string) => Promise<AuthSuccessCallbackResponse>;
+    onAuthSuccess: (userData: BankIdUserData, ip?: string, payload?: Record<string, any>) => Promise<AuthSuccessCallbackResponse>;
 
     /**
      * Callback invoked when BankID sign is successful.
@@ -67,9 +68,10 @@ export interface BankIdPluginOptions {
      * signature data. This will be relayed in the collect response to client.
      * @param userData
      * @param signature
+     * @param payload
      * @returns
      */
-    onSignSuccess?: (userData: BankIdUserData, signature: BankIdSignature) => Promise<void>;
+    onSignSuccess?: (userData: BankIdUserData, signature: BankIdSignature, payload?: Record<string, any>) => Promise<void>;
 
     /**
      * For how long to keep sessions in database.

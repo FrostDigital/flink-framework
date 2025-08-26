@@ -40,7 +40,7 @@ export async function getAuthStatus(ctx: BankIdInternalCtx, options: AuthStatusO
         // - Create user if not found
         // - Create access token
         // If host app throws for example notFound error, this will be propagated as response here
-        const authCallbackRes = await pluginOptions.onAuthSuccess(session.user, session.device?.ipAddress);
+        const authCallbackRes = await pluginOptions.onAuthSuccess(session.user, session.device?.ipAddress, session.payload);
 
         return {
             status: "complete",

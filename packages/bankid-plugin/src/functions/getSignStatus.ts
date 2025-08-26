@@ -48,7 +48,7 @@ export async function getSignStatus(ctx: BankIdInternalCtx, options: SignStatusO
         }
 
         // Invoke host app callback
-        await pluginOptions.onSignSuccess(session.user, session.signature);
+        await pluginOptions.onSignSuccess(session.user, session.signature, session.payload);
 
         return {
             status: "complete",

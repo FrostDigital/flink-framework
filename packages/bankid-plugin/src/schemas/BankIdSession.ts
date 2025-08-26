@@ -24,6 +24,7 @@ export default interface BankIdSession {
     hintCode?: string | null;
     ip: string;
     autoStartToken: string;
+    payload?: Record<string, any>;
     qr?: {
         qrStartToken: string;
         qrStartSecret: string;

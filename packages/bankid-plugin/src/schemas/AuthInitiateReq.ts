@@ -1,1 +1,3 @@
-export default interface AuthInitiateReq {}
+export default interface AuthInitiateReq {
+    payload?: Record<string, any>;
+}

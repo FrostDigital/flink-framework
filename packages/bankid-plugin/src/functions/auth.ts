@@ -5,6 +5,7 @@ import { checkAndGenerateQr } from "../bankid-utils";
 
 export interface AuthOptions {
     endUserIp?: string;
+    payload?: Record<string, any>;
 }
 
 export interface AuthResponse {
@@ -55,6 +56,7 @@ export async function auth(ctx: BankIdInternalCtx, options: AuthOptions = {}): P
         createdAt: new Date(),
         ip: clientIp,
         autoStartToken: authResponse.autoStartToken,
+        payload: options.payload,
         qr: {
             qrStartToken: authResponse.qrStartToken,
             qrStartSecret: authResponse.qrStartSecret,
