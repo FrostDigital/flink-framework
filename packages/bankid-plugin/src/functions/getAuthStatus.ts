@@ -1,4 +1,4 @@
-import { log } from "@flink-app/flink";
+import { internalServerError, log, notFound } from "@flink-app/flink";
 import { BankIdInternalCtx } from "../BankIdInternalContext";
 
 export interface AuthStatusOptions {
@@ -23,7 +23,7 @@ export async function getAuthStatus(ctx: BankIdInternalCtx, options: AuthStatusO
     const session = await ctx.repos.bankIdSessionRepo.getSession(orderRef, "auth");
 
     if (!session) {
-        throw new Error("BankId session not found");
+        throw notFound("BankId session not found");
     }
 
     // Session is completed, create tokens
@@ -32,7 +32,7 @@ export async function getAuthStatus(ctx: BankIdInternalCtx, options: AuthStatusO
         if (!session.user) {
             log.error(`Auth session ${orderRef} marked complete but user data is missing`);
             await ctx.repos.bankIdSessionRepo.failSession(orderRef, "USER_DATA_MISSING");
-            throw new Error("User data is missing");
+            throw internalServerError("Session is completed but user data is missing");
         }
 
         // Invoke host app callback which will (probably) do the following:
