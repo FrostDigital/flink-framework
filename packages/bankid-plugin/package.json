@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/bankid-plugin",
-    "version": "0.12.1-alpha.24",
+    "version": "0.12.1-alpha.25",
     "description": "Flink plugin for Swedish BankID authentication and document signing",
     "scripts": {
         "test": "node --preserve-symlinks -r ts-node/register -- node_modules/jasmine/bin/jasmine --config=./spec/support/jasmine.json",
