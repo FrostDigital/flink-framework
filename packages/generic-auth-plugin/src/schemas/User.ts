@@ -4,6 +4,7 @@ import { UserProfile } from "./UserProfile";
 export interface User {
     _id: string;
     username: string;
+    personalNumber?: string;
 
     password?: string;
     salt?: string;
@@ -11,7 +12,7 @@ export interface User {
     pwdResetStartedAt?: string | null;
     roles: string[];
 
-    authentificationMethod: "password" | "sms";
+    authentificationMethod: "password" | "sms" | "bankid";
     profile: UserProfile;
     pushNotificationTokens: Array<PushNotificationToken>;
 }

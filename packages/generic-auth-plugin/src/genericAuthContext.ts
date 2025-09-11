@@ -27,13 +27,14 @@ export interface genericAuthContext {
             auth: JwtAuthPlugin,
             username: string,
             password: string,
-            authentificationMethod: "password" | "sms",
+            authentificationMethod: "password" | "sms" | "bankid",
             roles: string[],
             profile: UserProfile,
             createPasswordHashAndSaltMethod?: {
                 (password: string): Promise<{ hash: string; salt: string } | null>;
             },
-            onUserCreated?: (user: User) => Promise<void>
+            onUserCreated?: (user: User) => Promise<void>,
+            personalNumber?: string
         ): Promise<UserCreateRes>;
         changePassword(
             repo: FlinkRepo<any, User>,

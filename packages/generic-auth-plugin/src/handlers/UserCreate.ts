@@ -5,7 +5,7 @@ import { UserCreateReq } from "../schemas/UserCreateReq";
 import { UserCreateRes } from "../schemas/UserCreateRes";
 
 const userCreateHandler: Handler<FlinkContext<genericAuthContext>, UserCreateReq, UserCreateRes> = async ({ ctx, req, origin }) => {
-    let { password, username, authentificationMethod, profile } = req.body;
+    let { password, username, authentificationMethod, profile, personalNumber } = req.body;
     if (authentificationMethod == null) {
         authentificationMethod = "password";
     }
@@ -36,7 +36,8 @@ const userCreateHandler: Handler<FlinkContext<genericAuthContext>, UserCreateReq
         roles,
         profile,
         (<any>ctx.plugins)[pluginName].createPasswordHashAndSaltMethod,
-        (<any>ctx.plugins)[pluginName].onUserCreated
+        (<any>ctx.plugins)[pluginName].onUserCreated,
+        personalNumber
     );
     if (createUserResponse.status != "success") {
         switch (createUserResponse.status) {

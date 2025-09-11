@@ -1,8 +1,9 @@
 import { UserProfile } from "./UserProfile";
 
-export interface UserCreateReq{
+export interface UserCreateReq {
     username: string;
     password?: string;
-    authentificationMethod? : "password" | "sms"
-    profile? : UserProfile
+    personalNumber?: string;
+    authentificationMethod?: "password" | "sms" | "bankid";
+    profile?: UserProfile;
 }

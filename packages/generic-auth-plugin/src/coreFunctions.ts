@@ -45,7 +45,7 @@ export async function createUser(
     auth: JwtAuthPlugin,
     username: string,
     password: string,
-    authentificationMethod: "password" | "sms",
+    authentificationMethod: "password" | "sms" | "bankid",
     roles: string[],
     profile: UserProfile,
     createPasswordHashAndSaltMethod?: {
@@ -53,7 +53,8 @@ export async function createUser(
     },
     onUserCreated?: {
         (user: User): Promise<void>;
-    }
+    },
+    personalNumber?: string
 ): Promise<UserCreateRes> {
     if (!roles.includes("user")) roles.push("user");
 
@@ -70,6 +71,10 @@ export async function createUser(
         authentificationMethod,
         pushNotificationTokens: [],
     };
+
+    if (personalNumber) {
+        userData.personalNumber = personalNumber;
+    }
 
     if (authentificationMethod == "password") {
         let passwordAndSalt = null;
@@ -96,7 +101,7 @@ export async function createUser(
 
     const token = await auth.createToken({ username: username.toLowerCase(), _id: user._id }, roles);
 
-    if (user.authentificationMethod == "sms") {
+    if (user.authentificationMethod == "sms" || user.authentificationMethod == "bankid") {
         return {
             status: "success",
         };
@@ -204,6 +209,15 @@ export async function loginUser(
             status: "success",
             validationToken: token,
         };
+    }
+    if (user.authentificationMethod == "bankid") {
+        if (!user.personalNumber) {
+            log.warn("BankID login requested but no personal number found for user");
+            return { status: "failed" };
+        }
+
+        log.warn("BankID login required to be handled in other way, i.e. using flink bankid plugin");
+        return { status: "failed" };
     }
 
     if (valid) {
