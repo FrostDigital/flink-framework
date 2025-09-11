@@ -76,6 +76,13 @@ export async function createUser(
         userData.personalNumber = personalNumber;
     }
 
+    if (authentificationMethod == "bankid") {
+        if (!personalNumber) {
+            log.warn("BankID login requested but no personal number found for user");
+            return { status: "error" };
+        }
+    }
+
     if (authentificationMethod == "password") {
         let passwordAndSalt = null;
         if (createPasswordHashAndSaltMethod != null) {
@@ -101,7 +108,7 @@ export async function createUser(
 
     const token = await auth.createToken({ username: username.toLowerCase(), _id: user._id }, roles);
 
-    if (user.authentificationMethod == "sms" || user.authentificationMethod == "bankid") {
+    if (user.authentificationMethod == "sms") {
         return {
             status: "success",
         };
