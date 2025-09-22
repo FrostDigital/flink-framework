@@ -30,10 +30,10 @@ const userLoginHandler: Handler<FlinkContext<genericAuthContext>, UserLoginReq, 
             return {
                 status: error.status,
                 error: {
-                    id: error.id,
-                    title: error.title,
-                    code: error.code,
-                    detail: error.detail,
+                    id: error.error.id,
+                    title: error.error.title,
+                    code: error.error.code,
+                    detail: error.error.detail,
                 },
             } as FlinkResponse;
         }
