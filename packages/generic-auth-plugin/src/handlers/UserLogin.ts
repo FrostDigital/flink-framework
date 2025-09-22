@@ -18,7 +18,8 @@ const userLoginHandler: Handler<FlinkContext<genericAuthContext>, UserLoginReq, 
             req.body.password,
             ctx.plugins.genericAuthPlugin.validatePasswordMethod,
             (<any>ctx.plugins)[pluginName].smsOptions,
-            (<any>ctx.plugins)[pluginName].onSuccessfulLogin
+            (<any>ctx.plugins)[pluginName].onSuccessfulLogin,
+            req
         );
     } catch (error: any) {
         // Convert any thrown error that conforms to flink error structure to a proper response

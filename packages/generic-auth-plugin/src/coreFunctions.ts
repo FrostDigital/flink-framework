@@ -1,4 +1,4 @@
-import { FlinkRepo, FlinkAuthUser, log } from "@flink-app/flink";
+import { FlinkRepo, FlinkAuthUser, log, FlinkRequest } from "@flink-app/flink";
 import { JwtAuthPlugin, jwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 
 import { User } from "./schemas/User";
@@ -164,8 +164,9 @@ export async function loginUser(
     },
     smsOptions?: GenericAuthsmsOptions,
     onSuccessfulLogin?: {
-        (user: User): Promise<void>;
-    }
+        (user: User, req?: FlinkRequest): Promise<void>;
+    },
+    req?: FlinkRequest
 ): Promise<UserLoginRes> {
     const user = await repo.getOne({ username: username.toLowerCase() });
     if (user == null) {
@@ -231,7 +232,7 @@ export async function loginUser(
         const token = await auth.createToken({ username: username.toLowerCase(), _id: user._id }, user.roles);
 
         if (onSuccessfulLogin) {
-            await onSuccessfulLogin(user);
+            await onSuccessfulLogin(user, req);
         }
 
         return {

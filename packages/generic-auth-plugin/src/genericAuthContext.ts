@@ -1,4 +1,4 @@
-import { FlinkRepo } from "@flink-app/flink";
+import { FlinkRepo, FlinkRequest } from "@flink-app/flink";
 import { JwtAuthPlugin } from "@flink-app/jwt-auth-plugin";
 import { User } from "./schemas/User";
 import { UserCreateRes } from "./schemas/UserCreateRes";
@@ -19,7 +19,8 @@ export interface genericAuthContext {
             password?: string,
             validatePasswordMethod?: { (password: string, hash: string, salt: string): Promise<boolean> },
             smsOptions?: GenericAuthsmsOptions,
-            onSuccessfulLogin?: (user: User) => Promise<void>
+            onSuccessfulLogin?: (user: User, req?: FlinkRequest) => Promise<void>,
+            req?: FlinkRequest
         ): Promise<UserLoginRes>;
         loginByToken(repo: FlinkRepo<any, User>, auth: JwtAuthPlugin, token: string, code: string, jwtSecret: string): Promise<UserLoginRes>;
         createUser(
@@ -68,7 +69,7 @@ export interface genericAuthContext {
         validatePasswordMethod?: { (password: string, hash: string, salt: string): Promise<boolean> };
         usernameFormat: RegExp;
         smsOptions?: GenericAuthsmsOptions;
-        onSuccessfulLogin?: { (user: User): Promise<void> };
+        onSuccessfulLogin?: { (user: User, req?: FlinkRequest): Promise<void> };
         onUserCreated?: { (user: User): Promise<void> };
     };
 }
