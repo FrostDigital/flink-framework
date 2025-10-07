@@ -8,4 +8,6 @@ export interface s3PluginOptions {
     enableUpload: boolean;
     uploadUrl?: string;
     uploadPermissionRequired?: string;
+    signatureVersion?: string;
+    region?: string;
 }

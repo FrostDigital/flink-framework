@@ -4,4 +4,6 @@ export interface s3ClientOptions {
     bucket: string;
     s3Acl?: string;
     endpoint?: string;
+    region?: string;
+    signatureVersion?: string;
 }

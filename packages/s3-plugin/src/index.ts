@@ -14,6 +14,8 @@ export const s3Plugin = (options: s3PluginOptions): FlinkPlugin => {
         bucket: options.bucket,
         s3Acl: options.s3Acl,
         endpoint: options.endpoint,
+        signatureVersion: options.signatureVersion,
+        region: options.region,
     });
 
     return {
