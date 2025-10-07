@@ -1,6 +1,6 @@
 {
     "name": "@flink-app/s3-plugin",
-    "version": "0.12.1-alpha.23",
+    "version": "0.12.1-alpha.31",
     "description": "Flink plugin to work with s3",
     "scripts": {
         "test": "echo \"Error: no test specified\"",
