@@ -29,6 +29,8 @@ class S3Client {
             },
             // @ts-ignore
             endpoint: this.s3Endpoint ? new AWS.Endpoint(this.s3Endpoint) : undefined,
+            signatureVersion: options.signatureVersion,
+            region: options.region,
         });
     }
 
